@@ -29,7 +29,7 @@
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
-      "js": ["content.js"],
+      "js": ["content.js", "fingerprint-detector.js"],
       "run_at": "document_idle",
       "all_frames": false
     }

@@ -1,6 +1,37 @@
-// клауд Елдоса N1 — Qalqan AI v3.0
+// клауд Елдоса N1 — Qalqan AI v5.0
+
+import { useState, useEffect } from "react";
 
 export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhitelist }) {
+  const [theme, setTheme] = useState("dark");
+  const [autoCheck, setAutoCheck] = useState(true);
+  const [notifications, setNotifications] = useState(true);
+
+  useEffect(() => {
+    chrome.storage.local.get(["qalqan_theme", "qalqan_autocheck", "qalqan_notifications"], (r) => {
+      if (r.qalqan_theme) setTheme(r.qalqan_theme);
+      if (r.qalqan_autocheck !== undefined) setAutoCheck(r.qalqan_autocheck);
+      if (r.qalqan_notifications !== undefined) setNotifications(r.qalqan_notifications);
+    });
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    chrome.storage.local.set({ qalqan_theme: next });
+    document.body.className = next === "light" ? "light" : "";
+  };
+
+  const toggleAutoCheck = () => {
+    setAutoCheck(!autoCheck);
+    chrome.storage.local.set({ qalqan_autocheck: !autoCheck });
+  };
+
+  const toggleNotifications = () => {
+    setNotifications(!notifications);
+    chrome.storage.local.set({ qalqan_notifications: !notifications });
+  };
+
   const languages = [
     { code: "kk", label: "Қазақша", flag: "🇰🇿" },
     { code: "ru", label: "Русский", flag: "🇷🇺" },
@@ -50,6 +81,29 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Toggles */}
+      <div style={{ background: "rgba(30,41,59,0.6)", borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
+        {[
+          { label: "🌓 " + (theme === "dark" ? "Dark Mode" : "Light Mode"), value: theme === "dark", toggle: toggleTheme },
+          { label: "🔄 Auto-check", value: autoCheck, toggle: toggleAutoCheck },
+          { label: "🔔 Notifications", value: notifications, toggle: toggleNotifications },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+            <span style={{ fontSize: "13px", color: "#e2e8f0" }}>{item.label}</span>
+            <button onClick={item.toggle} style={{
+              width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer",
+              background: item.value ? "#3b82f6" : "#334155", position: "relative", transition: "all 0.3s"
+            }}>
+              <div style={{
+                width: "18px", height: "18px", borderRadius: "50%", background: "white",
+                position: "absolute", top: "3px", transition: "all 0.3s",
+                left: item.value ? "23px" : "3px"
+              }} />
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Whitelist button */}

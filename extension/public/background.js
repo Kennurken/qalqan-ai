@@ -144,6 +144,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get(key, (result) => sendResponse(result[key] || null));
     return true;
   }
+  if (message.action === "FINGERPRINT_DETECTED") {
+    chrome.notifications.create(`fp_${Date.now()}`, {
+      type: "basic",
+      iconUrl: "icons/icon128.png",
+      title: "QALQAN AI: Fingerprint!",
+      message: `${message.types.join(", ")} detected on this site`,
+      priority: 1
+    });
+    sendResponse({ status: "noted" });
+  }
+
   if (message.action === "MANUAL_CHECK") {
     checkUrl(message.url, sender.tab?.id || 0);
     sendResponse({ status: "checking" });

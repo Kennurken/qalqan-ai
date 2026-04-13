@@ -13,6 +13,32 @@ body {
   overflow-x: hidden;
 }
 
+/* Light Theme */
+body.light {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+body.light * {
+  border-color: #e2e8f0 !important;
+}
+body.light div[style*="background: linear-gradient"] {
+  background: #ffffff !important;
+}
+body.light div[style*="background: rgba(30"] {
+  background: rgba(241,245,249,0.8) !important;
+}
+body.light span[style*="color: #94a3b8"],
+body.light div[style*="color: #94a3b8"],
+body.light p[style*="color: #94a3b8"] {
+  color: #64748b !important;
+}
+body.light span[style*="color: #f1f5f9"],
+body.light span[style*="color: #f8fafc"],
+body.light span[style*="color: #e2e8f0"],
+body.light div[style*="color: #f1f5f9"] {
+  color: #0f172a !important;
+}
+
 ::-webkit-scrollbar {
   width: 4px;
 }
