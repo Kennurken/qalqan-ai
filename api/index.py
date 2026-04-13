@@ -1,31 +1,70 @@
-# клауд Елдоса N1 — Qalqan AI v3.0
-# Бас API: 3-деңгейлі қауіп детекция pipeline
-# Tier 0: Whitelist + Cache → Tier 1: Pyramid + Blacklist → Tier 2: External DBs → Tier 3: Gemini AI
+# клауд Елдоса N1 — Qalqan AI v4.0
+# Бас API: 4-деңгейлі қауіп детекция pipeline + security hardening
+# Rate limiting, input validation, structured logging, CORS lock
 
 import json
 import os
-from fastapi import FastAPI
+import time
+import logging
+from collections import defaultdict
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, field_validator, Field
 
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist
+from .services.domain_intel import check_domain_intelligence
 from .services.scoring import calculate_final_verdict
 from .utils.cache import url_hash, get_cached, set_cached
 from .utils.telegram import send_appeal, send_report
 from .utils.i18n import t
 
-app = FastAPI(title="Qalqan AI", version="3.0.0",
+# --- Logging ---
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("qalqan")
+
+app = FastAPI(title="Qalqan AI", version="4.0.0",
               description="AI-powered cybersecurity platform — қазақстандық киберқорғаныс")
 
+# --- CORS: тек extension + localhost ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["chrome-extension://*", "http://localhost:*", "http://127.0.0.1:*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
+
+# --- Rate Limiting (in-memory, IP-based) ---
+_rate_limits: dict[str, list[float]] = defaultdict(list)
+RATE_LIMIT_CHECK = 30   # /check: 30 req/min
+RATE_LIMIT_APPEAL = 5   # /appeal: 5 req/min
+RATE_WINDOW = 60         # 60 seconds
+
+
+def _check_rate_limit(ip: str, limit: int) -> bool:
+    """True = разрешено, False = лимит асып кетті."""
+    now = time.time()
+    timestamps = _rate_limits[ip]
+    # Ескілерді тазалау
+    _rate_limits[ip] = [ts for ts in timestamps if now - ts < RATE_WINDOW]
+    if len(_rate_limits[ip]) >= limit:
+        return False
+    _rate_limits[ip].append(now)
+    return True
+
+
+# --- Request Logging Middleware ---
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = round((time.time() - start) * 1000)
+    if request.url.path != "/":
+        logger.info(f"{request.method} {request.url.path} → {response.status_code} [{duration}ms]")
+    return response
+
 
 # --- Whitelist жүктеу ---
 _data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -34,63 +73,69 @@ _whitelist: set[str] = set()
 try:
     with open(os.path.join(_data_dir, "whitelist.json"), "r", encoding="utf-8") as f:
         _whitelist = set(json.load(f).get("trusted_domains", []))
-except FileNotFoundError:
-    pass
+except (FileNotFoundError, json.JSONDecodeError):
+    logger.warning("whitelist.json жүктелмеді")
 
 
-# --- Деректер модельдері ---
+# --- Деректер модельдері (validated) ---
 class CheckRequest(BaseModel):
-    url: str
-    lang: str = "kk"
+    url: str = Field(..., max_length=2048)
+    lang: str = Field(default="kk", max_length=5)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v):
+        v = v.strip()
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
 
 class TextCheckRequest(BaseModel):
-    text: str
-    lang: str = "kk"
+    text: str = Field(..., max_length=10000)
+    lang: str = Field(default="kk", max_length=5)
 
 class ScreenRequest(BaseModel):
-    image_base64: str
-    lang: str = "kk"
+    image_base64: str = Field(..., max_length=7_000_000)  # ~5MB base64
+    lang: str = Field(default="kk", max_length=5)
 
 class AppealRequest(BaseModel):
-    url: str
-    reason: str
+    url: str = Field(..., max_length=2048)
+    reason: str = Field(..., max_length=1000)
 
 class ReportRequest(BaseModel):
-    url: str
-    threat_type: str = "scam"
-    note: str = ""
+    url: str = Field(..., max_length=2048)
+    threat_type: str = Field(default="scam", max_length=50)
+    note: str = Field(default="", max_length=1000)
 
 
 # --- Health check ---
 @app.get("/")
 async def root():
-    groq_set = bool(os.getenv("GROQ_API_KEY"))
-    gemini_set = bool(os.getenv("GEMINI_API_KEY"))
     return {
         "status": "online",
         "name": "Qalqan AI",
-        "version": "3.0.0",
-        "pipeline": "3-tier: cache → databases → AI",
-        "databases": ["PhishTank", "Google Safe Browsing", "URLhaus", "OpenPhish", "Pyramid List"],
+        "version": "4.0.0",
+        "pipeline": "4-tier: cache → databases → domain_intel → AI",
+        "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "VirusTotal", "AbuseIPDB", "RDAP"],
         "ai_providers": {
-            "groq": "configured" if groq_set else "missing",
-            "gemini": "configured" if gemini_set else "missing"
+            "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
+            "gemini": "configured" if os.getenv("GEMINI_API_KEY") else "missing"
         }
     }
 
 
-# --- НЕГІЗГІ ТЕКСЕРУ: 3-деңгейлі pipeline ---
+# --- НЕГІЗГІ ТЕКСЕРУ: 4-деңгейлі pipeline ---
 @app.post("/check")
-async def check_site(request: CheckRequest):
-    """
-    3-Tier Threat Detection Pipeline:
-    Tier 0: Whitelist + Cache (< 5ms)
-    Tier 1: Pyramid list + Local blacklist (< 10ms)
-    Tier 2: PhishTank + SafeBrowsing + URLhaus + OpenPhish (< 500ms)
-    Tier 3: Gemini AI deep analysis (< 3s)
-    """
-    url = request.url.strip()
-    lang = request.lang or "kk"
+async def check_site(request: CheckRequest, req: Request):
+    # Rate limit
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={
+            "error": "Rate limit exceeded", "detail": "Max 30 requests per minute"
+        })
+
+    url = request.url
+    lang = request.lang
     domain = extract_domain(url)
     key = url_hash(url)
 
@@ -124,52 +169,110 @@ async def check_site(request: CheckRequest):
 
     # --- Tier 2: External databases (параллель) ---
     db_results = await check_all_databases(url)
-    if db_results:
-        result = calculate_final_verdict(db_results, None, None, lang=lang)
+
+    # --- Tier 2.5: Domain intelligence (age + SSL) ---
+    domain_info = await check_domain_intelligence(domain, url)
+
+    # Combine results
+    all_db = db_results + ([domain_info] if domain_info else [])
+
+    if any(r.get("verdict") == "DANGEROUS" for r in all_db):
+        result = calculate_final_verdict(all_db, None, None, lang=lang)
         set_cached(key, result)
         return result
 
-    # --- Tier 3: Gemini AI ---
+    # --- Tier 3: AI analysis ---
     ai_result = await analyze_url(url)
-    result = calculate_final_verdict([], ai_result, None, lang=lang)
+
+    # Domain intel adjusts AI score
+    result = calculate_final_verdict(db_results, ai_result, None,
+                                     domain_info=domain_info, lang=lang)
     set_cached(key, result)
+    logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']}")
     return result
 
 
 # --- МӘТІН ТЕКСЕРУ ---
 @app.post("/check-text")
-async def check_text(request: TextCheckRequest):
-    """Мәтінді AI арқылы тексеру (хабарлама, email, мәтін)."""
+async def check_text(request: TextCheckRequest, req: Request):
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
     ai_result = await analyze_text(request.text)
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 
 # --- СКРИНШОТ ТЕКСЕРУ ---
 @app.post("/analyze-screen")
-async def check_screen(request: ScreenRequest):
-    """Экран скриншотын Gemini Vision арқылы тексеру."""
+async def check_screen(request: ScreenRequest, req: Request):
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
     result = await analyze_screenshot(request.image_base64)
     return calculate_final_verdict([], result, None, lang=request.lang)
 
 
 # --- АПЕЛЛЯЦИЯ ---
 @app.post("/appeal")
-async def appeal(request: AppealRequest):
-    """Қате блоктау туралы апелляция жіберу (Telegram)."""
+async def appeal(request: AppealRequest, req: Request):
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"appeal:{client_ip}", RATE_LIMIT_APPEAL):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     return await send_appeal(request.url, request.reason)
 
 
-# --- ШАҒЫМ ---
+# --- ШАҒЫМ (crowd-sourced) ---
+_reports_file = os.path.join(_data_dir, "reports.json")
+
+def _load_reports() -> dict:
+    try:
+        with open(_reports_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def _save_reports(reports: dict):
+    try:
+        with open(_reports_file, "w", encoding="utf-8") as f:
+            json.dump(reports, f, ensure_ascii=False)
+    except Exception:
+        pass
+
 @app.post("/report")
-async def report_site(request: ReportRequest):
-    """Қауіпті сайт туралы шағым жіберу."""
-    return await send_report(request.url, request.threat_type, request.note)
+async def report_site(request: ReportRequest, req: Request):
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"appeal:{client_ip}", RATE_LIMIT_APPEAL):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    domain = extract_domain(request.url)
+    reports = _load_reports()
+    if domain not in reports:
+        reports[domain] = {"count": 0, "types": [], "first_report": time.time()}
+    reports[domain]["count"] += 1
+    reports[domain]["types"].append(request.threat_type)
+
+    # 5+ репорт = автоматты blacklist
+    auto_blocked = reports[domain]["count"] >= 5
+    _save_reports(reports)
+
+    if auto_blocked:
+        logger.warning(f"AUTO-BLOCKED: {domain} (5+ reports)")
+
+    # Telegram хабарлама
+    result = await send_report(request.url, request.threat_type, request.note)
+    result["reports_count"] = reports[domain]["count"]
+    result["auto_blocked"] = auto_blocked
+    return result
 
 
 # --- СТАТИСТИКА ---
-_stats = {"checked": 0, "dangerous": 0, "suspicious": 0, "safe": 0}
-
 @app.get("/stats")
 async def get_stats():
-    """API қолдану статистикасы."""
-    return _stats
+    reports = _load_reports()
+    return {
+        "total_reported_domains": len(reports),
+        "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 5),
+        "whitelist_size": len(_whitelist)
+    }

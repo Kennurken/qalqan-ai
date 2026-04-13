@@ -10,6 +10,7 @@ def calculate_final_verdict(
     ai_result: dict | None,
     pyramid_domain_hit: dict | None,
     pyramid_text_score: float = 0.0,
+    domain_info: dict | None = None,
     lang: str = "kk"
 ) -> dict:
     """
@@ -45,11 +46,17 @@ def calculate_final_verdict(
         score = ai_result.get("threat_score", 50)
 
         if verdict == "DANGEROUS" and score >= 70:
-            pass  # AI бағасын сақтаймыз
+            pass
         elif verdict == "SUSPICIOUS":
             score = int(score * 0.7)
         elif verdict == "SAFE":
             score = min(score, 30)
+
+        # Domain intelligence бонус (RDAP age + SSL)
+        if domain_info:
+            di_score = domain_info.get("threat_score", 0)
+            score = min(score + di_score, 100)
+            ai_result.setdefault("indicators", []).extend(domain_info.get("indicators", []))
 
         ai_result["threat_score"] = score
 
