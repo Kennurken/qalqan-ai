@@ -314,9 +314,12 @@ class BatchRequest(BaseModel):
 
 
 @app.post("/features")
-async def get_features(request: FeatureRequest):
+async def get_features(request: FeatureRequest, req: Request):
     """Extract 30+ ML features from URL (no HTTP request, pure lexical analysis).
     Use for: ML model training, feature importance analysis, dataset building."""
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     return extract_features(request.url)
 
 

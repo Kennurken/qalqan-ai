@@ -7,4 +7,4 @@ export const API_URL = IS_DEV
   ? "http://127.0.0.1:8000"
   : "https://qalqan-ai-nu.vercel.app";
 
-export const APP_VERSION = "3.0.0";
+export const APP_VERSION = "5.0.0";

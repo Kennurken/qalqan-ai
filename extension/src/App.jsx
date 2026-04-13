@@ -116,7 +116,7 @@ function Header({ t, lang, onStats, onSettings }) {
           <span style={{ fontSize: "20px", fontWeight: 800 }}>🛡️ {t("appName")}</span>
         </div>
         <div style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "12px", letterSpacing: "1px" }}>
-          {t("subtitle")} • v3.0
+          {t("subtitle")} • v{APP_VERSION}
         </div>
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
