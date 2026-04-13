@@ -11,6 +11,7 @@ def calculate_final_verdict(
     pyramid_domain_hit: dict | None,
     pyramid_text_score: float = 0.0,
     domain_info: dict | None = None,
+    url_features: dict | None = None,
     lang: str = "kk"
 ) -> dict:
     """
@@ -57,6 +58,15 @@ def calculate_final_verdict(
             di_score = domain_info.get("threat_score", 0)
             score = min(score + di_score, 100)
             ai_result.setdefault("indicators", []).extend(domain_info.get("indicators", []))
+
+        # URL features бонус (ML lexical analysis)
+        if url_features:
+            uf_score = url_features.get("risk_score", 0)
+            if uf_score >= 60:
+                score = min(score + int(uf_score * 0.3), 100)
+            if url_features.get("has_mixed_script"):
+                score = min(score + 20, 100)
+                ai_result.setdefault("indicators", []).append("homoglyph_attack")
 
         ai_result["threat_score"] = score
 
