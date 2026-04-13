@@ -152,14 +152,14 @@ async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
                 "Content-Type": "application/json"
             })
             if res.status_code != 200:
-                return None
+                return _fallback_result(f"Groq HTTP {res.status_code}: {res.text[:100]}")
             data = res.json()
             raw_text = data["choices"][0]["message"]["content"]
             parsed = _parse_ai_json(raw_text)
             parsed["source"] = "groq_ai"
             return parsed
-    except Exception:
-        return None
+    except Exception as e:
+        return _fallback_result(f"Groq exception: {str(e)[:100]}")
 
 
 # ============================================================
@@ -227,29 +227,29 @@ async def analyze_url(url: str) -> dict:
     """URL тексеру: Groq → Gemini → fallback."""
     # 1. Groq (негізгі — 14,400/day)
     result = await _call_groq(SYSTEM_PROMPT_URL, f"Analyze this URL: {url}")
-    if result:
+    if result and result.get("source") != "ai_error":
         return result
 
     # 2. Gemini (backup — 250/day)
-    result = await _call_gemini(SYSTEM_PROMPT_URL, f"Сілтеме: {url}")
-    if result:
-        return result
+    result2 = await _call_gemini(SYSTEM_PROMPT_URL, f"Сілтеме: {url}")
+    if result2 and result2.get("source") != "ai_error":
+        return result2
 
-    # 3. Fallback
-    return _fallback_result("Барлық AI провайдерлері қолжетімсіз")
+    # 3. Return Groq error if available (for debugging), else generic
+    return result or _fallback_result("Барлық AI провайдерлері қолжетімсіз")
 
 
 async def analyze_text(text: str) -> dict:
     """Мәтін тексеру: Groq → Gemini → fallback."""
     result = await _call_groq(SYSTEM_PROMPT_TEXT, f"Analyze this text: {text}")
-    if result:
+    if result and result.get("source") != "ai_error":
         return result
 
-    result = await _call_gemini(SYSTEM_PROMPT_TEXT, f"Мәтін: {text}")
-    if result:
-        return result
+    result2 = await _call_gemini(SYSTEM_PROMPT_TEXT, f"Мәтін: {text}")
+    if result2 and result2.get("source") != "ai_error":
+        return result2
 
-    return _fallback_result("Барлық AI провайдерлері қолжетімсіз")
+    return result or _fallback_result("Барлық AI провайдерлері қолжетімсіз")
 
 
 async def analyze_screenshot(image_base64: str) -> dict:
