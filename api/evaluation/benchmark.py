@@ -52,21 +52,22 @@ async def run_benchmark(test_urls: dict | None = None, clear_before: bool = True
     for url, actual_label in urls.items():
         start = time.time()
         domain = extract_domain(url)
-        key = url_hash(url)
 
-        # Run through pipeline (simplified — no whitelist shortcut for benchmarking)
+        # Fast-path only: whitelist + pyramid + URL features (no external API = no timeout)
         pyramid_hit = check_pyramid_domain(url)
         url_feats = extract_features(url)
-        db_results = await check_all_databases(url)
-        domain_info = await check_domain_intelligence(domain, url)
 
         if pyramid_hit:
             verdict_data = calculate_final_verdict([], None, pyramid_hit, lang="en")
-        elif db_results:
-            verdict_data = calculate_final_verdict(db_results, None, None, domain_info=domain_info, url_features=url_feats, lang="en")
         else:
-            ai_result = await analyze_url(url)
-            verdict_data = calculate_final_verdict(db_results, ai_result, None, domain_info=domain_info, url_features=url_feats, lang="en")
+            # Score from URL features alone
+            risk = url_feats.get("risk_score", 0)
+            if risk >= 60:
+                verdict_data = {"verdict": "DANGEROUS", "threat_score": risk, "source": "url_features", "threat_type": "suspicious"}
+            elif risk >= 30:
+                verdict_data = {"verdict": "SUSPICIOUS", "threat_score": risk, "source": "url_features", "threat_type": "suspicious"}
+            else:
+                verdict_data = {"verdict": "SAFE", "threat_score": risk, "source": "url_features", "threat_type": "safe"}
 
         latency = int((time.time() - start) * 1000)
 
