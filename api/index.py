@@ -1,6 +1,6 @@
-# клауд Елдоса N1 — Qalqan AI v4.0
-# Бас API: 4-деңгейлі қауіп детекция pipeline + security hardening
-# Rate limiting, input validation, structured logging, CORS lock
+# клауд Елдоса N1 — Qalqan AI v5.0
+# Бас API: 5-деңгейлі қауіп детекция pipeline + ML features + XAI
+# Academic research-grade: features extraction, explainability, evaluation
 
 import json
 import os
@@ -16,6 +16,8 @@ from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist
 from .services.domain_intel import check_domain_intelligence
+from .services.url_features import extract_features
+from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
 from .utils.cache import url_hash, get_cached, set_cached
 from .utils.telegram import send_appeal, send_report
@@ -25,8 +27,8 @@ from .utils.i18n import t
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("qalqan")
 
-app = FastAPI(title="Qalqan AI", version="4.0.0",
-              description="AI-powered cybersecurity platform — қазақстандық киберқорғаныс")
+app = FastAPI(title="Qalqan AI", version="5.0.0",
+              description="AI-powered cybersecurity research platform — PhD-grade threat detection")
 
 # --- CORS: тек extension + localhost ---
 app.add_middleware(
@@ -114,9 +116,10 @@ async def root():
     return {
         "status": "online",
         "name": "Qalqan AI",
-        "version": "4.0.0",
-        "pipeline": "4-tier: cache → databases → domain_intel → AI",
-        "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "VirusTotal", "AbuseIPDB", "RDAP"],
+        "version": "5.0.0",
+        "pipeline": "5-tier: cache → ML_features → databases → domain_intel → AI + XAI",
+        "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "RDAP", "SSL"],
+        "ml_features": "30+ URL lexical features, homoglyph detection, brand similarity",
         "ai_providers": {
             "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
             "gemini": "configured" if os.getenv("GEMINI_API_KEY") else "missing"
@@ -167,28 +170,40 @@ async def check_site(request: CheckRequest, req: Request):
         set_cached(key, result)
         return result
 
+    # --- Tier 1.5: URL Feature Extraction (ML) ---
+    start_time = time.time()
+    url_feats = extract_features(url)
+
     # --- Tier 2: External databases (параллель) ---
     db_results = await check_all_databases(url)
 
     # --- Tier 2.5: Domain intelligence (age + SSL) ---
     domain_info = await check_domain_intelligence(domain, url)
 
-    # Combine results
+    # Combine DB results
     all_db = db_results + ([domain_info] if domain_info else [])
 
     if any(r.get("verdict") == "DANGEROUS" for r in all_db):
-        result = calculate_final_verdict(all_db, None, None, lang=lang)
+        result = calculate_final_verdict(all_db, None, None,
+                                         domain_info=domain_info, url_features=url_feats, lang=lang)
+        result["explanation"] = generate_explanation(url_feats, domain_info, db_results, None, None, result["threat_score"])
+        result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "databases"}
         set_cached(key, result)
         return result
 
     # --- Tier 3: AI analysis ---
     ai_result = await analyze_url(url)
 
-    # Domain intel adjusts AI score
     result = calculate_final_verdict(db_results, ai_result, None,
-                                     domain_info=domain_info, lang=lang)
+                                     domain_info=domain_info, url_features=url_feats, lang=lang)
+    result["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, result["threat_score"])
+    result["metadata"] = {
+        "processing_time_ms": int((time.time() - start_time) * 1000),
+        "tier_hit": "ai",
+        "ai_provider": ai_result.get("source", "unknown") if ai_result else "none"
+    }
     set_cached(key, result)
-    logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']}")
+    logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']} [{result['metadata']['processing_time_ms']}ms]")
     return result
 
 
@@ -275,4 +290,112 @@ async def get_stats():
         "total_reported_domains": len(reports),
         "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 5),
         "whitelist_size": len(_whitelist)
+    }
+
+
+# ============================================================
+# RESEARCH API ENDPOINTS (doctoral-grade)
+# ============================================================
+
+class FeatureRequest(BaseModel):
+    url: str = Field(..., max_length=2048)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v):
+        v = v.strip()
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
+
+class BatchRequest(BaseModel):
+    urls: list[str] = Field(..., max_length=50)
+    lang: str = Field(default="kk", max_length=5)
+
+
+@app.post("/features")
+async def get_features(request: FeatureRequest):
+    """Extract 30+ ML features from URL (no HTTP request, pure lexical analysis).
+    Use for: ML model training, feature importance analysis, dataset building."""
+    return extract_features(request.url)
+
+
+@app.post("/check-research")
+async def check_research(request: CheckRequest, req: Request):
+    """Full research output: all features, all scores, explanation, metadata.
+    Use for: paper benchmarks, ablation studies, system evaluation."""
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    url = request.url
+    lang = request.lang
+    domain = extract_domain(url)
+    start_time = time.time()
+
+    # Extract ALL data
+    url_feats = extract_features(url)
+    pyramid_hit = check_pyramid_domain(url)
+    blacklist_hit = check_local_blacklist(url)
+    db_results = await check_all_databases(url)
+    domain_info = await check_domain_intelligence(domain, url)
+    ai_result = await analyze_url(url)
+
+    # Calculate final verdict
+    result = calculate_final_verdict(
+        db_results, ai_result, pyramid_hit,
+        domain_info=domain_info, url_features=url_feats, lang=lang
+    )
+
+    # Generate explanation
+    explanation = generate_explanation(
+        url_feats, domain_info, db_results, ai_result, pyramid_hit, result["threat_score"]
+    )
+
+    processing_time = int((time.time() - start_time) * 1000)
+
+    return {
+        # Standard verdict
+        "verdict": result["verdict"],
+        "threat_score": result["threat_score"],
+        "threat_type": result.get("threat_type", "unknown"),
+        "source": result.get("source", "unknown"),
+        "detail": result.get("detail", ""),
+        "detail_kk": result.get("detail_kk", ""),
+        "detail_ru": result.get("detail_ru", ""),
+        "detail_en": result.get("detail_en", ""),
+
+        # ML Features (30+)
+        "url_features": url_feats,
+
+        # XAI Explanation
+        "explanation": explanation,
+
+        # Raw scores from each source
+        "scores_breakdown": {
+            "url_features_score": url_feats.get("risk_score", 0),
+            "pyramid_score": 95 if pyramid_hit else 0,
+            "db_score": max((r.get("threat_score", 0) for r in db_results), default=0),
+            "domain_intel_score": domain_info.get("threat_score", 0) if domain_info else 0,
+            "ai_score": ai_result.get("threat_score", 0) if ai_result else 0,
+        },
+
+        # Raw results from each tier
+        "tier_results": {
+            "pyramid": pyramid_hit,
+            "blacklist": blacklist_hit,
+            "databases": db_results,
+            "domain_intel": domain_info,
+            "ai": {k: v for k, v in (ai_result or {}).items() if k != "source"} if ai_result else None,
+        },
+
+        # Metadata
+        "metadata": {
+            "processing_time_ms": processing_time,
+            "url": url,
+            "domain": domain,
+            "ai_provider": ai_result.get("source", "none") if ai_result else "none",
+            "timestamp": time.time(),
+            "version": "5.0.0"
+        }
     }
