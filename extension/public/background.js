@@ -48,11 +48,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 async function checkUrl(url, tabId) {
   try {
     const lang = await getLanguage();
-    const response = await fetch(`${API_URL}/check`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, lang })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let response;
+    try {
+      response = await fetch(`${API_URL}/check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, lang }),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       if (response.status === 429) console.warn("Qalqan: rate limited");

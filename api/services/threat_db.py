@@ -16,6 +16,7 @@ def _safebrowsing_key() -> str:
 # OpenPhish feed — жадта сақталады, 12 сағат сайын жаңартылады
 _openphish_urls: set[str] = set()
 _openphish_loaded: bool = False
+_openphish_lock = asyncio.Lock()
 
 
 def extract_domain(url: str) -> str:
@@ -53,7 +54,8 @@ async def check_phishtank(url: str) -> dict | None:
                     "source": "phishtank",
                     "reason_kk": "PhishTank базасында тіркелген фишинг сайт",
                     "reason_ru": "Фишинговый сайт из базы PhishTank",
-                    "reason_en": "Verified phishing site in PhishTank database"
+                    "reason_en": "Verified phishing site in PhishTank database",
+                    "indicators": ["phishtank_verified"]
                 }
             return None
     except Exception:
@@ -100,7 +102,8 @@ async def check_google_safe_browsing(url: str) -> dict | None:
                     "source": "google_safe_browsing",
                     "reason_kk": f"Google Safe Browsing: {goog_type} анықталды",
                     "reason_ru": f"Google Safe Browsing: обнаружен {goog_type}",
-                    "reason_en": f"Google Safe Browsing: {goog_type} detected"
+                    "reason_en": f"Google Safe Browsing: {goog_type} detected",
+                    "indicators": [f"gsb_{goog_type.lower()}"]
                 }
             return None
     except Exception:
@@ -127,7 +130,8 @@ async def check_urlhaus(url: str) -> dict | None:
                     "source": "urlhaus",
                     "reason_kk": f"URLhaus базасында тіркелген: {threat}",
                     "reason_ru": f"Найден в базе URLhaus: {threat}",
-                    "reason_en": f"Listed in URLhaus database: {threat}"
+                    "reason_en": f"Listed in URLhaus database: {threat}",
+                    "indicators": ["urlhaus_listed"]
                 }
             return None
     except Exception:
@@ -151,7 +155,9 @@ async def check_openphish(url: str) -> dict | None:
     """OpenPhish — тегін фишинг feed (жадтағы set арқылы тексеру)."""
     global _openphish_loaded
     if not _openphish_loaded:
-        await load_openphish_feed()
+        async with _openphish_lock:
+            if not _openphish_loaded:
+                await load_openphish_feed()
 
     if url in _openphish_urls:
         return {
@@ -161,7 +167,8 @@ async def check_openphish(url: str) -> dict | None:
             "source": "openphish",
             "reason_kk": "OpenPhish фишинг тізімінде тіркелген",
             "reason_ru": "Найден в списке фишинговых сайтов OpenPhish",
-            "reason_en": "Listed in OpenPhish phishing feed"
+            "reason_en": "Listed in OpenPhish phishing feed",
+            "indicators": ["openphish_exact"]
         }
 
     # Домен бойынша да тексеру
@@ -175,7 +182,8 @@ async def check_openphish(url: str) -> dict | None:
                 "source": "openphish",
                 "reason_kk": f"OpenPhish тізімінде осы доменнен фишинг табылды",
                 "reason_ru": f"В OpenPhish найден фишинг с этого домена",
-                "reason_en": f"OpenPhish has phishing records from this domain"
+                "reason_en": f"OpenPhish has phishing records from this domain",
+                "indicators": ["openphish_domain"]
             }
     return None
 

@@ -15,8 +15,10 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 function esc(str) {
-  // Sanitize — тек текст, HTML жоқ
-  return String(str || "").replace(/[<>&"']/g, "");
+  // Sanitize — тек текст, HTML/JS injection жоқ
+  return String(str ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#x27;").replace(/\//g, "&#x2F;");
 }
 
 function blockPage(data) {
