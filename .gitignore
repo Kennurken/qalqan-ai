@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store
+*.crx
+*.pem
+*.zip
+*.rar
