@@ -33,7 +33,7 @@ app = FastAPI(title="Qalqan AI", version="5.0.0",
 # --- CORS: тек extension + localhost ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["chrome-extension://*", "http://localhost:*", "http://127.0.0.1:*"],
+    allow_origins=["*"],
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
