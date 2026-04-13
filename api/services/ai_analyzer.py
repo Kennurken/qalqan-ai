@@ -1,85 +1,98 @@
 # клауд Елдоса N1 — Qalqan AI v3.0
-# Gemini AI анализатор: URL, мәтін, скриншот талдау
-# Тек Tier 2 нәтиже бермегенде қолданылады
+# Мульти-провайдер AI анализатор: Groq (негізгі) → Gemini (backup) → Vision
+# Groq: 14,400 req/day (тегін, карта жоқ) — URL + мәтін талдау
+# Gemini: 250 req/day (тегін) — backup + скриншот Vision
 
 import os
 import re
 import json
 import httpx
-from google import genai
-from google.genai import types
 
-api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key) if api_key else None
+# --- API Keys ---
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-MODEL_ID = "gemini-2.5-flash"
+# --- Model configs ---
+GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-SYSTEM_PROMPT_URL = """Сен Qalqan AI — киберқауіпсіздік жүйесісің.
-Сайтты немесе сілтемені талдап, оның қауіпті екенін анықта.
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
-Міндетті ережелер:
-- Казино, құмар ойын, бәс тігу = DANGEROUS
-- Қаржылық пирамида, MLM, гарантированный доход = DANGEROUS
-- Фишинг, жеке деректерді сұрау = DANGEROUS
-- Жалған интернет-дүкен = DANGEROUS
-- Зиянды бағдарлама, вирус = DANGEROUS
+# --- System Prompts ---
+SYSTEM_PROMPT_URL = """You are Qalqan AI — a cybersecurity expert system.
+Analyze the given URL/link and determine if it's dangerous.
 
-Жауапты ТЕК JSON форматында қайтар:
+MANDATORY RULES:
+- Casino, gambling, betting = DANGEROUS
+- Financial pyramid, MLM, guaranteed income = DANGEROUS
+- Phishing, personal data harvesting = DANGEROUS
+- Fake online store = DANGEROUS
+- Malware, virus distribution = DANGEROUS
+- Social engineering, manipulation = DANGEROUS
+
+Respond in STRICT JSON format ONLY:
 {
-  "verdict": "DANGEROUS" немесе "SAFE" немесе "SUSPICIOUS",
+  "verdict": "DANGEROUS" or "SAFE" or "SUSPICIOUS",
   "threat_score": 0-100,
   "threat_type": "phishing|malware|pyramid|scam|gambling|fake_shop|social_engineering|safe",
   "reason_kk": "Қазақша түсіндірме",
-  "reason_ru": "Русское объяснение",
+  "reason_ru": "Объяснение на русском",
   "reason_en": "English explanation",
-  "indicators": ["белгі1", "белгі2"]
+  "indicators": ["indicator1", "indicator2"]
 }"""
 
-SYSTEM_PROMPT_TEXT = """Сен Qalqan AI — киберқауіпсіздік жүйесісің.
-Берілген мәтінді талдап, алаяқтық, фишинг, әлеуметтік инженерия белгілерін анықта.
+SYSTEM_PROMPT_TEXT = """You are Qalqan AI — a cybersecurity expert system.
+Analyze the given text for fraud, phishing, and social engineering.
 
-Тексеретін нәрселер:
-- Жеке деректерді сұрау (пароль, карта нөмірі, ЖСН)
-- Жалған ұтыс, сыйлық уәделері
-- Жедел шешім қабылдауға мәжбүрлеу
-- Қаржылық пирамида белгілері
-- Банк/мемлекет қызметкері ретінде көрсету
+Check for:
+- Requests for personal data (passwords, card numbers, ID)
+- Fake prizes/gifts promises
+- Urgency pressure ("act now", "limited time")
+- Pyramid scheme indicators
+- Bank/government impersonation
+- Emotional manipulation
 
-Жауапты ТЕК JSON форматында қайтар:
+Respond in STRICT JSON format ONLY:
 {
-  "verdict": "DANGEROUS" немесе "SAFE" немесе "SUSPICIOUS",
+  "verdict": "DANGEROUS" or "SAFE" or "SUSPICIOUS",
   "threat_score": 0-100,
   "threat_type": "phishing|scam|pyramid|social_engineering|safe",
   "reason_kk": "Қазақша түсіндірме",
-  "reason_ru": "Русское объяснение",
+  "reason_ru": "Объяснение на русском",
   "reason_en": "English explanation",
-  "indicators": ["белгі1", "белгі2"]
+  "indicators": ["indicator1", "indicator2"]
 }"""
 
-SYSTEM_PROMPT_SCREEN = """Сен Qalqan AI — киберқауіпсіздік жүйесісің.
-Скриншотты талдап, алаяқтық белгілерін анықта.
+SYSTEM_PROMPT_SCREEN = """You are Qalqan AI — a cybersecurity expert.
+Analyze this screenshot for scam/fraud indicators.
 
-Тексеретін нәрселер:
-- Жалған логин формалары (банк, қызмет имитациясы)
-- Жедел хабарламалар ("Сіз ұтып алдыңыз!", "Вирус анықталды!")
-- Жалған попаптар мен ескертулер
-- Банк/мемлекет сайттарын көшіру
-- Күдікті төлем формалары
+Check for:
+- Fake login forms (bank/service impersonation)
+- Urgent messages ("You won!", "Virus detected!")
+- Fake popups and warnings
+- Bank/government site clones
+- Suspicious payment forms
+- Social engineering tactics
 
-Жауапты ТЕК JSON форматында қайтар:
+Respond in STRICT JSON format ONLY:
 {
-  "verdict": "DANGEROUS" немесе "SAFE" немесе "SUSPICIOUS",
+  "verdict": "DANGEROUS" or "SAFE" or "SUSPICIOUS",
   "threat_score": 0-100,
   "threat_type": "phishing|scam|fake_shop|social_engineering|safe",
   "reason_kk": "Қазақша түсіндірме",
-  "reason_ru": "Русское объяснение",
+  "reason_ru": "Объяснение на русском",
   "reason_en": "English explanation",
-  "indicators": ["белгі1", "белгі2"]
+  "indicators": ["indicator1", "indicator2"]
 }"""
 
 
 def _parse_ai_json(raw_text: str) -> dict:
     """AI жауабынан JSON шығарып алу."""
+    if not raw_text:
+        return _fallback_result("Empty AI response")
+
+    # JSON блогын іздеу
     match = re.search(r"\{.*\}", raw_text, re.DOTALL)
     if match:
         try:
@@ -87,13 +100,13 @@ def _parse_ai_json(raw_text: str) -> dict:
         except json.JSONDecodeError:
             pass
 
-    # Fallback: regex pattern matching (qalqanai стилі)
-    verdict_match = re.search(r"verdict[\"']?\s*[:=]\s*[\"']?(DANGEROUS|SAFE|SUSPICIOUS)", raw_text, re.I)
-    score_match = re.search(r"(?:threat_score|score|confidence)[\"']?\s*[:=]\s*(\d+)", raw_text, re.I)
+    # Fallback regex
+    verdict_match = re.search(r"(DANGEROUS|SAFE|SUSPICIOUS)", raw_text, re.I)
+    score_match = re.search(r"(\d{1,3})", raw_text)
 
     return {
         "verdict": verdict_match.group(1).upper() if verdict_match else "SUSPICIOUS",
-        "threat_score": int(score_match.group(1)) if score_match else 50,
+        "threat_score": min(int(score_match.group(1)), 100) if score_match else 50,
         "threat_type": "unknown",
         "reason_kk": raw_text[:200],
         "reason_ru": raw_text[:200],
@@ -102,75 +115,144 @@ def _parse_ai_json(raw_text: str) -> dict:
     }
 
 
-async def analyze_url(url: str) -> dict:
-    """URL-ді Gemini AI арқылы тексеру."""
-    if not client:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": "AI қызметі қолжетімсіз", "source": "ai_error"}
+def _fallback_result(error_msg: str) -> dict:
+    return {
+        "verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
+        "reason_kk": f"AI қатесі: {error_msg[:80]}",
+        "reason_ru": f"Ошибка AI: {error_msg[:80]}",
+        "reason_en": f"AI error: {error_msg[:80]}",
+        "indicators": [], "source": "ai_error"
+    }
+
+
+# ============================================================
+# GROQ — Негізгі AI (14,400 req/day, ~330 RPM, карта жоқ)
+# ============================================================
+
+async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
+    """Groq API шақыру (OpenAI-compatible)."""
+    if not GROQ_API_KEY:
+        return None
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=[f"{SYSTEM_PROMPT_URL}\n\nСілтеме: {url}"],
-            config=types.GenerateContentConfig(temperature=0.1)
-        )
-        parsed = _parse_ai_json(response.text)
-        parsed["source"] = "ai"
-        return parsed
-    except Exception as e:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": f"AI қатесі: {str(e)[:80]}", "source": "ai_error"}
+        payload = {
+            "model": GROQ_MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            "temperature": 0.1,
+            "max_tokens": 500
+        }
+        async with httpx.AsyncClient(timeout=15) as client:
+            res = await client.post(GROQ_URL, json=payload, headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            })
+            if res.status_code != 200:
+                return None
+            data = res.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "groq_ai"
+            return parsed
+    except Exception:
+        return None
 
 
-async def analyze_text(text: str) -> dict:
-    """Мәтінді AI арқылы тексеру (хабарламалар, электрондық пошта)."""
-    if not client:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": "AI қызметі қолжетімсіз", "source": "ai_error"}
+# ============================================================
+# GEMINI — Backup AI (250 req/day) + Vision (скриншот)
+# ============================================================
+
+async def _call_gemini(system_prompt: str, user_content: str) -> dict | None:
+    """Gemini API шақыру (REST)."""
+    if not GEMINI_API_KEY:
+        return None
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=[f"{SYSTEM_PROMPT_TEXT}\n\nМәтін: {text}"],
-            config=types.GenerateContentConfig(temperature=0.1)
-        )
-        parsed = _parse_ai_json(response.text)
-        parsed["source"] = "ai"
-        return parsed
-    except Exception as e:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": f"AI қатесі: {str(e)[:80]}", "source": "ai_error"}
+        url = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_content}"}]}]
+        }
+        async with httpx.AsyncClient(timeout=20) as client:
+            res = await client.post(url, json=payload)
+            if res.status_code != 200:
+                return None
+            data = res.json()
+            if "candidates" not in data or not data["candidates"]:
+                return None
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "gemini_ai"
+            return parsed
+    except Exception:
+        return None
 
 
-async def analyze_screenshot(image_base64: str) -> dict:
-    """Скриншотты Gemini Vision арқылы тексеру."""
-    if not api_key:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": "AI қызметі қолжетімсіз", "source": "ai_error"}
+async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | None:
+    """Gemini Vision API — скриншот талдау."""
+    if not GEMINI_API_KEY:
+        return None
     try:
-        # Vision API — REST арқылы (detectAI тәсілі)
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_ID}:generateContent?key={api_key}"
+        url = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": SYSTEM_PROMPT_SCREEN},
+                    {"text": system_prompt},
                     {"inline_data": {"mime_type": "image/jpeg", "data": image_base64}}
                 ]
             }]
         }
-        async with httpx.AsyncClient(timeout=30) as http:
-            res = await http.post(gemini_url, json=payload)
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(url, json=payload)
             if res.status_code != 200:
-                return {"verdict": "SUSPICIOUS", "threat_score": 50, "source": "ai_error",
-                        "reason_kk": f"Vision API қатесі: {res.status_code}"}
-
+                return None
             data = res.json()
             if "candidates" not in data or not data["candidates"]:
-                return {"verdict": "SUSPICIOUS", "threat_score": 50, "source": "ai_error",
-                        "reason_kk": "AI жауап бермеді"}
-
+                return None
             raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
             parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "ai_vision"
+            parsed["source"] = "gemini_vision"
             return parsed
-    except Exception as e:
-        return {"verdict": "SUSPICIOUS", "threat_score": 50, "threat_type": "unknown",
-                "reason_kk": f"Vision қатесі: {str(e)[:80]}", "source": "ai_error"}
+    except Exception:
+        return None
+
+
+# ============================================================
+# PUBLIC API — Мульти-провайдер fallback chain
+# ============================================================
+
+async def analyze_url(url: str) -> dict:
+    """URL тексеру: Groq → Gemini → fallback."""
+    # 1. Groq (негізгі — 14,400/day)
+    result = await _call_groq(SYSTEM_PROMPT_URL, f"Analyze this URL: {url}")
+    if result:
+        return result
+
+    # 2. Gemini (backup — 250/day)
+    result = await _call_gemini(SYSTEM_PROMPT_URL, f"Сілтеме: {url}")
+    if result:
+        return result
+
+    # 3. Fallback
+    return _fallback_result("Барлық AI провайдерлері қолжетімсіз")
+
+
+async def analyze_text(text: str) -> dict:
+    """Мәтін тексеру: Groq → Gemini → fallback."""
+    result = await _call_groq(SYSTEM_PROMPT_TEXT, f"Analyze this text: {text}")
+    if result:
+        return result
+
+    result = await _call_gemini(SYSTEM_PROMPT_TEXT, f"Мәтін: {text}")
+    if result:
+        return result
+
+    return _fallback_result("Барлық AI провайдерлері қолжетімсіз")
+
+
+async def analyze_screenshot(image_base64: str) -> dict:
+    """Скриншот тексеру: тек Gemini Vision (Groq Vision жоқ)."""
+    result = await _call_gemini_vision(SYSTEM_PROMPT_SCREEN, image_base64)
+    if result:
+        return result
+
+    return _fallback_result("Vision AI қолжетімсіз")
