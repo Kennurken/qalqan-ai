@@ -7,8 +7,11 @@ import asyncio
 import httpx
 from urllib.parse import urlparse
 
-PHISHTANK_API_KEY = os.getenv("PHISHTANK_API_KEY", "")
-GOOGLE_SAFE_BROWSING_KEY = os.getenv("GOOGLE_SAFE_BROWSING_KEY", "")
+def _phishtank_key() -> str:
+    return os.getenv("PHISHTANK_API_KEY", "")
+
+def _safebrowsing_key() -> str:
+    return os.getenv("GOOGLE_SAFE_BROWSING_KEY", "")
 
 # OpenPhish feed — жадта сақталады, 12 сағат сайын жаңартылады
 _openphish_urls: set[str] = set()
@@ -25,14 +28,14 @@ def extract_domain(url: str) -> str:
 
 async def check_phishtank(url: str) -> dict | None:
     """PhishTank API — фишинг URL базасы (тегін, API key қажет)."""
-    if not PHISHTANK_API_KEY:
+    if not _phishtank_key():
         return None
     try:
         async with httpx.AsyncClient(timeout=8) as client:
             data = {
                 "url": url,
                 "format": "json",
-                "app_key": PHISHTANK_API_KEY
+                "app_key": _phishtank_key()
             }
             res = await client.post(
                 "https://checkurl.phishtank.com/checkurl/",
@@ -59,10 +62,10 @@ async def check_phishtank(url: str) -> dict | None:
 
 async def check_google_safe_browsing(url: str) -> dict | None:
     """Google Safe Browsing API v4 — зиянды URL базасы (тегін 10k/күн)."""
-    if not GOOGLE_SAFE_BROWSING_KEY:
+    if not _safebrowsing_key():
         return None
     try:
-        api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={GOOGLE_SAFE_BROWSING_KEY}"
+        api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={_safebrowsing_key()}"
         payload = {
             "client": {"clientId": "qalqan-ai", "clientVersion": "3.0"},
             "threatInfo": {

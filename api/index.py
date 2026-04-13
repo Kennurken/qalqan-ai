@@ -64,12 +64,18 @@ class ReportRequest(BaseModel):
 # --- Health check ---
 @app.get("/")
 async def root():
+    groq_set = bool(os.getenv("GROQ_API_KEY"))
+    gemini_set = bool(os.getenv("GEMINI_API_KEY"))
     return {
         "status": "online",
         "name": "Qalqan AI",
         "version": "3.0.0",
         "pipeline": "3-tier: cache → databases → AI",
-        "databases": ["PhishTank", "Google Safe Browsing", "URLhaus", "OpenPhish", "Pyramid List"]
+        "databases": ["PhishTank", "Google Safe Browsing", "URLhaus", "OpenPhish", "Pyramid List"],
+        "ai_providers": {
+            "groq": "configured" if groq_set else "missing",
+            "gemini": "configured" if gemini_set else "missing"
+        }
     }
 
 
