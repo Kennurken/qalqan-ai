@@ -181,13 +181,18 @@ async def check_openphish(url: str) -> dict | None:
 
 
 async def check_all_databases(url: str) -> list[dict]:
-    """Барлық базаларды параллель тексеру. Нәтижелер тізімін қайтарады."""
-    results = await asyncio.gather(
-        check_phishtank(url),
-        check_google_safe_browsing(url),
-        check_urlhaus(url),
-        check_openphish(url),
-        return_exceptions=True
-    )
-    # Тек сәтті нәтижелерді қайтару (None және Exception-ды сүзу)
+    """Барлық базаларды параллель тексеру. Max 5 секунд timeout."""
+    try:
+        results = await asyncio.wait_for(
+            asyncio.gather(
+                check_phishtank(url),
+                check_google_safe_browsing(url),
+                check_urlhaus(url),
+                check_openphish(url),
+                return_exceptions=True
+            ),
+            timeout=5.0
+        )
+    except asyncio.TimeoutError:
+        results = []
     return [r for r in results if isinstance(r, dict)]

@@ -6,7 +6,10 @@
 import os
 import re
 import json
+import logging
 import httpx
+
+logger = logging.getLogger("qalqan")
 
 # --- API Keys (runtime-да оқылады, import кезінде емес) ---
 def _groq_key() -> str:
@@ -152,14 +155,16 @@ async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
                 "Content-Type": "application/json"
             })
             if res.status_code != 200:
-                return _fallback_result(f"Groq HTTP {res.status_code}: {res.text[:100]}")
+                logger.warning(f"Groq API error: {res.status_code} {res.text[:200]}")
+                return None
             data = res.json()
             raw_text = data["choices"][0]["message"]["content"]
             parsed = _parse_ai_json(raw_text)
             parsed["source"] = "groq_ai"
             return parsed
     except Exception as e:
-        return _fallback_result(f"Groq exception: {str(e)[:100]}")
+        logger.warning(f"Groq exception: {e}")
+        return None
 
 
 # ============================================================
