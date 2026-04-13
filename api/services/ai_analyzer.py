@@ -8,9 +8,12 @@ import re
 import json
 import httpx
 
-# --- API Keys ---
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+# --- API Keys (runtime-да оқылады, import кезінде емес) ---
+def _groq_key() -> str:
+    return os.getenv("GROQ_API_KEY", "")
+
+def _gemini_key() -> str:
+    return os.getenv("GEMINI_API_KEY", "")
 
 # --- Model configs ---
 GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
@@ -131,7 +134,7 @@ def _fallback_result(error_msg: str) -> dict:
 
 async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
     """Groq API шақыру (OpenAI-compatible)."""
-    if not GROQ_API_KEY:
+    if not _groq_key():
         return None
     try:
         payload = {
@@ -145,7 +148,7 @@ async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
         }
         async with httpx.AsyncClient(timeout=15) as client:
             res = await client.post(GROQ_URL, json=payload, headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Authorization": f"Bearer {_groq_key()}",
                 "Content-Type": "application/json"
             })
             if res.status_code != 200:
@@ -165,10 +168,10 @@ async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
 
 async def _call_gemini(system_prompt: str, user_content: str) -> dict | None:
     """Gemini API шақыру (REST)."""
-    if not GEMINI_API_KEY:
+    if not _gemini_key():
         return None
     try:
-        url = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
+        url = f"{GEMINI_URL}?key={_gemini_key()}"
         payload = {
             "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_content}"}]}]
         }
@@ -189,10 +192,10 @@ async def _call_gemini(system_prompt: str, user_content: str) -> dict | None:
 
 async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | None:
     """Gemini Vision API — скриншот талдау."""
-    if not GEMINI_API_KEY:
+    if not _gemini_key():
         return None
     try:
-        url = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
+        url = f"{GEMINI_URL}?key={_gemini_key()}"
         payload = {
             "contents": [{
                 "parts": [

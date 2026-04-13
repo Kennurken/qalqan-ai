@@ -4,12 +4,15 @@
 import os
 import httpx
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+def _bot_token() -> str | None:
+    return os.getenv("TELEGRAM_BOT_TOKEN")
+
+def _chat_id() -> str | None:
+    return os.getenv("TELEGRAM_CHAT_ID")
 
 
 async def send_appeal(url: str, reason: str) -> dict:
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+    if not _bot_token() or not _chat_id():
         return {"status": "error", "message": "Telegram баптаулары жоқ!"}
 
     message = (
@@ -19,9 +22,9 @@ async def send_appeal(url: str, reason: str) -> dict:
         f"⏰ *Уақыт:* автоматты"
     )
 
-    api_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    api_url = f"https://api.telegram.org/bot{_bot_token()}/sendMessage"
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": _chat_id(),
         "text": message,
         "parse_mode": "Markdown"
     }
@@ -37,7 +40,7 @@ async def send_appeal(url: str, reason: str) -> dict:
 
 
 async def send_report(url: str, threat_type: str, reporter_note: str = "") -> dict:
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+    if not _bot_token() or not _chat_id():
         return {"status": "error", "message": "Telegram баптаулары жоқ!"}
 
     message = (
@@ -47,9 +50,9 @@ async def send_report(url: str, threat_type: str, reporter_note: str = "") -> di
         f"📝 *Ескерту:* {reporter_note or 'жоқ'}"
     )
 
-    api_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    api_url = f"https://api.telegram.org/bot{_bot_token()}/sendMessage"
     payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": _chat_id(),
         "text": message,
         "parse_mode": "Markdown"
     }
