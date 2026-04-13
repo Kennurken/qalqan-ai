@@ -190,6 +190,7 @@ async def check_openphish(url: str) -> dict | None:
 
 async def check_all_databases(url: str) -> list[dict]:
     """Барлық базаларды параллель тексеру. Max 5 секунд timeout."""
+    from .virustotal import check_virustotal
     try:
         results = await asyncio.wait_for(
             asyncio.gather(
@@ -197,6 +198,7 @@ async def check_all_databases(url: str) -> list[dict]:
                 check_google_safe_browsing(url),
                 check_urlhaus(url),
                 check_openphish(url),
+                check_virustotal(url),
                 return_exceptions=True
             ),
             timeout=5.0
