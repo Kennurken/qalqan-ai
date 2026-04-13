@@ -2,7 +2,7 @@
 // Background Service Worker: автоматты URL тексеру + badge + notifications
 // Бұл жалғыз тексеруші — content.js тек блоктау үшін
 
-const API_URL = "https://qalqan-ai.vercel.app";
+const API_URL = "https://qalqan-ai-nu.vercel.app";
 const DEBOUNCE_MS = 3000;
 const recentChecks = new Map();
 
