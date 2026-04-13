@@ -39,6 +39,24 @@ async def send_appeal(url: str, reason: str) -> dict:
         return {"status": "error", "message": str(e)[:100]}
 
 
+async def notify_block(url: str, verdict: str, score: int, source: str):
+    """Send Telegram notification when a dangerous site is blocked."""
+    if not _bot_token() or not _chat_id():
+        return
+    message = (
+        f"🛑 *QALQAN AI: БЛОКИРОВКА*\n\n"
+        f"🌐 *Сайт:* {url}\n"
+        f"⚠️ *Вердикт:* {verdict} ({score}/100)\n"
+        f"🔍 *Источник:* {source}"
+    )
+    api_url = f"https://api.telegram.org/bot{_bot_token()}/sendMessage"
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(api_url, json={"chat_id": _chat_id(), "text": message, "parse_mode": "Markdown"})
+    except Exception:
+        pass
+
+
 async def send_report(url: str, threat_type: str, reporter_note: str = "") -> dict:
     if not _bot_token() or not _chat_id():
         return {"status": "error", "message": "Telegram баптаулары жоқ!"}

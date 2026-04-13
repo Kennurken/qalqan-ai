@@ -14,6 +14,7 @@ import StatsPanel from "./components/StatsPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import ReportButton from "./components/ReportButton";
 import HistoryPanel from "./components/HistoryPanel";
+import WhitelistPanel from "./components/WhitelistPanel";
 
 import kkStrings from "./i18n/kk.json";
 import ruStrings from "./i18n/ru.json";
@@ -106,8 +107,9 @@ export default function App() {
       )}
 
       {view === "stats" && <StatsPanel t={t} onBack={() => setView("main")} />}
-      {view === "settings" && <SettingsPanel lang={lang} onLangChange={changeLang} t={t} onBack={() => setView("main")} />}
+      {view === "settings" && <SettingsPanel lang={lang} onLangChange={changeLang} t={t} onBack={() => setView("main")} onWhitelist={() => setView("whitelist")} />}
       {view === "history" && <HistoryPanel t={t} onBack={() => setView("main")} />}
+      {view === "whitelist" && <WhitelistPanel t={t} onBack={() => setView("main")} />}
     </div>
   );
 }
