@@ -19,7 +19,8 @@ from .services.domain_intel import check_domain_intelligence
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
-from .utils.cache import url_hash, get_cached, set_cached
+from .utils.cache import url_hash, get_cached, set_cached, clear_cache
+from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report
 from .utils.i18n import t
 
@@ -402,3 +403,18 @@ async def check_research(request: CheckRequest, req: Request):
             "version": "5.0.0"
         }
     }
+
+
+# ============================================================
+# EVALUATION ENDPOINT
+# ============================================================
+
+@app.post("/evaluate")
+async def evaluate(req: Request):
+    """Run benchmark on built-in test dataset. Returns accuracy, F1, MCC, per-URL results."""
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", 5):  # max 5 evals/min
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    results = await run_benchmark()
+    return results
