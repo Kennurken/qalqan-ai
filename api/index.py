@@ -6,6 +6,7 @@ import json
 import os
 import time
 import logging
+import asyncio
 from collections import defaultdict
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +22,7 @@ from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
 from .utils.cache import url_hash, get_cached, set_cached, clear_cache
 from .evaluation.benchmark import run_benchmark
-from .utils.telegram import send_appeal, send_report
+from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
 
 # --- Logging ---
@@ -205,6 +206,11 @@ async def check_site(request: CheckRequest, req: Request):
     }
     set_cached(key, result)
     logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']} [{result['metadata']['processing_time_ms']}ms]")
+
+    # Telegram notification for dangerous sites
+    if result.get("verdict") == "DANGEROUS":
+        asyncio.create_task(notify_block(url, result["verdict"], result["threat_score"], result.get("source", "")))
+
     return result
 
 

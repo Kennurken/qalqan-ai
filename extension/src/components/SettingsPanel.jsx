@@ -1,6 +1,6 @@
 // клауд Елдоса N1 — Qalqan AI v3.0
 
-export default function SettingsPanel({ lang, onLangChange, t, onBack }) {
+export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhitelist }) {
   const languages = [
     { code: "kk", label: "Қазақша", flag: "🇰🇿" },
     { code: "ru", label: "Русский", flag: "🇷🇺" },
@@ -52,12 +52,24 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack }) {
         </div>
       </div>
 
+      {/* Whitelist button */}
+      {onWhitelist && (
+        <button onClick={onWhitelist} style={{
+          width: "100%", padding: "12px", marginBottom: "12px",
+          background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)",
+          borderRadius: "12px", color: "#34d399", cursor: "pointer", fontSize: "14px", fontWeight: 600,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
+        }}>
+          ✅ Whitelist Manager
+        </button>
+      )}
+
       <div style={{
         background: "rgba(30,41,59,0.6)", borderRadius: "12px",
         padding: "14px", textAlign: "center"
       }}>
         <div style={{ fontSize: "11px", color: "#64748b" }}>
-          Qalqan AI v3.0 — Cyber Shield
+          Qalqan AI v5.0 — Cyber Shield
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginTop: "4px" }}>
           Made in Kazakhstan 🇰🇿
