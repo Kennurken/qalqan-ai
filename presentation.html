@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1.0">
+<title>QalqanAI — ИИ ассистент против киберугроз</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #020617; --surface: #0f172a; --card: #1e293b;
+  --blue: #3b82f6; --cyan: #06b6d4; --red: #ef4444;
+  --green: #10b981; --yellow: #f59e0b; --purple: #8b5cf6;
+  --text: #f1f5f9; --muted: #94a3b8;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  overflow: hidden; perspective: 1200px;
+}
+
+/* SLIDE SYSTEM */
+.slide {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px; opacity: 0; pointer-events: none;
+  transform: translateZ(-100px) rotateY(5deg);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide.active {
+  opacity: 1; pointer-events: all;
+  transform: translateZ(0) rotateY(0);
+}
+
+/* BACKGROUNDS */
+.bg-grid {
+  background-image:
+    radial-gradient(ellipse at top, rgba(59,130,246,0.15), transparent 60%),
+    linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+.bg-threat {
+  background: radial-gradient(ellipse at center, rgba(239,68,68,0.12), transparent 60%), var(--bg);
+}
+.bg-safe {
+  background: radial-gradient(ellipse at center, rgba(16,185,129,0.12), transparent 60%), var(--bg);
+}
+
+/* 3D FLOATING */
+@keyframes float { 0%,100% { transform: translateY(0) rotateX(0); } 50% { transform: translateY(-15px) rotateX(2deg); } }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 20px rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 60px rgba(59,130,246,0.6); } }
+@keyframes glow { 0%,100% { text-shadow: 0 0 20px rgba(59,130,246,0.5); } 50% { text-shadow: 0 0 40px rgba(59,130,246,0.8), 0 0 80px rgba(59,130,246,0.3); } }
+@keyframes slideUp { from { opacity:0; transform: translateY(40px); } to { opacity:1; transform: translateY(0); } }
+@keyframes countUp { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+@keyframes scanline { 0% { top: -2px; } 100% { top: 100%; } }
+
+.float { animation: float 6s ease-in-out infinite; }
+.glow { animation: glow 3s ease-in-out infinite; }
+.slide-up { animation: slideUp 0.8s ease-out both; }
+
+/* TITLE */
+.title { font-size: 72px; font-weight: 900; letter-spacing: -2px; line-height: 1.1; }
+.subtitle { font-size: 28px; font-weight: 300; color: var(--muted); margin-top: 16px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 100px; padding: 8px 20px; font-size: 14px; font-weight: 600;
+  color: var(--blue); margin-bottom: 24px;
+}
+
+/* CARDS */
+.card-grid { display: grid; gap: 20px; width: 100%; max-width: 1200px; }
+.card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+.card {
+  background: rgba(30,41,59,0.6); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;
+  padding: 28px; transition: all 0.4s; position: relative; overflow: hidden;
+}
+.card:hover { transform: translateY(-4px) scale(1.02); border-color: rgba(59,130,246,0.3); }
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  opacity: 0; transition: opacity 0.4s;
+}
+.card:hover::before { opacity: 1; }
+
+.card-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+.card-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.card-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+/* STATS */
+.stat { text-align: center; }
+.stat-number { font-size: 56px; font-weight: 900; animation: countUp 0.6s ease-out both; }
+.stat-label { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+/* PIPELINE */
+.pipeline { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.pipe-step {
+  background: var(--card); border-radius: 16px; padding: 16px 20px;
+  text-align: center; min-width: 130px; border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s;
+}
+.pipe-step:hover { border-color: var(--blue); transform: scale(1.05); }
+.pipe-arrow { font-size: 24px; color: var(--blue); }
+.pipe-time { font-size: 11px; color: var(--cyan); font-weight: 700; }
+.pipe-name { font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+/* TABLE */
+.data-table { width: 100%; max-width: 1100px; border-collapse: collapse; }
+.data-table th { text-align: left; padding: 12px 16px; font-size: 13px; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.data-table td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.data-table tr:hover td { background: rgba(59,130,246,0.05); }
+
+.tag {
+  display: inline-block; padding: 3px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+}
+.tag-red { background: rgba(239,68,68,0.15); color: #f87171; }
+.tag-green { background: rgba(16,185,129,0.15); color: #34d399; }
+.tag-yellow { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.tag-blue { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+/* SHIELD 3D */
+.shield-3d {
+  width: 200px; height: 200px; margin: 20px auto;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 80px; animation: pulse 3s ease-in-out infinite, float 6s ease-in-out infinite;
+  box-shadow: 0 20px 60px rgba(59,130,246,0.3);
+}
+
+/* NAVIGATION */
+.nav {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 100; background: rgba(15,23,42,0.8);
+  backdrop-filter: blur(20px); padding: 8px 16px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.nav-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s;
+}
+.nav-dot.active { background: var(--blue); width: 30px; border-radius: 5px; }
+
+.slide-counter {
+  position: fixed; top: 30px; right: 40px; font-size: 14px;
+  color: var(--muted); z-index: 100;
+}
+
+/* CODE BLOCK */
+.code {
+  background: #0d1117; border-radius: 12px; padding: 20px;
+  font-family: 'Fira Code', monospace; font-size: 13px;
+  color: #c9d1d9; overflow-x: auto; text-align: left;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.code .keyword { color: #ff7b72; }
+.code .string { color: #a5d6ff; }
+.code .comment { color: #8b949e; }
+.code .number { color: #79c0ff; }
+
+.section-label { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
+
+/* RESPONSIVE */
+h2 { font-size: 48px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+h3 { font-size: 32px; font-weight: 700; margin-bottom: 24px; }
+
+.highlight { color: var(--blue); }
+.danger { color: var(--red); }
+.safe { color: var(--green); }
+
+.flex-center { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.w-full { width: 100%; max-width: 1200px; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide bg-grid active" id="s0">
+  <div class="shield-3d">🛡️</div>
+  <div class="badge">Научный семинар 2026</div>
+  <h1 class="title glow">Qalqan<span class="highlight">AI</span></h1>
+  <p class="subtitle">ИИ ассистент против киберугроз в интернет-среде</p>
+  <p style="margin-top:24px; color:var(--muted); font-size:16px;">
+    Марукоб Елдос • Научный руководитель: [Руководитель]<br>
+    Қызылорда, 2026
+  </p>
+</div>
+
+<!-- SLIDE 2: PROBLEM -->
+<div class="slide bg-threat" id="s1">
+  <div class="section-label">Проблема</div>
+  <h2>Киберугрозы в Казахстане: <span class="danger">масштаб проблемы</span></h2>
+  <div class="card-grid cols-4 mt-20">
+    <div class="card" style="animation-delay:0.1s">
+      <div class="stat">
+        <div class="stat-number danger">+340%</div>
+        <div class="stat-label">Рост фишинг-атак в КЗ за 2024-2025</div>
+      </div>
+    </div>
+    <div class="card" style="animation-delay:0.2s">
+      <div class="stat">
+        <div class="stat-number" style="color:var(--yellow)">₸12.8B</div>
+        <div class="stat-label">Ущерб от онлайн-мошенничества в 2025</div>
+      </div>
+    </div>
+    <div class="card" style="animation-delay:0.3s">
+      <div class="stat">
+        <div class="stat-number" style="color:var(--purple)">46+</div>
+        <div class="stat-label">Финансовых пирамид, работающих в КЗ</div>
+      </div>
+    </div>
+    <div class="card" style="animation-delay:0.4s">
+      <div class="stat">
+        <div class="stat-number danger">95%</div>
+        <div class="stat-label">Фишинг-сайтов &lt; 30 дней</div>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:24px; color:var(--muted); max-width:800px; text-align:center; line-height:1.7;">
+    Существующие решения (Google Safe Browsing, Kaspersky) не учитывают специфику казахстанского интернет-пространства: кириллические гомоглифы, казахоязычный фишинг, местные финансовые пирамиды
+  </p>
+</div>
+
+<!-- SLIDE 3: SOLUTION -->
+<div class="slide bg-safe" id="s2">
+  <div class="section-label">Решение</div>
+  <h2>QalqanAI: <span class="highlight">5-уровневая</span> система защиты</h2>
+  <div class="pipeline mt-20">
+    <div class="pipe-step"><div class="pipe-time">&lt;1ms</div><div class="pipe-name">Cache +<br>Whitelist</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="pipe-time">&lt;5ms</div><div class="pipe-name">Pyramid DB<br>(46 схем)</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="pipe-time">&lt;10ms</div><div class="pipe-name">ML Features<br>(37 признаков)</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="pipe-time">&lt;500ms</div><div class="pipe-name">Threat DBs<br>(4 базы)</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="pipe-time">&lt;1s</div><div class="pipe-name">Domain Intel<br>(RDAP+SSL)</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" style="border-color:var(--blue)"><div class="pipe-time">&lt;3s</div><div class="pipe-name">Groq AI<br>(14,400/day)</div></div>
+  </div>
+  <p style="margin-top:24px; color:var(--muted); font-size:16px;">
+    Каскадная архитектура: каждый следующий уровень задействуется только если предыдущий не дал вердикт
+  </p>
+</div>
+
+<!-- SLIDE 4: ARCHITECTURE -->
+<div class="slide bg-grid" id="s3">
+  <div class="section-label">Архитектура</div>
+  <h2>Технологический стек</h2>
+  <div class="card-grid cols-3 mt-20">
+    <div class="card">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">AI Layer</div>
+      <div class="card-text">
+        <strong>Groq Llama 3.1 8B</strong> — 14,400 req/day<br>
+        <strong>Gemini 2.5 Flash</strong> — backup + Vision<br>
+        Multi-provider fallback chain
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Threat Intelligence</div>
+      <div class="card-text">
+        PhishTank, Google Safe Browsing,<br>
+        URLhaus, OpenPhish, RDAP,<br>
+        SSL Check, Pyramid DB (46 схем)
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔬</span>
+      <div class="card-title">ML Features Engine</div>
+      <div class="card-text">
+        37 лексических URL-признаков<br>
+        Гомоглиф-детектор (Cyrillic↔Latin)<br>
+        Brand similarity (50 KZ брендов)
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🛡️</span>
+      <div class="card-title">Chrome Extension</div>
+      <div class="card-text">
+        Manifest V3, React 19<br>
+        Auto-check каждой страницы<br>
+        Блокировка + уведомления
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📊</span>
+      <div class="card-title">XAI (Explainability)</div>
+      <div class="card-text">
+        Factor breakdown каждого вердикта<br>
+        Counterfactual explanations<br>
+        Confidence scoring
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🌐</span>
+      <div class="card-title">API & Deploy</div>
+      <div class="card-text">
+        FastAPI на Vercel Serverless<br>
+        Rate Limiting, Input Validation<br>
+        3 языка: қаз / рус / eng
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: ML FEATURES -->
+<div class="slide bg-grid" id="s4">
+  <div class="section-label">ML Feature Engineering</div>
+  <h2>37 признаков URL-анализа</h2>
+  <div class="card-grid cols-2 mt-20">
+    <div class="card">
+      <div class="card-title">Лексические признаки</div>
+      <div class="code">
+<span class="comment">// Извлечение за &lt;10ms без HTTP запроса</span>
+{
+  <span class="string">"url_entropy"</span>: <span class="number">4.27</span>,      <span class="comment">// Shannon entropy</span>
+  <span class="string">"is_free_tld"</span>: <span class="number">1</span>,          <span class="comment">// .tk, .ml, .ga</span>
+  <span class="string">"num_subdomains"</span>: <span class="number">3</span>,
+  <span class="string">"suspicious_keywords"</span>: [<span class="string">"login"</span>, <span class="string">"verify"</span>],
+  <span class="string">"has_punycode"</span>: <span class="number">0</span>,
+  <span class="string">"digit_ratio"</span>: <span class="number">0.12</span>
+}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Гомоглиф-детекция (уникально для КЗ)</div>
+      <div class="code">
+<span class="comment">// Cyrillic 'а' (U+0430) vs Latin 'a' (U+0061)</span>
+<span class="comment">// kаspi.kz → визуально идентичен kaspi.kz</span>
+{
+  <span class="string">"homoglyph_count"</span>: <span class="number">1</span>,
+  <span class="string">"has_mixed_script"</span>: <span class="number">1</span>,
+  <span class="string">"homoglyph_chars"</span>: [<span class="string">"а→a"</span>],
+  <span class="string">"brand_match"</span>: <span class="string">"kaspi"</span>,
+  <span class="string">"brand_edit_distance"</span>: <span class="number">0</span>
+}
+<span class="comment">// Результат: +25 к threat_score</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: XAI -->
+<div class="slide bg-grid" id="s5">
+  <div class="section-label">Explainability (XAI)</div>
+  <h2>Объяснимый ИИ: <span class="highlight">почему</span> сайт опасен</h2>
+  <div class="card" style="max-width:900px; margin:20px auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <span style="font-size:20px; font-weight:800; color:var(--red);">❌ DANGEROUS — 87/100</span>
+      <span class="tag tag-red">phishing</span>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="width:160px; font-size:13px;">Domain age: 3 days</span>
+        <div style="flex:1; height:20px; background:rgba(239,68,68,0.1); border-radius:10px; overflow:hidden;">
+          <div style="width:70%; height:100%; background:var(--red); border-radius:10px;"></div>
+        </div>
+        <span style="font-size:13px; color:var(--red); font-weight:700;">+35</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="width:160px; font-size:13px;">No SSL certificate</span>
+        <div style="flex:1; height:20px; background:rgba(239,68,68,0.1); border-radius:10px; overflow:hidden;">
+          <div style="width:60%; height:100%; background:var(--red); border-radius:10px;"></div>
+        </div>
+        <span style="font-size:13px; color:var(--red); font-weight:700;">+30</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <span style="width:160px; font-size:13px;">Brand: kaspi (dist=2)</span>
+        <div style="flex:1; height:20px; background:rgba(245,158,11,0.1); border-radius:10px; overflow:hidden;">
+          <div style="width:50%; height:100%; background:var(--yellow); border-radius:10px;"></div>
+        </div>
+        <span style="font-size:13px; color:var(--yellow); font-weight:700;">+15</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="width:160px; font-size:13px;">AI verdict</span>
+        <div style="flex:1; height:20px; background:rgba(59,130,246,0.1); border-radius:10px; overflow:hidden;">
+          <div style="width:14%; height:100%; background:var(--blue); border-radius:10px;"></div>
+        </div>
+        <span style="font-size:13px; color:var(--blue); font-weight:700;">+7</span>
+      </div>
+    </div>
+    <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:10px; font-size:13px; color:var(--muted);">
+      <strong>Counterfactual:</strong> Сайт был бы SAFE (score &lt;40) если: домен старше 365 дней И имеет SSL сертификат
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: RESULTS -->
+<div class="slide bg-grid" id="s6">
+  <div class="section-label">Результаты тестирования</div>
+  <h2>Эффективность детекции</h2>
+  <table class="data-table mt-20">
+    <thead>
+      <tr><th>Тест</th><th>URL</th><th>Вердикт</th><th>Score</th><th>Источник</th><th>Время</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Whitelist</td><td>kaspi.kz</td><td><span class="tag tag-green">SAFE</span></td><td>0</td><td>whitelist</td><td>&lt;1ms</td></tr>
+      <tr><td>Пирамида</td><td>crowd1.com</td><td><span class="tag tag-red">DANGEROUS</span></td><td>95</td><td>pyramid_list</td><td>&lt;5ms</td></tr>
+      <tr><td>Пирамида</td><td>finiko.com</td><td><span class="tag tag-red">DANGEROUS</span></td><td>95</td><td>pyramid_list</td><td>&lt;5ms</td></tr>
+      <tr><td>Gambling</td><td>1xbet.com</td><td><span class="tag tag-red">DANGEROUS</span></td><td>80</td><td>groq_ai</td><td>~2s</td></tr>
+      <tr><td>Free TLD</td><td>kaspi-login.tk</td><td><span class="tag tag-yellow">SUSPICIOUS</span></td><td>42</td><td>groq_ai</td><td>~2s</td></tr>
+      <tr><td>Validation</td><td>ftp://bad</td><td><span class="tag tag-blue">REJECTED</span></td><td>—</td><td>validation</td><td>&lt;1ms</td></tr>
+      <tr><td>ML Features</td><td>kaspi-verify.tk</td><td colspan="4">37 features: brand=kaspi, free_tld=1, keywords=[login,verify]</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SLIDE 8: UNIQUE -->
+<div class="slide bg-grid" id="s7">
+  <div class="section-label">Научная новизна</div>
+  <h2>Что отличает QalqanAI</h2>
+  <div class="card-grid cols-2 mt-20">
+    <div class="card">
+      <span class="card-icon">🇰🇿</span>
+      <div class="card-title">Первая система для КЗ</div>
+      <div class="card-text">
+        50 казахстанских брендов в базе (Kaspi, Halyk, eGov)<br>
+        46 пирамидных схем с фокусом на КЗ<br>
+        Казахский + русский + английский интерфейс<br>
+        Паттерны eGov/Kaspi фишинга
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔤</span>
+      <div class="card-title">Гомоглиф-детекция</div>
+      <div class="card-text">
+        Обнаружение Cyrillic↔Latin подмены символов<br>
+        Критично для кириллических доменов .kz<br>
+        а/a, е/e, о/o, с/c, р/p, у/y, х/x<br>
+        <strong>Нет аналогов</strong> в существующих инструментах
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧪</span>
+      <div class="card-title">Multi-Source Fusion</div>
+      <div class="card-text">
+        7+ источников разведки объединены в один pipeline<br>
+        Каскадная архитектура с взвешенным скорингом<br>
+        Dempster-Shafer подход к комбинации сигналов<br>
+        Research API для академических бенчмарков
+      </div>
+    </div>
+    <div class="card">
+      <span class="card-icon">💡</span>
+      <div class="card-title">Explainable AI</div>
+      <div class="card-text">
+        SHAP-подобные объяснения каждого вердикта<br>
+        Counterfactual reasoning<br>
+        Factor breakdown с impact scores<br>
+        Публикуемо: IEEE TIFS, ACM CCS, CHI
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: COMPARISON -->
+<div class="slide bg-grid" id="s8">
+  <div class="section-label">Сравнительный анализ</div>
+  <h2>QalqanAI vs Конкуренты</h2>
+  <table class="data-table mt-20">
+    <thead>
+      <tr><th>Функция</th><th>Google SB</th><th>Kaspersky</th><th>Netcraft</th><th style="color:var(--blue)">QalqanAI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Фишинг детекция</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>AI анализ</td><td>❌</td><td>❌</td><td>Частично</td><td><strong>✅ Groq + Gemini</strong></td></tr>
+      <tr><td>Пирамиды / MLM</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ 46 схем</strong></td></tr>
+      <tr><td>Казахский язык</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ kk/ru/en</strong></td></tr>
+      <tr><td>Гомоглифы Cyrillic</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ 7 пар</strong></td></tr>
+      <tr><td>XAI объяснения</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ Factor + Counterfactual</strong></td></tr>
+      <tr><td>ML Features API</td><td>❌</td><td>❌</td><td>❌</td><td><strong>✅ 37 features</strong></td></tr>
+      <tr><td>Domain Age (RDAP)</td><td>❌</td><td>❌</td><td>✅</td><td><strong>✅ бесплатно</strong></td></tr>
+      <tr><td>Стоимость</td><td>Бесплатно</td><td>$30/год</td><td>Бесплатно</td><td><strong>Бесплатно</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SLIDE 10: DEMO -->
+<div class="slide bg-grid" id="s9">
+  <div class="section-label">Демонстрация</div>
+  <h2>Live API</h2>
+  <div class="card" style="max-width:900px; margin:20px auto;">
+    <div class="code" style="font-size:14px;">
+<span class="comment">// POST https://qalqan-ai-nu.vercel.app/check-research</span>
+<span class="comment">// Ответ содержит: вердикт + 37 ML features + XAI + metadata</span>
+
+{
+  <span class="string">"verdict"</span>: <span class="string">"DANGEROUS"</span>,
+  <span class="string">"threat_score"</span>: <span class="number">87</span>,
+  <span class="string">"url_features"</span>: { <span class="comment">// 37 ML признаков</span>
+    <span class="string">"url_entropy"</span>: <span class="number">4.27</span>,
+    <span class="string">"is_free_tld"</span>: <span class="number">1</span>,
+    <span class="string">"brand_match"</span>: <span class="string">"kaspi"</span>,
+    <span class="string">"homoglyph_count"</span>: <span class="number">1</span>
+  },
+  <span class="string">"explanation"</span>: { <span class="comment">// XAI</span>
+    <span class="string">"top_factors"</span>: [...],
+    <span class="string">"counterfactual"</span>: <span class="string">"SAFE if domain age > 365 days"</span>,
+    <span class="string">"confidence"</span>: <span class="number">0.87</span>
+  },
+  <span class="string">"metadata"</span>: {
+    <span class="string">"processing_time_ms"</span>: <span class="number">1243</span>,
+    <span class="string">"ai_provider"</span>: <span class="string">"groq_ai"</span>
+  }
+}
+    </div>
+  </div>
+  <div class="flex-center mt-20">
+    <div class="badge" style="font-size:16px;">🌐 API: qalqan-ai-nu.vercel.app</div>
+    <div class="badge" style="font-size:16px;">📦 GitHub: Kennurken/qalqan-ai</div>
+  </div>
+</div>
+
+<!-- SLIDE 11: FUTURE -->
+<div class="slide bg-grid" id="s10">
+  <div class="section-label">Перспективы</div>
+  <h2>Направления исследований</h2>
+  <div class="card-grid cols-3 mt-20">
+    <div class="card">
+      <span class="card-icon">📊</span>
+      <div class="card-title">Dataset Paper</div>
+      <div class="card-text">Первый казахский фишинг-датасет для NeurIPS Datasets Track</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Fine-tuning</div>
+      <div class="card-text">XLM-RoBERTa на трилингвальном корпусе kk/ru/en для ACL/EMNLP</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">👤</span>
+      <div class="card-title">User Study</div>
+      <div class="card-text">Влияние XAI на поведение пользователей для CHI/SOUPS</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📈</span>
+      <div class="card-title">Temporal Evaluation</div>
+      <div class="card-text">Оценка на zero-day фишинге с temporal split</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">💰</span>
+      <div class="card-title">Economic Impact</div>
+      <div class="card-text">Модель снижения финансового ущерба в КЗ</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📱</span>
+      <div class="card-title">Mobile Extension</div>
+      <div class="card-text">Android/iOS версия для мобильных пользователей</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12: THANK YOU -->
+<div class="slide bg-grid" id="s11">
+  <div class="shield-3d" style="width:150px; height:150px; font-size:60px;">🛡️</div>
+  <h1 class="title glow" style="font-size:56px; margin-top:20px;">Назарларыңызға рахмет!</h1>
+  <p class="subtitle">Спасибо за внимание!</p>
+  <div class="flex-center mt-20" style="gap:30px;">
+    <div style="text-align:center;">
+      <div style="font-size:14px; color:var(--muted);">GitHub</div>
+      <div style="font-size:18px; font-weight:700;">Kennurken/qalqan-ai</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:14px; color:var(--muted);">Live API</div>
+      <div style="font-size:18px; font-weight:700;">qalqan-ai-nu.vercel.app</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:14px; color:var(--muted);">Email</div>
+      <div style="font-size:18px; font-weight:700;">kmarukob76@gmail.com</div>
+    </div>
+  </div>
+  <p style="margin-top:40px; color:var(--muted); font-size:14px;">
+    Qalqan AI v5.0 • Made in Kazakhstan 🇰🇿 • 2026
+  </p>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav" id="nav"></div>
+<div class="slide-counter" id="counter">1 / 12</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+const counter = document.getElementById('counter');
+let current = 0;
+
+// Build nav dots
+slides.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goTo(i);
+  nav.appendChild(dot);
+});
+
+function goTo(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[current].classList.remove('active');
+  nav.children[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  nav.children[current].classList.add('active');
+  counter.textContent = `${current + 1} / ${slides.length}`;
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goTo(current - 1); }
+  if (e.key === 'Home') goTo(0);
+  if (e.key === 'End') goTo(slides.length - 1);
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+// Touch/swipe
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+document.addEventListener('touchend', e => {
+  const diff = touchX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) diff > 0 ? goTo(current + 1) : goTo(current - 1);
+});
+</script>
+</body>
+</html>
