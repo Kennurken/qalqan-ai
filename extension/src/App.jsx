@@ -12,6 +12,8 @@ import ScreenshotCheck from "./components/ScreenshotCheck";
 import AppealForm from "./components/AppealForm";
 import StatsPanel from "./components/StatsPanel";
 import SettingsPanel from "./components/SettingsPanel";
+import ReportButton from "./components/ReportButton";
+import HistoryPanel from "./components/HistoryPanel";
 
 import kkStrings from "./i18n/kk.json";
 import ruStrings from "./i18n/ru.json";
@@ -50,7 +52,7 @@ export default function App() {
       {/* Header — барлық views-те көрінеді */}
       {view === "main" && (
         <>
-          <Header t={t} lang={lang} onStats={() => setView("stats")} onSettings={() => setView("settings")} />
+          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onSettings={() => setView("settings")} />
 
           {/* Негізгі тексеру батырмасы */}
           {!result && !error && (
@@ -60,6 +62,7 @@ export default function App() {
                 <TextCheck onCheck={(text) => checkText(text, lang)} loading={loading} t={t} />
                 <ScreenshotCheck onCheck={() => checkScreen(lang)} loading={loading} t={t} />
               </div>
+              <ReportButton t={t} />
             </>
           )}
 
@@ -68,6 +71,7 @@ export default function App() {
             <>
               <ResultCard result={result} t={t} />
               <AppealForm result={result} onSendAppeal={sendAppeal} t={t} />
+              <ReportButton t={t} />
               <button
                 onClick={reset}
                 style={{
@@ -103,11 +107,12 @@ export default function App() {
 
       {view === "stats" && <StatsPanel t={t} onBack={() => setView("main")} />}
       {view === "settings" && <SettingsPanel lang={lang} onLangChange={changeLang} t={t} onBack={() => setView("main")} />}
+      {view === "history" && <HistoryPanel t={t} onBack={() => setView("main")} />}
     </div>
   );
 }
 
-function Header({ t, lang, onStats, onSettings }) {
+function Header({ t, lang, onStats, onHistory, onSettings }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
       <div>
@@ -121,6 +126,7 @@ function Header({ t, lang, onStats, onSettings }) {
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
         <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>📊</button>
+        <button onClick={() => onHistory && onHistory()} title="History" style={iconBtnStyle}>📜</button>
         <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>⚙️</button>
       </div>
     </div>

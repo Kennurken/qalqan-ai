@@ -1,6 +1,8 @@
-// клауд Елдоса N1 — Qalqan AI v4.0
-// Background Service Worker: auto-check + badge + notifications
+// клауд Елдоса N1 — Qalqan AI v5.0
+// Background Service Worker: auto-check + badge + notifications + offline + history
 // Memory-safe: cleanup on tab close + periodic purge
+
+importScripts("offline-db.js");
 
 const API_URL = "https://qalqan-ai-nu.vercel.app";
 const DEBOUNCE_MS = 3000;
@@ -73,6 +75,7 @@ async function checkUrl(url, tabId) {
 
     chrome.storage.local.set({ [`result_${tabId}`]: data });
     updateStats(data.verdict);
+    saveHistory(url, data);
 
     const isDangerous = data.verdict === "DANGEROUS";
     const isSuspicious = data.threat_score >= 40 && data.threat_score < 70;
@@ -97,6 +100,20 @@ async function checkUrl(url, tabId) {
       chrome.action.setBadgeText({ text: "", tabId });
     }
   } catch (error) {
+    // Offline fallback
+    if (typeof offlineCheck === "function") {
+      const offResult = offlineCheck(url);
+      if (offResult) {
+        chrome.storage.local.set({ [`result_${tabId}`]: offResult });
+        if (offResult.verdict === "DANGEROUS") {
+          chrome.action.setBadgeText({ text: "!", tabId });
+          chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
+          sendBlockCommand(tabId, offResult);
+        }
+        saveHistory(url, offResult);
+        return;
+      }
+    }
     console.error("Qalqan check error:", error.message);
   }
 }
@@ -142,6 +159,24 @@ async function updateStats(verdict) {
   else if (verdict === "SUSPICIOUS") s.suspicious++;
   else s.safe++;
   chrome.storage.local.set({ qalqan_stats: s });
+}
+
+async function saveHistory(url, data) {
+  try {
+    const domain = new URL(url).hostname.replace("www.", "");
+    const r = await chrome.storage.local.get("qalqan_history");
+    const history = r.qalqan_history || [];
+    history.push({
+      url, domain,
+      verdict: data.verdict,
+      score: data.threat_score || 0,
+      source: data.source || "unknown",
+      time: new Date().toLocaleString()
+    });
+    // Keep last 200
+    if (history.length > 200) history.splice(0, history.length - 200);
+    chrome.storage.local.set({ qalqan_history: history });
+  } catch {}
 }
 
 async function getLanguage() {
