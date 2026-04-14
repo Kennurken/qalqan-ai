@@ -22,7 +22,7 @@ def _gemini_key() -> str:
 GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 # --- System Prompts ---
