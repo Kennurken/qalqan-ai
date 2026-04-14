@@ -20,10 +20,14 @@ def _gemini_key() -> str:
 
 # --- Model configs ---
 GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
+GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview"  # Vision model
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
+# Vision fallback models
+GEMINI_VISION_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro-vision"]
 
 # --- System Prompts ---
 SYSTEM_PROMPT_URL = """You are Qalqan AI — a cybersecurity expert system.
@@ -261,43 +265,97 @@ async def analyze_text(text: str) -> dict:
     return result or _fallback_result("Барлық AI провайдерлері қолжетімсіз")
 
 
+async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | None:
+    """Groq Vision API — llama-3.2-90b-vision-preview."""
+    if not _groq_key():
+        logger.warning("Groq Vision: GROQ_API_KEY not configured")
+        return None
+    try:
+        payload = {
+            "model": GROQ_VISION_MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                ]}
+            ],
+            "temperature": 0.1,
+            "max_tokens": 500
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(GROQ_URL, json=payload, headers={
+                "Authorization": f"Bearer {_groq_key()}",
+                "Content-Type": "application/json"
+            })
+            if res.status_code != 200:
+                logger.warning(f"Groq Vision error: {res.status_code} {res.text[:200]}")
+                return None
+            data = res.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "groq_vision"
+            return parsed
+    except Exception as e:
+        logger.warning(f"Groq Vision exception: {e}")
+        return None
+
+
 async def analyze_screenshot(image_base64: str) -> dict:
-    """Скриншот тексеру: Gemini Vision (2.0-flash) → fallback."""
-    result, error_detail = await _call_gemini_vision_with_detail(SYSTEM_PROMPT_SCREEN, image_base64)
+    """Скриншот тексеру: Groq Vision → Gemini Vision → fallback."""
+    # 1. Groq Vision (primary — llama-3.2-90b-vision)
+    result = await _call_groq_vision(SYSTEM_PROMPT_SCREEN, image_base64)
     if result:
         return result
+
+    # 2. Gemini Vision (fallback — tries multiple models)
+    result2, error_detail = await _call_gemini_vision_with_detail(SYSTEM_PROMPT_SCREEN, image_base64)
+    if result2:
+        return result2
 
     return _fallback_result(f"Vision AI қатесі: {error_detail}")
 
 
 async def _call_gemini_vision_with_detail(system_prompt: str, image_base64: str) -> tuple[dict | None, str]:
-    """Gemini Vision with error detail for debugging."""
+    """Gemini Vision with model fallback chain."""
     if not _gemini_key():
         return None, "GEMINI_API_KEY орнатылмаған"
-    try:
-        url = f"{GEMINI_URL}?key={_gemini_key()}"
-        payload = {
-            "contents": [{
-                "parts": [
-                    {"text": system_prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": image_base64}}
-                ]
-            }]
-        }
-        async with httpx.AsyncClient(timeout=30) as client:
-            res = await client.post(url, json=payload)
-            if res.status_code != 200:
-                error_msg = res.text[:200] if res.text else f"status {res.status_code}"
-                logger.warning(f"Gemini Vision error: {res.status_code} {error_msg}")
-                return None, f"Gemini API {res.status_code}: {error_msg[:250]}"
-            data = res.json()
-            if "candidates" not in data or not data["candidates"]:
-                logger.warning("Gemini Vision: no candidates in response")
-                return None, "Gemini жауап бермеді (no candidates)"
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "gemini_vision"
-            return parsed, ""
-    except Exception as e:
-        logger.warning(f"Gemini Vision exception: {e}")
-        return None, str(e)[:100]
+
+    models_to_try = GEMINI_VISION_MODELS
+    last_error = ""
+
+    for model in models_to_try:
+        try:
+            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_gemini_key()}"
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {"text": system_prompt},
+                        {"inline_data": {"mime_type": "image/jpeg", "data": image_base64}}
+                    ]
+                }]
+            }
+            async with httpx.AsyncClient(timeout=30) as client:
+                res = await client.post(api_url, json=payload)
+                if res.status_code == 404:
+                    last_error = f"{model}: 404 not found"
+                    logger.info(f"Gemini Vision: model {model} not found, trying next...")
+                    continue
+                if res.status_code != 200:
+                    last_error = f"{model}: {res.status_code}"
+                    logger.warning(f"Gemini Vision {model} error: {res.status_code} {res.text[:200]}")
+                    continue
+                data = res.json()
+                if "candidates" not in data or not data["candidates"]:
+                    last_error = f"{model}: no candidates"
+                    continue
+                raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                parsed = _parse_ai_json(raw_text)
+                parsed["source"] = "gemini_vision"
+                logger.info(f"Gemini Vision success with model: {model}")
+                return parsed, ""
+        except Exception as e:
+            last_error = f"{model}: {str(e)[:80]}"
+            logger.warning(f"Gemini Vision {model} exception: {e}")
+            continue
+
+    return None, f"Барлық модельдер сәтсіз: {last_error}"
