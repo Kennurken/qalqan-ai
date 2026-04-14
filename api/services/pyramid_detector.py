@@ -31,16 +31,38 @@ def check_pyramid_domain(url: str) -> dict | None:
 
     for scheme in data.get("known_schemes", []):
         for d in scheme.get("domains", []):
-            if d in domain or domain in d:
-                return {
-                    "verdict": "DANGEROUS",
-                    "threat_score": 95,
-                    "threat_type": "pyramid",
-                    "source": "pyramid_list",
-                    "reason_kk": f"Белгілі қаржылық пирамида: {scheme['name']}. Ақша салмаңыз!",
-                    "reason_ru": f"Известная финансовая пирамида: {scheme['name']}. Не вкладывайте деньги!",
-                    "reason_en": f"Known financial pyramid: {scheme['name']}. Do not invest!"
-                }
+            if d == domain or domain.endswith("." + d):
+                scheme_type = scheme.get("type", "pyramid")
+                if scheme_type == "gambling":
+                    return {
+                        "verdict": "DANGEROUS",
+                        "threat_score": 90,
+                        "threat_type": "gambling",
+                        "source": "gambling_list",
+                        "reason_kk": f"Құмар ойын сайты: {scheme['name']}. Қауіпті!",
+                        "reason_ru": f"Азартный сайт: {scheme['name']}. Опасно!",
+                        "reason_en": f"Gambling site: {scheme['name']}. Dangerous!"
+                    }
+                elif scheme_type == "phishing":
+                    return {
+                        "verdict": "DANGEROUS",
+                        "threat_score": 95,
+                        "threat_type": "phishing",
+                        "source": "phishing_list",
+                        "reason_kk": f"Фишинг сайт: {scheme['name']}. Жеке деректеріңізді енгізбеңіз!",
+                        "reason_ru": f"Фишинг сайт: {scheme['name']}. Не вводите личные данные!",
+                        "reason_en": f"Phishing site: {scheme['name']}. Do not enter personal data!"
+                    }
+                else:
+                    return {
+                        "verdict": "DANGEROUS",
+                        "threat_score": 95,
+                        "threat_type": "pyramid",
+                        "source": "pyramid_list",
+                        "reason_kk": f"Белгілі қаржылық пирамида: {scheme['name']}. Ақша салмаңыз!",
+                        "reason_ru": f"Известная финансовая пирамида: {scheme['name']}. Не вкладывайте деньги!",
+                        "reason_en": f"Known financial pyramid: {scheme['name']}. Do not invest!"
+                    }
     return None
 
 
