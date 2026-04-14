@@ -289,7 +289,7 @@ async def _call_gemini_vision_with_detail(system_prompt: str, image_base64: str)
             if res.status_code != 200:
                 error_msg = res.text[:200] if res.text else f"status {res.status_code}"
                 logger.warning(f"Gemini Vision error: {res.status_code} {error_msg}")
-                return None, f"Gemini API {res.status_code}: {error_msg[:100]}"
+                return None, f"Gemini API {res.status_code}: {error_msg[:250]}"
             data = res.json()
             if "candidates" not in data or not data["candidates"]:
                 logger.warning("Gemini Vision: no candidates in response")
