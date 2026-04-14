@@ -88,10 +88,18 @@ export function useCheckUrl() {
     setResult(null);
     try {
       const dataUrl = await new Promise((resolve, reject) => {
-        chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 80 }, (url) => {
-          if (url) resolve(url);
-          else reject(new Error("Скриншот алу мүмкін болмады"));
-        });
+        try {
+          chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 80 }, (url) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message || "Скриншот алу мүмкін болмады"));
+              return;
+            }
+            if (url) resolve(url);
+            else reject(new Error("Скриншот алу мүмкін болмады"));
+          });
+        } catch (e) {
+          reject(new Error("Скриншот рұқсаты жоқ. chrome:// беттерін тексеру мүмкін емес."));
+        }
       });
       if (!dataUrl.includes(",")) throw new Error("Скриншот форматы дұрыс емес");
       const base64 = dataUrl.split(",")[1];

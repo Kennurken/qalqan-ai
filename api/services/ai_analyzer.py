@@ -24,6 +24,8 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+GEMINI_VISION_MODEL = "gemini-2.0-flash"
+GEMINI_VISION_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_VISION_MODEL}:generateContent"
 
 # --- System Prompts ---
 SYSTEM_PROMPT_URL = """You are Qalqan AI — a cybersecurity expert system.
@@ -198,9 +200,10 @@ async def _call_gemini(system_prompt: str, user_content: str) -> dict | None:
 async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | None:
     """Gemini Vision API — скриншот талдау."""
     if not _gemini_key():
+        logger.warning("Gemini Vision: GEMINI_API_KEY not configured")
         return None
     try:
-        url = f"{GEMINI_URL}?key={_gemini_key()}"
+        url = f"{GEMINI_VISION_URL}?key={_gemini_key()}"
         payload = {
             "contents": [{
                 "parts": [
@@ -212,15 +215,18 @@ async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | N
         async with httpx.AsyncClient(timeout=30) as client:
             res = await client.post(url, json=payload)
             if res.status_code != 200:
+                logger.warning(f"Gemini Vision error: {res.status_code} {res.text[:300]}")
                 return None
             data = res.json()
             if "candidates" not in data or not data["candidates"]:
+                logger.warning(f"Gemini Vision: no candidates in response")
                 return None
             raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
             parsed = _parse_ai_json(raw_text)
             parsed["source"] = "gemini_vision"
             return parsed
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Gemini Vision exception: {e}")
         return None
 
 
@@ -258,9 +264,46 @@ async def analyze_text(text: str) -> dict:
 
 
 async def analyze_screenshot(image_base64: str) -> dict:
-    """Скриншот тексеру: тек Gemini Vision (Groq Vision жоқ)."""
+    """Скриншот тексеру: Gemini Vision (2.0-flash) → Gemini (2.5-flash) → fallback."""
+    # 1. Gemini Vision model (2.0-flash — supports inline images)
     result = await _call_gemini_vision(SYSTEM_PROMPT_SCREEN, image_base64)
     if result:
         return result
 
-    return _fallback_result("Vision AI қолжетімсіз")
+    # 2. Fallback: try main Gemini model with image
+    result2 = await _call_gemini_vision_fallback(SYSTEM_PROMPT_SCREEN, image_base64)
+    if result2:
+        return result2
+
+    return _fallback_result("Vision AI қолжетімсіз. GEMINI_API_KEY тексеріңіз.")
+
+
+async def _call_gemini_vision_fallback(system_prompt: str, image_base64: str) -> dict | None:
+    """Fallback: try main Gemini model (2.5-flash) with image."""
+    if not _gemini_key():
+        return None
+    try:
+        url = f"{GEMINI_URL}?key={_gemini_key()}"
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": system_prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": image_base64}}
+                ]
+            }]
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(url, json=payload)
+            if res.status_code != 200:
+                logger.warning(f"Gemini Vision fallback error: {res.status_code}")
+                return None
+            data = res.json()
+            if "candidates" not in data or not data["candidates"]:
+                return None
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "gemini_vision"
+            return parsed
+    except Exception as e:
+        logger.warning(f"Gemini Vision fallback exception: {e}")
+        return None
