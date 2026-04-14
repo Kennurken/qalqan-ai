@@ -266,38 +266,49 @@ async def analyze_text(text: str) -> dict:
 
 
 async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | None:
-    """Groq Vision API — llama-3.2-90b-vision-preview."""
+    """Groq Vision API — tries multiple vision models."""
     if not _groq_key():
         logger.warning("Groq Vision: GROQ_API_KEY not configured")
         return None
-    try:
-        payload = {
-            "model": GROQ_VISION_MODEL,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
-                ]}
-            ],
-            "temperature": 0.1,
-            "max_tokens": 500
-        }
-        async with httpx.AsyncClient(timeout=30) as client:
-            res = await client.post(GROQ_URL, json=payload, headers={
-                "Authorization": f"Bearer {_groq_key()}",
-                "Content-Type": "application/json"
-            })
-            if res.status_code != 200:
-                logger.warning(f"Groq Vision error: {res.status_code} {res.text[:200]}")
-                return None
-            data = res.json()
-            raw_text = data["choices"][0]["message"]["content"]
-            parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "groq_vision"
-            return parsed
-    except Exception as e:
-        logger.warning(f"Groq Vision exception: {e}")
-        return None
+
+    vision_models = [
+        "llama-3.2-90b-vision-preview",
+        "llama-3.2-11b-vision-preview",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+    ]
+
+    for model in vision_models:
+        try:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": [
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                    ]}
+                ],
+                "temperature": 0.1,
+                "max_tokens": 500
+            }
+            async with httpx.AsyncClient(timeout=30) as client:
+                res = await client.post(GROQ_URL, json=payload, headers={
+                    "Authorization": f"Bearer {_groq_key()}",
+                    "Content-Type": "application/json"
+                })
+                if res.status_code != 200:
+                    logger.warning(f"Groq Vision {model}: {res.status_code} {res.text[:200]}")
+                    continue
+                data = res.json()
+                raw_text = data["choices"][0]["message"]["content"]
+                parsed = _parse_ai_json(raw_text)
+                parsed["source"] = "groq_vision"
+                logger.info(f"Groq Vision success with model: {model}")
+                return parsed
+        except Exception as e:
+            logger.warning(f"Groq Vision {model} exception: {e}")
+            continue
+
+    return None
 
 
 async def analyze_screenshot(image_base64: str) -> dict:
