@@ -42,9 +42,9 @@ def set_cached(key: str, result: dict):
     while len(_cache) >= MAX_CACHE_SIZE:
         _cache.popitem(last=False)
 
+    _cache[key] = (result, time.time() + ttl)
+
 
 def clear_cache():
     """Clear all cache entries (for benchmarking)."""
     _cache.clear()
-
-    _cache[key] = (result, time.time() + ttl)

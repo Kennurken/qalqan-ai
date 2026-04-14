@@ -14,10 +14,20 @@ function friendlyError(e) {
   return ERR[e.message] || e.message || "Белгісіз қате";
 }
 
+function normalizeUrl(url) {
+  if (!url) return url;
+  url = url.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
 async function safeFetch(url, options) {
   const res = await fetch(url, options);
   if (!res.ok) {
     if (res.status === 429) throw new Error("Сұраныс лимиті асып кетті. 1 минут күтіңіз.");
+    if (res.status === 422) throw new Error("URL форматы дұрыс емес. Тексеріңіз.");
     throw new Error(`Сервер қатесі: ${res.status}`);
   }
   return res.json();
@@ -36,10 +46,11 @@ export function useCheckUrl() {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tabs?.length || !tabs[0]?.url) throw new Error("URL анықталмады");
 
+      const tabUrl = normalizeUrl(tabs[0].url);
       const data = await safeFetch(`${API_URL}/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: tabs[0].url, lang })
+        body: JSON.stringify({ url: tabUrl, lang })
       });
       setResult(data);
       return data;
