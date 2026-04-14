@@ -34,10 +34,14 @@ setInterval(() => {
 }, 3600000);
 
 // --- Auto-check on tab update ---
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status !== "complete") return;
   if (!tab.url || !tab.url.startsWith("http")) return;
   if (tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) return;
+
+  // Respect auto-check setting
+  const settings = await chrome.storage.local.get("qalqan_autocheck");
+  if (settings.qalqan_autocheck === false) return;
 
   const recent = recentChecks.get(tabId);
   if (recent && recent.url === tab.url && Date.now() - recent.timestamp < DEBOUNCE_MS) return;
@@ -46,9 +50,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   checkUrl(tab.url, tabId);
 });
 
+// --- URL normalization ---
+function normalizeUrl(url) {
+  if (!url) return url;
+  url = url.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
 // --- URL check ---
 async function checkUrl(url, tabId) {
   try {
+    url = normalizeUrl(url);
     const lang = await getLanguage();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -84,15 +99,19 @@ async function checkUrl(url, tabId) {
       chrome.action.setBadgeText({ text: "!", tabId });
       chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
 
-      chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
-        type: "basic",
-        iconUrl: "icons/icon128.png",
-        title: "QALQAN AI: Қауіп анықталды!",
-        message: (data.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
-        priority: 2
-      });
+      // Respect notifications setting
+      const notifSettings = await chrome.storage.local.get("qalqan_notifications");
+      if (notifSettings.qalqan_notifications !== false) {
+        chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
+          type: "basic",
+          iconUrl: "icons/icon128.png",
+          title: "QALQAN AI: Қауіп анықталды!",
+          message: (data.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
+          priority: 2
+        });
+      }
 
-      sendBlockCommand(tabId, data);
+      await sendBlockCommand(tabId, data);
     } else if (isSuspicious) {
       chrome.action.setBadgeText({ text: "?", tabId });
       chrome.action.setBadgeBackgroundColor({ color: "#F59E0B" });
@@ -118,15 +137,30 @@ async function checkUrl(url, tabId) {
   }
 }
 
-// --- Block command ---
-function sendBlockCommand(tabId, data) {
-  chrome.tabs.sendMessage(tabId, { action: "BLOCK_PAGE", data }).catch(() => {
-    chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] })
-      .then(() => setTimeout(() => {
-        chrome.tabs.sendMessage(tabId, { action: "BLOCK_PAGE", data }).catch(() => {});
-      }, 500))
-      .catch(() => {});
-  });
+// --- Block command (with retry) ---
+async function sendBlockCommand(tabId, data) {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 600;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      await chrome.tabs.sendMessage(tabId, { action: "BLOCK_PAGE", data });
+      console.log(`Qalqan: block command sent to tab ${tabId} (attempt ${attempt + 1})`);
+      return;
+    } catch {
+      // Content script not ready — inject it and retry
+      if (attempt === 0) {
+        try {
+          await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+        } catch (e) {
+          console.error("Qalqan: cannot inject content script:", e.message);
+          return;
+        }
+      }
+      await new Promise(r => setTimeout(r, RETRY_DELAY));
+    }
+  }
+  console.error(`Qalqan: failed to send block command to tab ${tabId} after ${MAX_RETRIES} attempts`);
 }
 
 // --- Message listener ---

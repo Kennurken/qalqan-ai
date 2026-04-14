@@ -4,13 +4,18 @@
 
 let isBlocked = false;
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "BLOCK_PAGE" && !isBlocked) {
     chrome.storage.session.get("bypass_list", (result) => {
       const bypassList = result.bypass_list || [];
-      if (bypassList.includes(window.location.href)) return;
+      if (bypassList.includes(window.location.href)) {
+        sendResponse({ status: "bypassed" });
+        return;
+      }
       blockPage(message.data);
+      sendResponse({ status: "blocked" });
     });
+    return true; // keep channel open for async response
   }
 });
 

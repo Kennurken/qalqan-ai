@@ -90,8 +90,10 @@ class CheckRequest(BaseModel):
     @classmethod
     def validate_url(cls, v):
         v = v.strip()
+        if not v:
+            raise ValueError("URL cannot be empty")
         if not v.startswith(("http://", "https://")):
-            raise ValueError("URL must start with http:// or https://")
+            v = "https://" + v
         return v
 
 class TextCheckRequest(BaseModel):
@@ -311,8 +313,10 @@ class FeatureRequest(BaseModel):
     @classmethod
     def validate_url(cls, v):
         v = v.strip()
+        if not v:
+            raise ValueError("URL cannot be empty")
         if not v.startswith(("http://", "https://")):
-            raise ValueError("URL must start with http:// or https://")
+            v = "https://" + v
         return v
 
 class BatchRequest(BaseModel):
