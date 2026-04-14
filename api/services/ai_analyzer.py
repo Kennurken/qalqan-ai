@@ -263,8 +263,41 @@ async def analyze_text(text: str) -> dict:
 
 async def analyze_screenshot(image_base64: str) -> dict:
     """Скриншот тексеру: Gemini Vision (2.0-flash) → fallback."""
-    result = await _call_gemini_vision(SYSTEM_PROMPT_SCREEN, image_base64)
+    result, error_detail = await _call_gemini_vision_with_detail(SYSTEM_PROMPT_SCREEN, image_base64)
     if result:
         return result
 
-    return _fallback_result("Vision AI қолжетімсіз. GEMINI_API_KEY тексеріңіз.")
+    return _fallback_result(f"Vision AI қатесі: {error_detail}")
+
+
+async def _call_gemini_vision_with_detail(system_prompt: str, image_base64: str) -> tuple[dict | None, str]:
+    """Gemini Vision with error detail for debugging."""
+    if not _gemini_key():
+        return None, "GEMINI_API_KEY орнатылмаған"
+    try:
+        url = f"{GEMINI_URL}?key={_gemini_key()}"
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": system_prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": image_base64}}
+                ]
+            }]
+        }
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(url, json=payload)
+            if res.status_code != 200:
+                error_msg = res.text[:200] if res.text else f"status {res.status_code}"
+                logger.warning(f"Gemini Vision error: {res.status_code} {error_msg}")
+                return None, f"Gemini API {res.status_code}: {error_msg[:100]}"
+            data = res.json()
+            if "candidates" not in data or not data["candidates"]:
+                logger.warning("Gemini Vision: no candidates in response")
+                return None, "Gemini жауап бермеді (no candidates)"
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "gemini_vision"
+            return parsed, ""
+    except Exception as e:
+        logger.warning(f"Gemini Vision exception: {e}")
+        return None, str(e)[:100]
