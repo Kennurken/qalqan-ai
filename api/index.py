@@ -269,8 +269,8 @@ async def check_site(request: CheckRequest, req: Request):
         logger.info(f"DEMO_MODE hit: {domain}")
         return _DEMO_RESULTS[domain]
 
-    # --- Tier 0: Whitelist ---
-    if domain in _whitelist:
+    # --- Tier 0: Whitelist (exact + subdomain match) ---
+    if domain in _whitelist or any(domain.endswith("." + td) for td in _whitelist):
         return {
             "verdict": "SAFE", "threat_score": 0, "threat_type": "safe",
             "source": "whitelist",
@@ -381,6 +381,9 @@ async def check_batch(request: BatchRequest, req: Request):
 
             if DEMO_MODE and domain in _DEMO_RESULTS:
                 return {**_DEMO_RESULTS[domain], "url": url}
+
+            if domain in _whitelist or any(domain.endswith("." + td) for td in _whitelist):
+                return {"url": url, "verdict": "SAFE", "threat_score": 0, "source": "whitelist", "indicators": []}
 
             key = url_hash(url)
             cached = get_cached(key)
