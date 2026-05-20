@@ -425,9 +425,18 @@ async def check_batch(request: BatchRequest, req: Request):
             if cached:
                 return {**cached, "url": url}
 
+            url_feats = extract_features(url)  # sync — fast, no I/O
+
             pyramid_hit = check_pyramid_domain(url)
             if pyramid_hit:
                 r = calculate_final_verdict([], None, pyramid_hit, lang=lang)
+                r["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, r["threat_score"])
+                set_cached(key, r)
+                return {**r, "url": url}
+
+            blacklist_hit = check_local_blacklist(url)
+            if blacklist_hit:
+                r = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
                 set_cached(key, r)
                 return {**r, "url": url}
 
@@ -435,10 +444,10 @@ async def check_batch(request: BatchRequest, req: Request):
                 check_all_databases(url),
                 check_domain_intelligence(domain, url)
             )
-            url_feats = extract_features(url)
             ai_result = await analyze_url(url)
             r = calculate_final_verdict(db_results, ai_result, None,
                                         domain_info=domain_info, url_features=url_feats, lang=lang)
+            r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"])
             set_cached(key, r)
             return {**r, "url": url}
         except Exception as e:

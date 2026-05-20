@@ -8,6 +8,37 @@ const API_URL = "https://qalqan-ai-nu.vercel.app";
 const DEBOUNCE_MS = 3000;
 const recentChecks = new Map();
 
+// Domain-level result cache (30-min TTL) — avoids repeated API calls for same site
+const _domainCache = new Map();
+const DOMAIN_CACHE_TTL = 30 * 60 * 1000;
+
+function getDomainCache(domain) {
+  const entry = _domainCache.get(domain);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > DOMAIN_CACHE_TTL) { _domainCache.delete(domain); return null; }
+  return entry.result;
+}
+
+function setDomainCache(domain, result) {
+  _domainCache.set(domain, { result, ts: Date.now() });
+  if (_domainCache.size > 500) {
+    const cutoff = Date.now() - DOMAIN_CACHE_TTL;
+    for (const [k, v] of _domainCache.entries()) { if (v.ts < cutoff) _domainCache.delete(k); }
+  }
+}
+
+function updateBadge(tabId, data) {
+  if (data.verdict === "DANGEROUS") {
+    chrome.action.setBadgeText({ text: "!", tabId });
+    chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
+  } else if (data.threat_score >= 40) {
+    chrome.action.setBadgeText({ text: "?", tabId });
+    chrome.action.setBadgeBackgroundColor({ color: "#F59E0B" });
+  } else {
+    chrome.action.setBadgeText({ text: "", tabId });
+  }
+}
+
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
   console.log(`Qalqan AI v5.0 installed (${details.reason})`);
@@ -64,19 +95,55 @@ function normalizeUrl(url) {
 async function checkUrl(url, tabId) {
   try {
     url = normalizeUrl(url);
-
-    // Check user whitelist first — skip API call for trusted domains
     const domain = new URL(url).hostname.replace("www.", "").toLowerCase();
+
+    // 1. User whitelist — instant, no API call
     const wlData = await chrome.storage.local.get("qalqan_user_whitelist");
     const userWhitelist = wlData.qalqan_user_whitelist || [];
     if (userWhitelist.includes(domain) || userWhitelist.some(d => domain.endsWith("." + d))) {
       const safeResult = { verdict: "SAFE", threat_score: 0, source: "user_whitelist", cached: false };
       chrome.storage.local.set({ [`result_${tabId}`]: safeResult });
-      chrome.action.setBadgeText({ text: "✓", tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#10B981" });
+      updateBadge(tabId, safeResult);
       return;
     }
 
+    // 2. Domain cache (30-min TTL) — avoid redundant API calls
+    const cachedResult = getDomainCache(domain);
+    if (cachedResult) {
+      const r = { ...cachedResult, cached: true };
+      chrome.storage.local.set({ [`result_${tabId}`]: r });
+      updateBadge(tabId, r);
+      return;
+    }
+
+    // 3. Offline check — instant for known dangerous/safe sites
+    const offResult = typeof offlineCheck === "function" ? offlineCheck(url) : null;
+    if (offResult) {
+      chrome.storage.local.set({ [`result_${tabId}`]: offResult });
+      updateBadge(tabId, offResult);
+      updateStats(offResult.verdict);
+      saveHistory(url, offResult);
+      setDomainCache(domain, offResult);
+
+      if (offResult.verdict === "SAFE") return;  // Trusted offline — skip API
+
+      if (offResult.verdict === "DANGEROUS") {
+        const notifSettings = await chrome.storage.local.get("qalqan_notifications");
+        if (notifSettings.qalqan_notifications !== false) {
+          chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
+            type: "basic", iconUrl: "icons/icon128.png",
+            title: "QALQAN AI: Қауіп анықталды!",
+            message: (offResult.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
+            priority: 2
+          });
+        }
+        await sendBlockCommand(tabId, offResult);
+        return;  // Offline DB is conclusive for DANGEROUS
+      }
+      // SUSPICIOUS offline: still make API call for richer analysis
+    }
+
+    // 4. API call
     const lang = await getLanguage();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -104,48 +171,22 @@ async function checkUrl(url, tabId) {
     chrome.storage.local.set({ [`result_${tabId}`]: data });
     updateStats(data.verdict);
     saveHistory(url, data);
+    setDomainCache(domain, data);
+    updateBadge(tabId, data);
 
-    const isDangerous = data.verdict === "DANGEROUS";
-    const isSuspicious = data.threat_score >= 40 && data.threat_score < 70;
-
-    if (isDangerous) {
-      chrome.action.setBadgeText({ text: "!", tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
-
-      // Respect notifications setting
+    if (data.verdict === "DANGEROUS") {
       const notifSettings = await chrome.storage.local.get("qalqan_notifications");
       if (notifSettings.qalqan_notifications !== false) {
         chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
-          type: "basic",
-          iconUrl: "icons/icon128.png",
+          type: "basic", iconUrl: "icons/icon128.png",
           title: "QALQAN AI: Қауіп анықталды!",
           message: (data.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
           priority: 2
         });
       }
-
       await sendBlockCommand(tabId, data);
-    } else if (isSuspicious) {
-      chrome.action.setBadgeText({ text: "?", tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#F59E0B" });
-    } else {
-      chrome.action.setBadgeText({ text: "", tabId });
     }
   } catch (error) {
-    // Offline fallback
-    if (typeof offlineCheck === "function") {
-      const offResult = offlineCheck(url);
-      if (offResult) {
-        chrome.storage.local.set({ [`result_${tabId}`]: offResult });
-        if (offResult.verdict === "DANGEROUS") {
-          chrome.action.setBadgeText({ text: "!", tabId });
-          chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
-          sendBlockCommand(tabId, offResult);
-        }
-        saveHistory(url, offResult);
-        return;
-      }
-    }
     console.error("Qalqan check error:", error.message);
   }
 }

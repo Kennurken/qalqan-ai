@@ -1,4 +1,4 @@
-// Qalqan AI v4.0
+// Qalqan AI v5.0
 // Content Script: блоктау (XSS-safe — тек textContent/createElement)
 // API-ға сұраныс жібермейді — background.js-тен команда күтеді
 
@@ -35,22 +35,30 @@ function blockPage(data) {
 
   const typeNames = {
     phishing: "Фишинг", malware: "Зиянды БҚ", pyramid: "Қаржылық пирамида",
-    scam: "Алаяқтық", gambling: "Құмар ойын", fake_shop: "Жалған дүкен",
+    scam: "Алаяқтық", gambling: "Құмар ойын / Казино", fake_shop: "Жалған дүкен",
     social_engineering: "Әлеуметтік инженерия", suspicious_infrastructure: "Күдікті инфрақұрылым",
-    unknown: "Белгісіз қауіп"
+    casino: "Казино", case_battle: "Кейс-батл", unknown: "Белгісіз қауіп"
   };
   const sourceNames = {
     phishtank: "PhishTank", google_safe_browsing: "Google Safe Browsing",
-    urlhaus: "URLhaus", openphish: "OpenPhish", pyramid_list: "Qalqan Pyramid DB",
-    domain_intel: "Domain Intelligence", groq_ai: "Qalqan AI", gemini_ai: "Qalqan AI",
-    gemini_vision: "Qalqan Vision", local_blacklist: "Blacklist"
+    urlhaus: "URLhaus", openphish: "OpenPhish", virustotal: "VirusTotal",
+    pyramid_list: "Qalqan Pyramid DB", gambling_list: "Gambling DB", phishing_list: "Phishing DB",
+    local_blacklist: "Blacklist", domain_intel: "Domain Intelligence",
+    groq_ai: "Qalqan AI", gemini_ai: "Qalqan AI", groq_vision: "Qalqan Vision AI",
+    gemini_vision: "Qalqan Vision AI", kz_intel: "KZ Intelligence",
+    offline_pyramid: "Offline: Pyramid DB", offline_gambling: "Offline: Gambling DB",
+    offline_casebattle: "Offline: Case Battle DB", offline_phishing: "Offline: Phishing DB",
+    offline_scam: "Offline: Scam DB", offline_tld: "Offline: TLD Check",
+    offline_whitelist: "Offline: Trusted List", user_whitelist: "Ваш белый список",
+    whitelist: "Сенімді тізім", demo_cache: "Demo Mode"
   };
 
   const typeName = esc(typeNames[threatType] || typeNames.unknown);
   const sourceName = esc(sourceNames[source] || source);
 
-  // Domain info көрсету
+  // Domain info + indicators
   const domainDetails = data.domain_details || {};
+  const indicators = (data.indicators || []).slice(0, 4);
   let extraInfo = "";
   if (domainDetails.domain_age_days !== undefined) {
     extraInfo += `<div style="font-size:12px;color:#fbbf24;margin-top:8px;">📅 Домен жасы: ${esc(domainDetails.domain_age_days)} күн</div>`;
@@ -58,6 +66,9 @@ function blockPage(data) {
   if (domainDetails.ssl) {
     const sslStatus = {valid:"✅ SSL жарамды", expired:"❌ SSL мерзімі өткен", self_signed:"⚠️ Өзі қол қойған SSL", no_ssl:"🔓 SSL жоқ"};
     extraInfo += `<div style="font-size:12px;color:#94a3b8;margin-top:4px;">${sslStatus[domainDetails.ssl.status] || ""}</div>`;
+  }
+  if (indicators.length > 0) {
+    extraInfo += `<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;">${indicators.map(i => `<span style="font-size:10px;background:rgba(239,68,68,0.15);padding:2px 6px;border-radius:4px;color:#fca5a5;">${esc(i)}</span>`).join("")}</div>`;
   }
 
   // Бүкіл бетті қауіпсіз тәсілмен ауыстыру
@@ -71,7 +82,7 @@ function blockPage(data) {
           <span style="font-size:40px;">🛡️</span>
           <div>
             <div style="font-size:28px;font-weight:800;color:#ef4444;">QALQAN AI</div>
-            <div style="font-size:11px;color:#94a3b8;letter-spacing:2px;">CYBER SHIELD v4.0</div>
+            <div style="font-size:11px;color:#94a3b8;letter-spacing:2px;">CYBER SHIELD v5.0</div>
           </div>
         </div>
       </div>

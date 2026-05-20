@@ -9,21 +9,45 @@ from .metrics import calculate_metrics
 
 
 TEST_URLS = {
+    # === SAFE — KZ trusted domains ===
     "https://google.com": "SAFE",
     "https://kaspi.kz": "SAFE",
     "https://egov.kz": "SAFE",
     "https://youtube.com": "SAFE",
     "https://github.com": "SAFE",
     "https://wikipedia.org": "SAFE",
+    "https://halykbank.kz": "SAFE",
+    "https://kcell.kz": "SAFE",
+    "https://salyk.kz": "SAFE",
+    "https://enbek.kz": "SAFE",
+
+    # === DANGEROUS — Pyramids/MLM ===
     "https://crowd1.com": "DANGEROUS",
     "https://finiko.com": "DANGEROUS",
     "https://onecoin.eu": "DANGEROUS",
     "https://forsage.io": "DANGEROUS",
     "https://bitconnect.co": "DANGEROUS",
+    "https://qubittech.ai": "DANGEROUS",
+    "https://antares.trade": "DANGEROUS",
+
+    # === DANGEROUS — Gambling (banned in KZ) ===
     "https://1xbet.com": "DANGEROUS",
+    "https://mostbet.com": "DANGEROUS",
+    "https://pin-up.com": "DANGEROUS",
+    "https://vulkan-vegas.com": "DANGEROUS",
+    "https://hellcase.com": "DANGEROUS",
+
+    # === DANGEROUS — Phishing (KZ brands) ===
     "https://kaspi-login.tk": "DANGEROUS",
     "https://verify-account.ml": "DANGEROUS",
     "https://egov-login.ga": "DANGEROUS",
+    "https://egov-verify.kz": "DANGEROUS",
+    "https://kaspi-verify.com": "DANGEROUS",
+    "https://halyk-bank.com": "DANGEROUS",
+
+    # === DANGEROUS — URL feature signals ===
+    "http://192.168.1.1/phish": "DANGEROUS",    # IP address URL
+    "https://kаspi.kz": "DANGEROUS",             # Cyrillic 'а' homoglyph
 }
 
 

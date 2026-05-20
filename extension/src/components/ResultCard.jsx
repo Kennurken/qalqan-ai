@@ -20,12 +20,17 @@ export default function ResultCard({ result, t }) {
 
   const sourceNames = {
     phishtank: "PhishTank", google_safe_browsing: "Google Safe Browsing",
-    urlhaus: "URLhaus", openphish: "OpenPhish",
+    urlhaus: "URLhaus", openphish: "OpenPhish", virustotal: "VirusTotal",
     pyramid_list: "Qalqan Pyramid DB", gambling_list: "Gambling DB", phishing_list: "Phishing DB",
-    local_blacklist: "Blacklist", virustotal: "VirusTotal",
-    groq_ai: "Qalqan AI", gemini_ai: "Gemini AI",
-    gemini_vision: "Qalqan Vision AI", domain_intel: "Domain Intel",
+    local_blacklist: "Blacklist", domain_intel: "Domain Intel",
+    groq_ai: "Qalqan AI", gemini_ai: "Qalqan AI",
+    groq_vision: "Qalqan Vision AI", gemini_vision: "Qalqan Vision AI",
+    kz_intel: "KZ Intelligence", user_whitelist: "Your Whitelist",
     whitelist: "Trusted List", url_features: "URL Analysis",
+    offline_pyramid: "Offline: Pyramid DB", offline_gambling: "Offline: Gambling DB",
+    offline_casebattle: "Offline: Case Battle DB", offline_phishing: "Offline: Phishing DB",
+    offline_scam: "Offline: Scam DB", offline_tld: "Offline: TLD Check",
+    offline_whitelist: "Offline: Trusted List",
     demo_cache: "Demo Mode", no_data: "—", ai_error: "AI Error", error_handler: "Error"
   };
 
