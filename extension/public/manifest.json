@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Qalqan AI — Cyber Shield",
-  "version": "4.0.0",
-  "description": "AI-powered cybersecurity: scam detection, phishing protection, pyramid scheme blocking",
+  "version": "5.0.0",
+  "description": "AI-powered cybersecurity: phishing, pyramid scheme & scam detection for Kazakhstan",
   "permissions": [
     "activeTab",
     "tabs",
