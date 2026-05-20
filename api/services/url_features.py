@@ -186,7 +186,14 @@ def _check_brand_similarity(domain: str, full_url: str) -> dict:
             best["distance"] = 0
             best["category"] = brand.get("category", "unknown")
 
-        # Brand in path
+        # Brand-with-separator in domain: kaspi-login.tk, login-kaspi.com
+        if (domain_name.startswith(name + "-") or domain_name.endswith("-" + name)
+                or domain_name.startswith(name + ".") or ("." + name + ".") in domain):
+            if best["distance"] > 1:
+                best = {"brand": name, "distance": 1, "in_subdomain": 0,
+                        "category": brand.get("category", "unknown")}
+
+        # Brand in path (not in domain itself)
         if name in full_url and name not in domain:
             if best["distance"] > 2:
                 best["brand"] = name
