@@ -82,7 +82,7 @@ export default function App() {
                   cursor: "pointer", fontSize: "12px"
                 }}
               >
-                🔄 Қайта тексеру
+                🔄 {t("recheck")}
               </button>
             </>
           )}

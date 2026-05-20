@@ -25,14 +25,14 @@ export default function HistoryPanel({ t, onBack }) {
         <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "14px" }}>
           ← {t("back")}
         </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>📜 History</span>
-        <button onClick={clearHistory} style={{ background: "transparent", color: "#64748b", border: "none", cursor: "pointer", fontSize: "11px" }}>
+        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>📜 {t("history")}</span>
+        <button onClick={clearHistory} title={t("clearHistory")} style={{ background: "transparent", color: "#64748b", border: "none", cursor: "pointer", fontSize: "11px" }}>
           🗑
         </button>
       </div>
 
       {history.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#64748b", fontSize: "13px", padding: "20px 0" }}>No history yet</p>
+        <p style={{ textAlign: "center", color: "#64748b", fontSize: "13px", padding: "20px 0" }}>{t("noHistory")}</p>
       ) : (
         <div style={{ maxHeight: "350px", overflowY: "auto" }}>
           {history.map((item, i) => (

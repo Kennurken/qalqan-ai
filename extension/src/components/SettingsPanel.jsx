@@ -86,9 +86,9 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
       {/* Toggles */}
       <div style={{ background: "rgba(30,41,59,0.6)", borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
         {[
-          { label: "🌓 " + (theme === "dark" ? "Dark Mode" : "Light Mode"), value: theme === "dark", toggle: toggleTheme },
-          { label: "🔄 Auto-check", value: autoCheck, toggle: toggleAutoCheck },
-          { label: "🔔 Notifications", value: notifications, toggle: toggleNotifications },
+          { label: "🌓 " + (theme === "dark" ? "Dark" : "Light") + " Mode", value: theme === "dark", toggle: toggleTheme },
+          { label: "🔄 " + t("autocheck"), value: autoCheck, toggle: toggleAutoCheck },
+          { label: "🔔 " + t("notifications"), value: notifications, toggle: toggleNotifications },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
             <span style={{ fontSize: "13px", color: "#e2e8f0" }}>{item.label}</span>
@@ -114,7 +114,7 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
           borderRadius: "12px", color: "#34d399", cursor: "pointer", fontSize: "14px", fontWeight: 600,
           display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
         }}>
-          ✅ Whitelist Manager
+          ✅ {t("whitelist")}
         </button>
       )}
 

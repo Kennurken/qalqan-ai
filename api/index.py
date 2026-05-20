@@ -16,7 +16,7 @@ from pydantic import BaseModel, field_validator, Field
 
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
-from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist
+from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
 from .services.kz_intel import check_kz_social_engineering
 from .services.domain_intel import check_domain_intelligence
 from .services.url_features import extract_features
@@ -376,18 +376,39 @@ async def check_text(request: TextCheckRequest, req: Request):
     if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
-    # KZ-specific social engineering detection (fast, no API call)
-    kz_hit = check_kz_social_engineering(request.text)
+    text = request.text
+
+    # KZ social engineering (fast, no API)
+    kz_hit = check_kz_social_engineering(text)
     if kz_hit and kz_hit.get("verdict") == "DANGEROUS":
         return calculate_final_verdict([], kz_hit, None, lang=request.lang)
 
-    ai_result = await analyze_text(request.text)
-    # Merge KZ signals into AI result if both fired
-    if kz_hit and ai_result:
-        ai_result.setdefault("indicators", []).extend(kz_hit.get("indicators", []))
-        ai_result["threat_score"] = min(
-            ai_result.get("threat_score", 50) + kz_hit.get("threat_score", 0) // 3, 100
-        )
+    # Pyramid pattern detection in text (fast, no API)
+    pyramid_conf = detect_pyramid_patterns(text)
+    if pyramid_conf >= 0.8:
+        pyramid_text_result = {
+            "verdict": "DANGEROUS", "threat_score": int(pyramid_conf * 95),
+            "threat_type": "pyramid", "source": "kz_intel",
+            "reason_kk": "Мәтінде қаржылық пирамида белгілері анықталды",
+            "reason_ru": "В тексте обнаружены признаки финансовой пирамиды",
+            "reason_en": "Financial pyramid scheme indicators detected in text",
+            "indicators": ["pyramid_pattern_match"]
+        }
+        return calculate_final_verdict([], pyramid_text_result, None, lang=request.lang)
+
+    ai_result = await analyze_text(text)
+
+    # Merge all local signals into AI result
+    if ai_result:
+        if kz_hit:
+            ai_result.setdefault("indicators", []).extend(kz_hit.get("indicators", []))
+            ai_result["threat_score"] = min(
+                ai_result.get("threat_score", 50) + kz_hit.get("threat_score", 0) // 3, 100
+            )
+        if pyramid_conf >= 0.4:
+            ai_result["threat_score"] = min(ai_result.get("threat_score", 50) + int(pyramid_conf * 20), 100)
+            ai_result.setdefault("indicators", []).append(f"pyramid_conf_{int(pyramid_conf * 100)}pct")
+
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 

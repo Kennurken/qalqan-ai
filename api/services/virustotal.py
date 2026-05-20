@@ -63,15 +63,23 @@ async def check_virustotal(url: str) -> dict | None:
                 return None
 
             threat_names = []
-            results = attrs.get("last_analysis_results", {})
-            for engine, result in list(results.items())[:5]:
-                if result.get("category") in ("malicious", "suspicious"):
-                    threat_names.append(f"{engine}: {result.get('result', 'detected')}")
+            phishing_count = 0
+            results_data = attrs.get("last_analysis_results", {})
+            for engine, eng_result in list(results_data.items()):
+                if eng_result.get("category") in ("malicious", "suspicious"):
+                    eng_verdict = (eng_result.get("result") or "").lower()
+                    if "phish" in eng_verdict:
+                        phishing_count += 1
+                    if len(threat_names) < 5:
+                        threat_names.append(f"{engine}: {eng_result.get('result', 'detected')}")
+
+            # Determine threat type: phishing if majority of flagging engines say so
+            threat_type = "phishing" if phishing_count >= max(1, (malicious + suspicious) // 2) else "malware"
 
             return {
                 "verdict": "DANGEROUS" if malicious >= 5 else "SUSPICIOUS",
                 "threat_score": score,
-                "threat_type": "malware",
+                "threat_type": threat_type,
                 "source": "virustotal",
                 "reason_kk": f"VirusTotal: {malicious}/{total} антивирус қауіпті деп таныды",
                 "reason_ru": f"VirusTotal: {malicious}/{total} антивирусов обнаружили угрозу",

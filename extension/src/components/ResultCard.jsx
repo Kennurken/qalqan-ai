@@ -60,7 +60,14 @@ export default function ResultCard({ result, t }) {
 
       {/* Meta */}
       <div style={{ fontSize: "11px", color: "#64748b", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-        {result.threat_type && result.threat_type !== "safe" && <span>🏷 {result.threat_type}</span>}
+        {result.threat_type && result.threat_type !== "safe" && (
+          <span>🏷 {({
+            phishing: t("phishing"), malware: t("malware"), pyramid: t("pyramid"),
+            scam: t("scam"), gambling: t("gambling"), fake_shop: t("fakeShop"),
+            social_engineering: t("socialEngineering"), suspicious_infrastructure: t("suspiciousInfra"),
+            casino: t("gambling")
+          })[result.threat_type] || result.threat_type}</span>
+        )}
         <span>🔍 {sourceNames[result.source] || result.source}</span>
         {result.cached && <span>⚡ cached</span>}
         {result.metadata?.processing_time_ms && <span>⏱ {result.metadata.processing_time_ms}ms</span>}
@@ -89,7 +96,7 @@ export default function ResultCard({ result, t }) {
             fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px"
           }}
         >
-          {showXAI ? "▼" : "▶"} {showXAI ? "Жасыру" : "Неге? (XAI)"}
+          {showXAI ? "▼" : "▶"} {showXAI ? t("xaiHide") : t("xaiTitle")}
         </button>
       )}
 
