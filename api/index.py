@@ -304,11 +304,11 @@ async def check_site(request: CheckRequest, req: Request):
         set_cached(key, result)
         return result
 
-    # --- Tier 2: External databases (параллель) ---
-    db_results = await check_all_databases(url)
-
-    # --- Tier 2.5: Domain intelligence (age + SSL) ---
-    domain_info = await check_domain_intelligence(domain, url)
+    # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
+    db_results, domain_info = await asyncio.gather(
+        check_all_databases(url),
+        check_domain_intelligence(domain, url)
+    )
 
     # Combine DB results
     all_db = db_results + ([domain_info] if domain_info else [])
@@ -582,13 +582,15 @@ async def check_research(request: CheckRequest, req: Request):
     domain = extract_domain(url)
     start_time = time.time()
 
-    # Extract ALL data
+    # Extract ALL data — sync first, then all async in parallel
     url_feats = extract_features(url)
     pyramid_hit = check_pyramid_domain(url)
     blacklist_hit = check_local_blacklist(url)
-    db_results = await check_all_databases(url)
-    domain_info = await check_domain_intelligence(domain, url)
-    ai_result = await analyze_url(url)
+    db_results, domain_info, ai_result = await asyncio.gather(
+        check_all_databases(url),
+        check_domain_intelligence(domain, url),
+        analyze_url(url)
+    )
 
     # Calculate final verdict
     result = calculate_final_verdict(
