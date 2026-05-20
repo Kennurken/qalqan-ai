@@ -4,6 +4,7 @@
 
 import json
 import os
+import re
 import time
 import logging
 import asyncio
@@ -24,6 +25,11 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
+
+_PRIVATE_IP_RE = re.compile(
+    r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
+    re.IGNORECASE
+)
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -196,11 +202,15 @@ class CheckRequest(BaseModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, v):
+        from urllib.parse import urlparse
         v = v.strip()
         if not v:
             raise ValueError("URL cannot be empty")
         if not v.startswith(("http://", "https://")):
             v = "https://" + v
+        host = urlparse(v).hostname or ""
+        if _PRIVATE_IP_RE.match(host):
+            raise ValueError("Private or internal addresses not allowed")
         return v
 
 class TextCheckRequest(BaseModel):
@@ -515,11 +525,15 @@ class FeatureRequest(BaseModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, v):
+        from urllib.parse import urlparse
         v = v.strip()
         if not v:
             raise ValueError("URL cannot be empty")
         if not v.startswith(("http://", "https://")):
             v = "https://" + v
+        host = urlparse(v).hostname or ""
+        if _PRIVATE_IP_RE.match(host):
+            raise ValueError("Private or internal addresses not allowed")
         return v
 
 class BatchRequest(BaseModel):
