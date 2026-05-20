@@ -91,21 +91,27 @@ def detect_pyramid_patterns(text: str) -> float:
     return round(score, 2)
 
 
-# Жергілікті blacklist тексеру
+# Жергілікті blacklist — data/blacklist.json арқылы толтырылады
 _blacklist: set[str] | None = None
+_blacklist_data_path = os.path.join(_data_dir, "blacklist.json")
 
 
 def _load_blacklist() -> set[str]:
     global _blacklist
     if _blacklist is None:
-        # Болашақта blacklist.json қосылуы мүмкін
-        _blacklist = set()
+        try:
+            with open(_blacklist_data_path, "r", encoding="utf-8") as f:
+                _blacklist = set(json.load(f).get("domains", []))
+        except (FileNotFoundError, json.JSONDecodeError):
+            _blacklist = set()
     return _blacklist
 
 
 def check_local_blacklist(url: str) -> dict | None:
     """Жергілікті қара тізім тексеру."""
     blacklist = _load_blacklist()
+    if not blacklist:
+        return None
     domain = extract_domain(url)
     if domain in blacklist:
         return {

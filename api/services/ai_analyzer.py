@@ -20,14 +20,14 @@ def _gemini_key() -> str:
 
 # --- Model configs ---
 GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
-GROQ_VISION_MODEL = "llama-3.2-90b-vision-preview"  # Vision model
+GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 GEMINI_MODEL = "gemini-2.5-flash"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
-# Vision fallback models
-GEMINI_VISION_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro-vision"]
+# Vision models — ordered by preference, deprecated ones removed
+GEMINI_VISION_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 
 # --- System Prompts ---
 SYSTEM_PROMPT_URL = """You are Qalqan AI — a cybersecurity expert system.
@@ -272,9 +272,8 @@ async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | Non
         return None
 
     vision_models = [
-        "llama-3.2-90b-vision-preview",
-        "llama-3.2-11b-vision-preview",
         "meta-llama/llama-4-scout-17b-16e-instruct",
+        "llama-3.2-90b-vision-preview",  # legacy fallback
     ]
 
     for model in vision_models:

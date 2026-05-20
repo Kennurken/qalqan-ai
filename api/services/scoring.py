@@ -9,7 +9,6 @@ def calculate_final_verdict(
     db_results: list[dict],
     ai_result: dict | None,
     pyramid_domain_hit: dict | None,
-    pyramid_text_score: float = 0.0,
     domain_info: dict | None = None,
     url_features: dict | None = None,
     lang: str = "kk"
