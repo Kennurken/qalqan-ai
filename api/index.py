@@ -396,6 +396,8 @@ async def check_site(request: CheckRequest, req: Request):
                                          domain_info=domain_info, url_features=url_feats, lang=lang)
         result["explanation"] = generate_explanation(url_feats, domain_info, db_results, None, None, result["threat_score"])
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "databases"}
+        if domain_info and domain_info.get("domain_details"):
+            result["domain_details"] = domain_info["domain_details"]
         set_cached(key, result)
         return result
 
@@ -410,6 +412,8 @@ async def check_site(request: CheckRequest, req: Request):
         "tier_hit": "ai",
         "ai_provider": ai_result.get("source", "unknown") if ai_result else "none"
     }
+    if domain_info and domain_info.get("domain_details"):
+        result["domain_details"] = domain_info["domain_details"]
     set_cached(key, result)
     logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']} [{result['metadata']['processing_time_ms']}ms]")
 

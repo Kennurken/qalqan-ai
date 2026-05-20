@@ -87,6 +87,18 @@ export default function ResultCard({ result, t }) {
         {result.metadata?.processing_time_ms && <span>⏱ {result.metadata.processing_time_ms}ms</span>}
       </div>
 
+      {/* Domain Intelligence — age + SSL */}
+      {result.domain_details && (
+        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "6px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          {result.domain_details.domain_age_days !== undefined && (
+            <span>📅 {result.domain_details.domain_age_days}d old</span>
+          )}
+          {result.domain_details.ssl?.status && (
+            <span>🔒 SSL: {result.domain_details.ssl.status.replace(/_/g, " ")}</span>
+          )}
+        </div>
+      )}
+
       {/* Indicators */}
       {result.indicators && result.indicators.length > 0 && (
         <div style={{ marginTop: "8px", display: "flex", gap: "4px", flexWrap: "wrap" }}>
