@@ -11,6 +11,14 @@ import unicodedata
 from urllib.parse import urlparse, parse_qs
 from collections import Counter
 
+# --- Known URL shorteners (destination hidden — mild risk) ---
+_URL_SHORTENERS = frozenset({
+    "bit.ly", "bitly.com", "t.ly", "tinyurl.com", "ow.ly", "short.io",
+    "rebrand.ly", "is.gd", "buff.ly", "cutt.ly", "lnk.bio", "goo.gl",
+    "youtu.be", "fb.me", "vk.cc", "qr.ae", "rb.gy", "shorturl.at",
+    "s.id", "tiny.cc", "snip.ly", "soo.gd", "clck.ru"
+})
+
 # --- Load brand data ---
 _data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 _brands_data = None
@@ -99,6 +107,9 @@ def extract_features(url: str) -> dict:
 
     # === 8. PUNYCODE / IDN ===
     features["has_punycode"] = 1 if "xn--" in domain else 0
+
+    # === 8.5. URL SHORTENER ===
+    features["is_url_shortener"] = 1 if domain in _URL_SHORTENERS else 0
 
     # === 9. HOMOGLYPH DETECTION (Cyrillic↔Latin) ===
     homoglyph_result = _detect_homoglyphs(domain)
@@ -272,5 +283,8 @@ def _calculate_risk_score(features: dict) -> int:
 
     # Non-standard port
     if features["has_port"]: score += 10
+
+    # URL shortener (destination hidden)
+    if features["is_url_shortener"]: score += 8
 
     return min(score, 100)

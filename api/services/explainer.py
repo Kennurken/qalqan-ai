@@ -93,6 +93,8 @@ def generate_explanation(
             risk_factors.append({"factor": "no_https", "value": "HTTP only", "impact": 10, "direction": "risk"})
         if uf.get("has_port"):
             risk_factors.append({"factor": "non_standard_port", "value": "Non-standard port in URL", "impact": 10, "direction": "risk"})
+        if uf.get("is_url_shortener"):
+            risk_factors.append({"factor": "url_shortener", "value": f"URL shortener: {uf.get('tld', '')} — destination hidden", "impact": 8, "direction": "risk"})
         evidence_sources.append("URL_features")
 
     # --- AI verdict ---
@@ -156,6 +158,8 @@ def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
         "brand_in_subdomain": "no brand in subdomain",
         "ip_address_url": "proper domain name",
         "no_https": "HTTPS enabled",
+        "url_shortener": "not a URL shortener service",
+        "non_standard_port": "standard port (80/443)",
         "suspicious_keywords": "no suspicious keywords in URL",
         "ai_analysis": "AI analysis returned SAFE",
         "known_pyramid_scheme": "not in pyramid scheme database",
