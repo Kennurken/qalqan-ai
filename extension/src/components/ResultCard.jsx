@@ -39,18 +39,32 @@ export default function ResultCard({ result, t }) {
 
   return (
     <div style={{ background: bgColor, borderLeft: `4px solid ${borderColor}`, borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
-      {/* Verdict + Score */}
+      {/* Verdict + Score + Risk Level */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
         <span style={{ fontSize: "16px", fontWeight: 800, color: verdictColor }}>
           {emoji} {verdictText}
         </span>
-        <span style={{
-          fontSize: "11px", fontWeight: 700,
-          background: "rgba(255,255,255,0.1)", padding: "3px 8px", borderRadius: "6px",
-          color: verdictColor
-        }}>
-          {result.threat_score}/100
-        </span>
+        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          {result.risk_level && result.risk_level !== "low" && (
+            <span style={{
+              fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px",
+              background: result.risk_level === "critical" ? "rgba(239,68,68,0.2)" :
+                          result.risk_level === "high" ? "rgba(239,68,68,0.15)" :
+                          "rgba(245,158,11,0.15)",
+              padding: "2px 6px", borderRadius: "4px",
+              color: result.risk_level === "critical" || result.risk_level === "high" ? "#f87171" : "#fbbf24"
+            }}>
+              {result.risk_level}
+            </span>
+          )}
+          <span style={{
+            fontSize: "11px", fontWeight: 700,
+            background: "rgba(255,255,255,0.1)", padding: "3px 8px", borderRadius: "6px",
+            color: verdictColor
+          }}>
+            {result.threat_score}/100
+          </span>
+        </div>
       </div>
 
       {/* Detail */}

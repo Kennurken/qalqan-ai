@@ -94,9 +94,20 @@ def calculate_final_verdict(
     }
 
 
+def _risk_level(verdict: str, score: int) -> str:
+    """Human-readable risk level for UI display."""
+    if verdict == "DANGEROUS":
+        return "critical" if score >= 90 else "high"
+    if verdict == "SUSPICIOUS":
+        return "medium" if score >= 50 else "low-medium"
+    return "low"
+
+
 def _format_verdict(result: dict, lang: str) -> dict:
     """Нәтижені стандартты форматқа келтіру."""
     threat_type = result.get("threat_type", "unknown")
+    verdict = result.get("verdict", "SUSPICIOUS")
+    score = result.get("threat_score", 50)
 
     # AI-дан келген тілдік себептер немесе i18n қолдану
     reason_kk = result.get("reason_kk", get_detail(threat_type, "kk"))
@@ -107,8 +118,9 @@ def _format_verdict(result: dict, lang: str) -> dict:
     detail_map = {"kk": reason_kk, "ru": reason_ru, "en": reason_en}
 
     return {
-        "verdict": result.get("verdict", "SUSPICIOUS"),
-        "threat_score": result.get("threat_score", 50),
+        "verdict": verdict,
+        "threat_score": score,
+        "risk_level": _risk_level(verdict, score),
         "threat_type": threat_type,
         "source": result.get("source", "unknown"),
         "detail": detail_map.get(lang, reason_kk),

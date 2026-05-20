@@ -180,7 +180,7 @@ const OFFLINE_WHITELIST = new Set([
   "tengrinews.kz","nur.kz","inform.kz","zakon.kz","kapital.kz"
 ]);
 
-const FREE_TLDS = new Set([".tk",".ml",".ga",".cf",".gq",".xyz",".top",".click",".buzz",".rest",".icu",".work",".link"]);
+const FREE_TLDS = new Set([".tk",".ml",".ga",".cf",".gq",".xyz",".top",".click",".buzz",".rest",".icu",".work",".link",".online",".site",".win",".pw",".cc",".bid",".loan"]);
 
 function offlineCheck(url) {
   try {
