@@ -284,22 +284,25 @@ async def check_site(request: CheckRequest, req: Request):
     if cached:
         return cached
 
+    # --- Tier 1.5: URL Feature Extraction (ML) — needed for explanation even on early hits ---
+    start_time = time.time()
+    url_feats = extract_features(url)
+
     # --- Tier 1: Pyramid list + Local blacklist ---
     pyramid_hit = check_pyramid_domain(url)
     if pyramid_hit:
         result = calculate_final_verdict([], None, pyramid_hit, lang=lang)
+        result["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, result["threat_score"])
+        result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "pyramid_list"}
         set_cached(key, result)
         return result
 
     blacklist_hit = check_local_blacklist(url)
     if blacklist_hit:
         result = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
+        result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "blacklist"}
         set_cached(key, result)
         return result
-
-    # --- Tier 1.5: URL Feature Extraction (ML) ---
-    start_time = time.time()
-    url_feats = extract_features(url)
 
     # --- Tier 2: External databases (параллель) ---
     db_results = await check_all_databases(url)
