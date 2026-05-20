@@ -6,9 +6,9 @@ import time
 from collections import OrderedDict
 
 MAX_CACHE_SIZE = 10_000
-TTL_SAFE = 3600
-TTL_DANGEROUS = 86400
-TTL_UNKNOWN = 300
+TTL_SAFE = 3600      # 1 hour — safe sites rarely change
+TTL_DANGEROUS = 86400  # 24 hours — dangerous sites persist
+TTL_UNKNOWN = 1800   # 30 minutes — suspicious sites: balance freshness vs load
 
 _cache: OrderedDict[str, tuple[dict, float]] = OrderedDict()
 

@@ -136,7 +136,7 @@ if DEMO_MODE:
 
 _DEMO_RESULTS: dict[str, dict] = {
     "kaspi.kz": {
-        "verdict": "SAFE", "threat_score": 0, "threat_type": "safe", "source": "demo_cache",
+        "verdict": "SAFE", "threat_score": 0, "risk_level": "low", "threat_type": "safe", "source": "demo_cache",
         "detail": "Сенімді сайт — Kaspi Bank ресми порталы",
         "detail_kk": "Сенімді сайт — Kaspi Bank ресми порталы",
         "detail_ru": "Надёжный сайт — официальный портал Kaspi Bank",
@@ -145,7 +145,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "explanation": {"top_factors": [], "safe_factors": [{"factor": "trusted_domain", "value": "kaspi.kz", "impact": -30, "direction": "safe"}], "confidence": 0.99}
     },
     "egov.kz": {
-        "verdict": "SAFE", "threat_score": 0, "threat_type": "safe", "source": "demo_cache",
+        "verdict": "SAFE", "threat_score": 0, "risk_level": "low", "threat_type": "safe", "source": "demo_cache",
         "detail": "Сенімді сайт — eGov.kz мемлекеттік портал",
         "detail_kk": "Сенімді сайт — eGov.kz мемлекеттік портал",
         "detail_ru": "Надёжный сайт — государственный портал eGov.kz",
@@ -154,7 +154,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "explanation": {"top_factors": [], "safe_factors": [{"factor": "trusted_domain", "value": "egov.kz", "impact": -30, "direction": "safe"}], "confidence": 0.99}
     },
     "halykbank.kz": {
-        "verdict": "SAFE", "threat_score": 0, "threat_type": "safe", "source": "demo_cache",
+        "verdict": "SAFE", "threat_score": 0, "risk_level": "low", "threat_type": "safe", "source": "demo_cache",
         "detail": "Сенімді сайт — Halyk Bank ресми порталы",
         "detail_kk": "Сенімді сайт — Halyk Bank ресми порталы",
         "detail_ru": "Надёжный сайт — официальный портал Halyk Bank",
@@ -162,7 +162,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "indicators": [], "cached": False
     },
     "kaspi-login.tk": {
-        "verdict": "DANGEROUS", "threat_score": 97, "threat_type": "phishing", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 97, "risk_level": "critical", "threat_type": "phishing", "source": "demo_cache",
         "detail": "ФИШИНГ: Kaspi Bank-тың жалған сайты! Жеке деректерді енгізбеңіз!",
         "detail_kk": "ФИШИНГ: Kaspi Bank-тың жалған сайты! Жеке деректерді енгізбеңіз!",
         "detail_ru": "ФИШИНГ: Поддельный сайт Kaspi Bank! Не вводите личные данные!",
@@ -181,7 +181,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         }
     },
     "crowd1.com": {
-        "verdict": "DANGEROUS", "threat_score": 95, "threat_type": "pyramid", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 95, "risk_level": "critical", "threat_type": "pyramid", "source": "demo_cache",
         "detail": "ҚАРЖЫЛЫҚ ПИРАМИДА: Crowd1 — танымал алаяқтық схема. Ақша салмаңыз!",
         "detail_kk": "ҚАРЖЫЛЫҚ ПИРАМИДА: Crowd1 — танымал алаяқтық схема. Ақша салмаңыз!",
         "detail_ru": "ФИНАНСОВАЯ ПИРАМИДА: Crowd1 — известная мошенническая схема. Не вкладывайте!",
@@ -190,7 +190,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "1xbet.com": {
-        "verdict": "DANGEROUS", "threat_score": 90, "threat_type": "gambling", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 90, "risk_level": "critical", "threat_type": "gambling", "source": "demo_cache",
         "detail": "ҚҰМАР ОЙЫН: лицензиясыз букмекер, ҚР-да тыйым салынған",
         "detail_kk": "ҚҰМАР ОЙЫН: лицензиясыз букмекер, ҚР-да тыйым салынған",
         "detail_ru": "ГЕМБЛИНГ: нелицензированный букмекер, запрещён в РК",
@@ -199,7 +199,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "verify-account.ml": {
-        "verdict": "DANGEROUS", "threat_score": 94, "threat_type": "phishing", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 94, "risk_level": "critical", "threat_type": "phishing", "source": "demo_cache",
         "detail": "ФИШИНГ: жалған верификация беті — жеке деректерді ұрлау",
         "detail_kk": "ФИШИНГ: жалған верификация беті — жеке деректерді ұрлау",
         "detail_ru": "ФИШИНГ: поддельная страница верификации для кражи данных",
@@ -208,7 +208,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "egov-login.kz": {
-        "verdict": "DANGEROUS", "threat_score": 98, "threat_type": "phishing", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 98, "risk_level": "critical", "threat_type": "phishing", "source": "demo_cache",
         "detail": "ФИШИНГ: eGov.kz мемлекеттік порталының жалған сайты! ЭЦП деректерін енгізбеңіз!",
         "detail_kk": "ФИШИНГ: eGov.kz мемлекеттік порталының жалған сайты! ЭЦП деректерін енгізбеңіз!",
         "detail_ru": "ФИШИНГ: Поддельный сайт государственного портала eGov.kz! Не вводите данные ЭЦП!",
@@ -226,7 +226,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         }
     },
     "mostbet-kz.com": {
-        "verdict": "DANGEROUS", "threat_score": 90, "threat_type": "gambling", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 90, "risk_level": "critical", "threat_type": "gambling", "source": "demo_cache",
         "detail": "ҚҰМАР ОЙЫН: Mostbet — лицензиясыз букмекер, ҚР-да тыйым салынған",
         "detail_kk": "ҚҰМАР ОЙЫН: Mostbet — лицензиясыз букмекер, ҚР-да тыйым салынған",
         "detail_ru": "ГЕМБЛИНГ: Mostbet — нелицензированный букмекер, запрещён в РК",
@@ -235,7 +235,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "finiko.com": {
-        "verdict": "DANGEROUS", "threat_score": 96, "threat_type": "pyramid", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 96, "risk_level": "critical", "threat_type": "pyramid", "source": "demo_cache",
         "detail": "ҚАРЖЫЛЫҚ ПИРАМИДА: Finiko — Ресей мен Қазақстанда мыңдаған адамды алдаған схема",
         "detail_kk": "ҚАРЖЫЛЫҚ ПИРАМИДА: Finiko — Ресей мен Қазақстанда мыңдаған адамды алдаған схема",
         "detail_ru": "ФИНАНСОВАЯ ПИРАМИДА: Finiko — схема обманула тысячи людей в России и Казахстане",
@@ -244,7 +244,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "google.com": {
-        "verdict": "SAFE", "threat_score": 0, "threat_type": "safe", "source": "demo_cache",
+        "verdict": "SAFE", "threat_score": 0, "risk_level": "low", "threat_type": "safe", "source": "demo_cache",
         "detail": "Сенімді сайт — Google ресми порталы",
         "detail_kk": "Сенімді сайт — Google ресми порталы",
         "detail_ru": "Надёжный сайт — официальный портал Google",
@@ -252,7 +252,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "indicators": [], "cached": False
     },
     "hellcase.com": {
-        "verdict": "DANGEROUS", "threat_score": 85, "threat_type": "gambling", "source": "demo_cache",
+        "verdict": "DANGEROUS", "threat_score": 85, "risk_level": "high", "threat_type": "gambling", "source": "demo_cache",
         "detail": "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын, жасөспірімдерге қауіпті",
         "detail_kk": "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын, жасөспірімдерге қауіпті",
         "detail_ru": "КЕЙС-БАТЛ: Открытие кейсов CS2 — азартная игра, опасна для несовершеннолетних",
@@ -261,7 +261,7 @@ _DEMO_RESULTS: dict[str, dict] = {
         "cached": False
     },
     "bit.ly": {
-        "verdict": "SUSPICIOUS", "threat_score": 45, "threat_type": "suspicious_infrastructure",
+        "verdict": "SUSPICIOUS", "threat_score": 45, "risk_level": "medium", "threat_type": "suspicious_infrastructure",
         "source": "demo_cache",
         "detail": "URL-қысқартқыш: қайда апаратыны белгісіз. Шертпес бұрын тексеріңіз.",
         "detail_kk": "URL-қысқартқыш: қайда апаратыны белгісіз. Шертпес бұрын тексеріңіз.",
@@ -603,11 +603,15 @@ async def report_site(request: ReportRequest, req: Request):
 # --- СТАТИСТИКА ---
 @app.get("/stats")
 async def get_stats():
+    from .utils.cache import _cache
     reports = _load_reports()
     return {
         "total_reported_domains": len(reports),
         "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 5),
-        "whitelist_size": len(_whitelist)
+        "whitelist_size": len(_whitelist),
+        "cache_entries": len(_cache),
+        "demo_mode": DEMO_MODE,
+        "version": "5.0.0"
     }
 
 
