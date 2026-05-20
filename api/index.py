@@ -9,6 +9,7 @@ import time
 import logging
 import asyncio
 from collections import defaultdict
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -36,8 +37,22 @@ _PRIVATE_IP_RE = re.compile(
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("qalqan")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: preload OpenPhish feed to avoid cold-start latency on first request."""
+    from .services.threat_db import load_openphish_feed
+    try:
+        await load_openphish_feed()
+        logger.info("OpenPhish feed preloaded at startup")
+    except Exception as e:
+        logger.warning(f"OpenPhish preload failed (will retry on first request): {e}")
+    yield
+
+
 app = FastAPI(title="Qalqan AI", version="5.0.0",
-              description="AI-powered cybersecurity research platform — PhD-grade threat detection")
+              description="AI-powered cybersecurity research platform — PhD-grade threat detection",
+              lifespan=lifespan)
 
 # --- CORS: тек extension + localhost ---
 app.add_middleware(
@@ -217,6 +232,42 @@ _DEMO_RESULTS: dict[str, dict] = {
         "detail_ru": "ГЕМБЛИНГ: Mostbet — нелицензированный букмекер, запрещён в РК",
         "detail_en": "GAMBLING: Mostbet — unlicensed bookmaker, prohibited in Kazakhstan",
         "indicators": ["gambling_list_match", "unlicensed_kz", "mostbet"],
+        "cached": False
+    },
+    "finiko.com": {
+        "verdict": "DANGEROUS", "threat_score": 96, "threat_type": "pyramid", "source": "demo_cache",
+        "detail": "ҚАРЖЫЛЫҚ ПИРАМИДА: Finiko — Ресей мен Қазақстанда мыңдаған адамды алдаған схема",
+        "detail_kk": "ҚАРЖЫЛЫҚ ПИРАМИДА: Finiko — Ресей мен Қазақстанда мыңдаған адамды алдаған схема",
+        "detail_ru": "ФИНАНСОВАЯ ПИРАМИДА: Finiko — схема обманула тысячи людей в России и Казахстане",
+        "detail_en": "FINANCIAL PYRAMID: Finiko — scheme defrauded thousands in Russia and Kazakhstan",
+        "indicators": ["pyramid_list_match", "mlm_scheme", "crypto_exit_scam"],
+        "cached": False
+    },
+    "google.com": {
+        "verdict": "SAFE", "threat_score": 0, "threat_type": "safe", "source": "demo_cache",
+        "detail": "Сенімді сайт — Google ресми порталы",
+        "detail_kk": "Сенімді сайт — Google ресми порталы",
+        "detail_ru": "Надёжный сайт — официальный портал Google",
+        "detail_en": "Trusted site — official Google portal",
+        "indicators": [], "cached": False
+    },
+    "hellcase.com": {
+        "verdict": "DANGEROUS", "threat_score": 85, "threat_type": "gambling", "source": "demo_cache",
+        "detail": "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын, жасөспірімдерге қауіпті",
+        "detail_kk": "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын, жасөспірімдерге қауіпті",
+        "detail_ru": "КЕЙС-БАТЛ: Открытие кейсов CS2 — азартная игра, опасна для несовершеннолетних",
+        "detail_en": "CASE BATTLE: CS2 case opening — gambling, dangerous for minors",
+        "indicators": ["case_battle_match", "gambling", "minor_risk"],
+        "cached": False
+    },
+    "bit.ly": {
+        "verdict": "SUSPICIOUS", "threat_score": 45, "threat_type": "suspicious_infrastructure",
+        "source": "demo_cache",
+        "detail": "URL-қысқартқыш: қайда апаратыны белгісіз. Шертпес бұрын тексеріңіз.",
+        "detail_kk": "URL-қысқартқыш: қайда апаратыны белгісіз. Шертпес бұрын тексеріңіз.",
+        "detail_ru": "URL-сокращатель: назначение скрыто. Проверьте перед переходом.",
+        "detail_en": "URL shortener: destination hidden. Verify before clicking.",
+        "indicators": ["url_shortener", "destination_hidden"],
         "cached": False
     },
 }
