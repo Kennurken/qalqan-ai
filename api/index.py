@@ -192,6 +192,33 @@ _DEMO_RESULTS: dict[str, dict] = {
         "indicators": ["free_tld_ml", "suspicious_keywords", "no_ssl", "new_domain"],
         "cached": False
     },
+    "egov-login.kz": {
+        "verdict": "DANGEROUS", "threat_score": 98, "threat_type": "phishing", "source": "demo_cache",
+        "detail": "ФИШИНГ: eGov.kz мемлекеттік порталының жалған сайты! ЭЦП деректерін енгізбеңіз!",
+        "detail_kk": "ФИШИНГ: eGov.kz мемлекеттік порталының жалған сайты! ЭЦП деректерін енгізбеңіз!",
+        "detail_ru": "ФИШИНГ: Поддельный сайт государственного портала eGov.kz! Не вводите данные ЭЦП!",
+        "detail_en": "PHISHING: Fake eGov.kz government portal! Do not enter your digital signature credentials!",
+        "indicators": ["phishing_list_match", "brand_impersonation_egov", "gov_portal_clone"],
+        "cached": False,
+        "explanation": {
+            "top_factors": [
+                {"factor": "known_phishing_domain", "value": "egov-login.kz — eGov impersonator", "impact": 95, "direction": "risk"},
+                {"factor": "brand_impersonation", "value": "Similar to: egov (edit dist=1)", "impact": 40, "direction": "risk"},
+                {"factor": "government_portal_clone", "value": "Fake government login page", "impact": 35, "direction": "risk"}
+            ],
+            "confidence": 0.99,
+            "counterfactual": "This domain is in the Qalqan KZ phishing database — always DANGEROUS"
+        }
+    },
+    "mostbet-kz.com": {
+        "verdict": "DANGEROUS", "threat_score": 90, "threat_type": "gambling", "source": "demo_cache",
+        "detail": "ҚҰМАР ОЙЫН: Mostbet — лицензиясыз букмекер, ҚР-да тыйым салынған",
+        "detail_kk": "ҚҰМАР ОЙЫН: Mostbet — лицензиясыз букмекер, ҚР-да тыйым салынған",
+        "detail_ru": "ГЕМБЛИНГ: Mostbet — нелицензированный букмекер, запрещён в РК",
+        "detail_en": "GAMBLING: Mostbet — unlicensed bookmaker, prohibited in Kazakhstan",
+        "indicators": ["gambling_list_match", "unlicensed_kz", "mostbet"],
+        "cached": False
+    },
 }
 
 
@@ -380,6 +407,11 @@ async def check_batch(request: BatchRequest, req: Request):
             url = url.strip()
             if not url.startswith(("http://", "https://")):
                 url = "https://" + url
+            from urllib.parse import urlparse as _urlparse
+            host = _urlparse(url).hostname or ""
+            if _PRIVATE_IP_RE.match(host):
+                return {"url": url, "verdict": "SUSPICIOUS", "threat_score": 30,
+                        "error": "Private/internal addresses not allowed"}
             domain = extract_domain(url)
 
             if DEMO_MODE and domain in _DEMO_RESULTS:
