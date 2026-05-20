@@ -41,7 +41,7 @@ async def run_benchmark(test_urls: dict | None = None) -> dict:
         else:
             risk = url_feats.get("risk_score", 0)
             verdict_data = {
-                "verdict": "DANGEROUS" if risk >= 60 else "SUSPICIOUS" if risk >= 30 else "SAFE",
+                "verdict": "DANGEROUS" if risk >= 70 else "SUSPICIOUS" if risk >= 40 else "SAFE",
                 "threat_score": risk,
                 "source": "url_features",
             }

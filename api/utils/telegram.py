@@ -17,7 +17,7 @@ async def send_appeal(url: str, reason: str) -> dict:
 
     message = (
         f"🛡️ *QALQAN AI: ЖАҢА АПЕЛЛЯЦИЯ*\n\n"
-        f"🌐 *Сайт:* {url}\n"
+        f"🌐 *Сайт:* `{url}`\n"
         f"📝 *Себебі:* {reason}\n"
         f"⏰ *Уақыт:* автоматты"
     )
@@ -45,7 +45,7 @@ async def notify_block(url: str, verdict: str, score: int, source: str):
         return
     message = (
         f"🛑 *QALQAN AI: БЛОКИРОВКА*\n\n"
-        f"🌐 *Сайт:* {url}\n"
+        f"🌐 *Сайт:* `{url}`\n"
         f"⚠️ *Вердикт:* {verdict} ({score}/100)\n"
         f"🔍 *Источник:* {source}"
     )
@@ -63,7 +63,7 @@ async def send_report(url: str, threat_type: str, reporter_note: str = "") -> di
 
     message = (
         f"🚨 *QALQAN AI: ЖАҢА ШАҒЫМ*\n\n"
-        f"🌐 *Сайт:* {url}\n"
+        f"🌐 *Сайт:* `{url}`\n"
         f"⚠️ *Қауіп түрі:* {threat_type}\n"
         f"📝 *Ескерту:* {reporter_note or 'жоқ'}"
     )

@@ -91,6 +91,8 @@ def generate_explanation(
             risk_factors.append({"factor": "punycode_domain", "value": "IDN/Punycode detected", "impact": 15, "direction": "risk"})
         if not uf.get("is_https"):
             risk_factors.append({"factor": "no_https", "value": "HTTP only", "impact": 10, "direction": "risk"})
+        if uf.get("has_port"):
+            risk_factors.append({"factor": "non_standard_port", "value": "Non-standard port in URL", "impact": 10, "direction": "risk"})
         evidence_sources.append("URL_features")
 
     # --- AI verdict ---

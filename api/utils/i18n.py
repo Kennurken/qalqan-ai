@@ -62,6 +62,11 @@ TRANSLATIONS = {
         "ru": "Обнаружены признаки поддельного интернет-магазина! Не оформляйте заказ.",
         "en": "Fake online store indicators detected! Do not place an order."
     },
+    "suspicious_infrastructure": {
+        "kk": "Күдікті домен инфрақұрылымы: жаңа домен немесе SSL сертификат мәселесі.",
+        "ru": "Подозрительная инфраструктура домена: новый домен или проблема с SSL-сертификатом.",
+        "en": "Suspicious domain infrastructure: new domain or SSL certificate issue."
+    },
 }
 
 
@@ -80,6 +85,7 @@ def get_detail(threat_type: str, lang: str = "kk") -> str:
         "suspicious": "suspicious",
         "social_engineering": "social_engineering",
         "fake_shop": "fake_shop",
+        "suspicious_infrastructure": "suspicious_infrastructure",
     }
     key = type_map.get(threat_type, "unknown")
     return t(key, lang)

@@ -69,8 +69,8 @@ async def check_virustotal(url: str) -> dict | None:
                     threat_names.append(f"{engine}: {result.get('result', 'detected')}")
 
             return {
-                "verdict": "DANGEROUS" if score >= 30 else "SUSPICIOUS",
-                "threat_score": max(score, 75),
+                "verdict": "DANGEROUS" if malicious >= 5 else "SUSPICIOUS",
+                "threat_score": score,
                 "threat_type": "malware",
                 "source": "virustotal",
                 "reason_kk": f"VirusTotal: {malicious}/{total} антивирус қауіпті деп таныды",

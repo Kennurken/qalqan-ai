@@ -50,8 +50,13 @@ RATE_WINDOW = 60         # 60 seconds
 def _check_rate_limit(ip: str, limit: int) -> bool:
     """True = разрешено, False = лимит асып кетті."""
     now = time.time()
+    # Prevent unbounded growth: purge IPs inactive for >5 minutes
+    if len(_rate_limits) > 5000:
+        cutoff = now - 300
+        dead = [k for k, v in _rate_limits.items() if not v or max(v) < cutoff]
+        for k in dead:
+            del _rate_limits[k]
     timestamps = _rate_limits[ip]
-    # Ескілерді тазалау
     _rate_limits[ip] = [ts for ts in timestamps if now - ts < RATE_WINDOW]
     if len(_rate_limits[ip]) >= limit:
         return False
@@ -334,6 +339,56 @@ async def check_text(request: TextCheckRequest, req: Request):
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 
+# --- BATCH ТЕКСЕРУ (max 10 URL) ---
+@app.post("/batch")
+async def check_batch(request: BatchRequest, req: Request):
+    """Check up to 10 URLs in parallel. Returns list of verdicts."""
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    urls = request.urls[:10]  # hard cap
+    lang = request.lang
+
+    async def _check_one(url: str) -> dict:
+        try:
+            url = url.strip()
+            if not url.startswith(("http://", "https://")):
+                url = "https://" + url
+            domain = extract_domain(url)
+
+            if DEMO_MODE and domain in _DEMO_RESULTS:
+                return {**_DEMO_RESULTS[domain], "url": url}
+
+            key = url_hash(url)
+            cached = get_cached(key)
+            if cached:
+                return {**cached, "url": url}
+
+            pyramid_hit = check_pyramid_domain(url)
+            if pyramid_hit:
+                r = calculate_final_verdict([], None, pyramid_hit, lang=lang)
+                set_cached(key, r)
+                return {**r, "url": url}
+
+            db_results, domain_info = await asyncio.gather(
+                check_all_databases(url),
+                check_domain_intelligence(domain, url)
+            )
+            url_feats = extract_features(url)
+            ai_result = await analyze_url(url)
+            r = calculate_final_verdict(db_results, ai_result, None,
+                                        domain_info=domain_info, url_features=url_feats, lang=lang)
+            set_cached(key, r)
+            return {**r, "url": url}
+        except Exception as e:
+            logger.error(f"Batch check error for {url}: {e}")
+            return {"url": url, "verdict": "SUSPICIOUS", "threat_score": 50, "error": str(e)[:100]}
+
+    results = await asyncio.gather(*[_check_one(u) for u in urls])
+    return {"results": list(results), "checked": len(results)}
+
+
 # --- СКРИНШОТ ТЕКСЕРУ ---
 @app.post("/analyze-screen")
 async def check_screen(request: ScreenRequest, req: Request):
@@ -355,16 +410,22 @@ async def appeal(request: AppealRequest, req: Request):
 
 
 # --- ШАҒЫМ (crowd-sourced) ---
+# Primary store is in-memory (persists within one serverless instance lifetime).
+# File write is best-effort — Vercel ephemeral FS resets on cold start.
 _reports_file = os.path.join(_data_dir, "reports.json")
+_reports_memory: dict = {}
+try:
+    with open(_reports_file, "r", encoding="utf-8") as f:
+        _reports_memory = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    pass
 
 def _load_reports() -> dict:
-    try:
-        with open(_reports_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+    return _reports_memory
 
 def _save_reports(reports: dict):
+    global _reports_memory
+    _reports_memory = reports
     try:
         with open(_reports_file, "w", encoding="utf-8") as f:
             json.dump(reports, f, ensure_ascii=False)
@@ -413,6 +474,35 @@ async def get_stats():
 @app.get("/ping")
 async def ping():
     return {"status": "ok", "version": "5.0.0", "demo_mode": DEMO_MODE}
+
+
+# --- Detailed health check ---
+@app.get("/health")
+async def health():
+    api_keys = {
+        "groq": bool(os.getenv("GROQ_API_KEY")),
+        "gemini": bool(os.getenv("GEMINI_API_KEY")),
+        "phishtank": bool(os.getenv("PHISHTANK_API_KEY")),
+        "google_safe_browsing": bool(os.getenv("GOOGLE_SAFE_BROWSING_KEY")),
+        "virustotal": bool(os.getenv("VIRUSTOTAL_API_KEY")),
+        "telegram": bool(os.getenv("TELEGRAM_BOT_TOKEN")),
+    }
+    data_files = {}
+    for fname in ["whitelist.json", "kz_brands.json", "pyramid_schemes.json",
+                  "blacklist.json", "kz_phishing_patterns.json"]:
+        data_files[fname] = os.path.exists(os.path.join(_data_dir, fname))
+
+    configured_count = sum(api_keys.values())
+    return {
+        "status": "ok",
+        "version": "5.0.0",
+        "demo_mode": DEMO_MODE,
+        "api_keys_configured": configured_count,
+        "api_keys": api_keys,
+        "data_files": data_files,
+        "whitelist_domains": len(_whitelist),
+        "reports_in_memory": len(_reports_memory),
+    }
 
 
 # ============================================================

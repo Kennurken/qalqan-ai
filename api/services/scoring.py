@@ -30,7 +30,7 @@ def calculate_final_verdict(
 
     # DB нәтижелері
     if db_results:
-        best = max(db_results, key=lambda r: r.get("threat_score", 0))
+        best = dict(max(db_results, key=lambda r: r.get("threat_score", 0)))
         score = max(80, best.get("threat_score", 80))
 
         # Бірнеше DB-дан расталса, балл жоғарылайды
@@ -42,6 +42,7 @@ def calculate_final_verdict(
 
     # AI нәтижесі
     if ai_result:
+        ai_result = {**ai_result, "indicators": list(ai_result.get("indicators", []))}
         verdict = ai_result.get("verdict", "SUSPICIOUS").upper()
         score = ai_result.get("threat_score", 50)
 

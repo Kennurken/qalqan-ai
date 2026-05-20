@@ -3,6 +3,7 @@
 # Барлығы тегін API, параллель asyncio.gather арқылы тексеріледі
 
 import os
+import time
 import asyncio
 import httpx
 from urllib.parse import urlparse
@@ -15,7 +16,8 @@ def _safebrowsing_key() -> str:
 
 # OpenPhish feed — жадта сақталады, 12 сағат сайын жаңартылады
 _openphish_urls: set[str] = set()
-_openphish_loaded: bool = False
+_openphish_loaded_at: float = 0.0
+_OPENPHISH_TTL = 12 * 3600  # 12 hours
 _openphish_lock = asyncio.Lock()
 
 
@@ -140,23 +142,23 @@ async def check_urlhaus(url: str) -> dict | None:
 
 async def load_openphish_feed():
     """OpenPhish community feed жүктеу (12 сағат сайын жаңарту)."""
-    global _openphish_urls, _openphish_loaded
+    global _openphish_urls, _openphish_loaded_at
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             res = await client.get("https://openphish.com/feed.txt")
             if res.status_code == 200:
                 _openphish_urls = set(line.strip() for line in res.text.splitlines() if line.strip())
-                _openphish_loaded = True
+                _openphish_loaded_at = time.time()
     except Exception:
         pass
 
 
 async def check_openphish(url: str) -> dict | None:
     """OpenPhish — тегін фишинг feed (жадтағы set арқылы тексеру)."""
-    global _openphish_loaded
-    if not _openphish_loaded:
+    now = time.time()
+    if now - _openphish_loaded_at > _OPENPHISH_TTL:
         async with _openphish_lock:
-            if not _openphish_loaded:
+            if now - _openphish_loaded_at > _OPENPHISH_TTL:
                 await load_openphish_feed()
 
     if url in _openphish_urls:

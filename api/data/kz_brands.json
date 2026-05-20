@@ -52,5 +52,13 @@
     {"name": "bybit", "domains": ["bybit.com"], "category": "crypto"}
   ],
   "free_tlds": [".tk", ".ml", ".ga", ".cf", ".gq", ".xyz", ".top", ".work", ".click", ".link", ".buzz", ".rest", ".icu"],
-  "suspicious_keywords": ["login", "verify", "secure", "update", "account", "confirm", "suspend", "unlock", "password", "signin", "banking", "wallet", "prize", "winner", "congratulation", "urgent", "limited", "act-now", "free-money"]
+  "suspicious_keywords": [
+    "login", "verify", "secure", "update", "account", "confirm", "suspend", "unlock",
+    "password", "signin", "banking", "wallet", "prize", "winner", "congratulation",
+    "urgent", "limited", "act-now", "free-money",
+    "bonus", "reward", "claim", "cashback", "withdraw", "invest", "profit",
+    "giveaway", "airdrop", "token", "nft", "crypto-earn",
+    "акция", "бонус", "выигрыш", "пароль", "срочно", "кошелёк",
+    "жеңіс", "сыйлық", "ұтыс", "тегін", "жылдам", "акциясы"
+  ]
 }

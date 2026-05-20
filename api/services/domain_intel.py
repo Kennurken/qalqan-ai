@@ -35,7 +35,7 @@ async def check_domain_intelligence(domain: str, url: str) -> dict | None:
             indicators.append(f"domain_age_{age_days}d")
 
     # --- SSL сертификат (run in executor — sync socket I/O must not block event loop) ---
-    ssl_info = await asyncio.get_event_loop().run_in_executor(None, _check_ssl_cert, domain)
+    ssl_info = await asyncio.get_running_loop().run_in_executor(None, _check_ssl_cert, domain)
     details["ssl"] = ssl_info
     if ssl_info["status"] == "no_ssl":
         score_adjust += 30

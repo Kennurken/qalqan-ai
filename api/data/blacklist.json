@@ -1,0 +1,5 @@
+{
+  "description": "Crowd-sourced phishing/scam domain blacklist — auto-blocked after 5+ reports",
+  "version": "1.0",
+  "domains": []
+}

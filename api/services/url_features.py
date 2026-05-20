@@ -73,11 +73,7 @@ def extract_features(url: str) -> dict:
     features["is_https"] = 1 if parsed.scheme == "https" else 0
     features["num_subdomains"] = max(domain.count(".") - 1, 0)
     features["num_params"] = len(parse_qs(query))
-    try:
-        host_part = (parsed.netloc or "").split("@")[-1]
-        features["has_port"] = 1 if host_part and ":" in host_part.split(".")[0] else 0
-    except (IndexError, AttributeError):
-        features["has_port"] = 0
+    features["has_port"] = 1 if parsed.port is not None else 0
 
     # === 4. TLD FEATURES ===
     data = _load_brands()
@@ -266,5 +262,8 @@ def _calculate_risk_score(features: dict) -> int:
 
     # Double slash in path
     if features["has_double_slash"]: score += 5
+
+    # Non-standard port
+    if features["has_port"]: score += 10
 
     return min(score, 100)
