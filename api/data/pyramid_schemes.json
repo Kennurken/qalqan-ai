@@ -100,8 +100,8 @@
     {"name": "SkinHub", "domains": ["skinhub.com"], "type": "gambling", "country": "INT"},
     {"name": "RustClash", "domains": ["rustclash.com"], "type": "gambling", "country": "INT"},
 
-    {"name": "eGov Phishing", "domains": ["eg0v.kz", "egov-kz.com", "egov-verify.kz", "egov.kz.com", "e-gov-kz.com", "egov-login.kz"], "type": "phishing", "country": "KZ"},
-    {"name": "Kaspi Phishing", "domains": ["kaspi-bank.kz", "kaspi-verify.com", "kaspi-qr.kz", "kaspi.com.kz", "kaspikz.com", "kaspi-pay.kz", "my-kaspi.kz"], "type": "phishing", "country": "KZ"},
+    {"name": "eGov Phishing", "domains": ["eg0v.kz", "egov-kz.com", "egov-verify.kz", "egov.kz.com", "e-gov-kz.com", "egov-login.kz", "my-egov.kz", "egov.com.kz", "egov-portal.com"], "type": "phishing", "country": "KZ"},
+    {"name": "Kaspi Phishing", "domains": ["kaspi-bank.kz", "kaspi-verify.com", "kaspi-qr.kz", "kaspi.com.kz", "kaspikz.com", "kaspi-pay.kz", "my-kaspi.kz", "kaspi-shop.com", "kaspi-login.tk", "kaspi-bonus.com"], "type": "phishing", "country": "KZ"},
     {"name": "Halyk Phishing", "domains": ["halyk-bank.com", "homebank-kz.com", "halykbank-login.kz", "halyk-online.com", "my-homebank.kz"], "type": "phishing", "country": "KZ"},
     {"name": "Crypto Phishing", "domains": ["binance-login.com", "coinbase-verify.com", "metamask-verify.com", "trustwallet-verify.com", "blockchain-verify.com", "crypto-airdrop.com"], "type": "phishing", "country": "INT"}
   ],

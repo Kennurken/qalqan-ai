@@ -98,21 +98,34 @@ Respond in STRICT JSON format ONLY:
 
 
 def _parse_ai_json(raw_text: str) -> dict:
-    """AI жауабынан JSON шығарып алу."""
+    """AI жауабынан JSON шығарып алу — depth-tracked extraction."""
     if not raw_text:
         return _fallback_result("Empty AI response")
 
-    # JSON блогын іздеу
-    match = re.search(r"\{.*\}", raw_text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            pass
+    # Try direct parse first
+    try:
+        return json.loads(raw_text.strip())
+    except json.JSONDecodeError:
+        pass
 
-    # Fallback regex
-    verdict_match = re.search(r"(DANGEROUS|SAFE|SUSPICIOUS)", raw_text, re.I)
-    score_match = re.search(r"(\d{1,3})", raw_text)
+    # Depth-tracking JSON extraction (handles nested objects correctly)
+    start = raw_text.find("{")
+    if start != -1:
+        depth = 0
+        for i, c in enumerate(raw_text[start:], start):
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(raw_text[start:i + 1])
+                    except json.JSONDecodeError:
+                        break
+
+    # Last-resort: extract verdict + score from plain text
+    verdict_match = re.search(r"\b(DANGEROUS|SAFE|SUSPICIOUS)\b", raw_text, re.I)
+    score_match = re.search(r"\b(\d{1,3})\b", raw_text)
 
     return {
         "verdict": verdict_match.group(1).upper() if verdict_match else "SUSPICIOUS",
@@ -283,6 +296,7 @@ async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | Non
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": [
+                        {"type": "text", "text": "Analyze this screenshot for scam, phishing, or fraud indicators. Respond in the JSON format specified:"},
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
                     ]}
                 ],

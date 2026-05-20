@@ -17,6 +17,7 @@ from pydantic import BaseModel, field_validator, Field
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist
+from .services.kz_intel import check_kz_social_engineering
 from .services.domain_intel import check_domain_intelligence
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
@@ -345,7 +346,18 @@ async def check_text(request: TextCheckRequest, req: Request):
     if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
+    # KZ-specific social engineering detection (fast, no API call)
+    kz_hit = check_kz_social_engineering(request.text)
+    if kz_hit and kz_hit.get("verdict") == "DANGEROUS":
+        return calculate_final_verdict([], kz_hit, None, lang=request.lang)
+
     ai_result = await analyze_text(request.text)
+    # Merge KZ signals into AI result if both fired
+    if kz_hit and ai_result:
+        ai_result.setdefault("indicators", []).extend(kz_hit.get("indicators", []))
+        ai_result["threat_score"] = min(
+            ai_result.get("threat_score", 50) + kz_hit.get("threat_score", 0) // 3, 100
+        )
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 
