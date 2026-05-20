@@ -10,7 +10,7 @@ const recentChecks = new Map();
 
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log(`Qalqan AI v4.0 installed (${details.reason})`);
+  console.log(`Qalqan AI v5.0 installed (${details.reason})`);
   if (details.reason === "install") {
     chrome.storage.local.set({
       qalqan_stats: { checked: 0, blocked: 0, suspicious: 0, safe: 0, since: new Date().toISOString() },
@@ -64,6 +64,19 @@ function normalizeUrl(url) {
 async function checkUrl(url, tabId) {
   try {
     url = normalizeUrl(url);
+
+    // Check user whitelist first — skip API call for trusted domains
+    const domain = new URL(url).hostname.replace("www.", "").toLowerCase();
+    const wlData = await chrome.storage.local.get("qalqan_user_whitelist");
+    const userWhitelist = wlData.qalqan_user_whitelist || [];
+    if (userWhitelist.includes(domain) || userWhitelist.some(d => domain.endsWith("." + d))) {
+      const safeResult = { verdict: "SAFE", threat_score: 0, source: "user_whitelist", cached: false };
+      chrome.storage.local.set({ [`result_${tabId}`]: safeResult });
+      chrome.action.setBadgeText({ text: "✓", tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#10B981" });
+      return;
+    }
+
     const lang = await getLanguage();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
