@@ -156,11 +156,28 @@ const OFFLINE_SCAM = new Set([
 
 // === БЕЛЫЙ СПИСОК ===
 const OFFLINE_WHITELIST = new Set([
-  "google.com","google.kz","youtube.com","github.com","kaspi.kz",
-  "halykbank.kz","egov.kz","wikipedia.org","microsoft.com","apple.com",
-  "kolesa.kz","krisha.kz","tengrinews.kz","nur.kz","telegram.org",
-  "instagram.com","facebook.com","twitter.com","linkedin.com",
-  "reddit.com","stackoverflow.com","amazon.com","netflix.com"
+  // International
+  "google.com","google.kz","youtube.com","github.com","wikipedia.org",
+  "microsoft.com","apple.com","amazon.com","cloudflare.com",
+  "facebook.com","instagram.com","twitter.com","x.com","linkedin.com",
+  "whatsapp.com","telegram.org","t.me","reddit.com","tiktok.com",
+  "stackoverflow.com","mozilla.org","npmjs.com","pypi.org",
+  // KZ Government
+  "egov.kz","gov.kz","nationalbank.kz","elicense.kz","salyk.kz",
+  "kgd.gov.kz","adilet.zan.kz","enbek.kz","otbasybank.kz","nca.kz",
+  "pki.gov.kz","kazpost.kz","post.kz","akorda.kz","primeminister.kz",
+  // KZ Banks
+  "kaspi.kz","halykbank.kz","homebank.kz","bcc.kz","centercredit.kz",
+  "jusan.kz","forte.kz","freedom.kz","berekebank.kz","rbk.kz",
+  "altynbank.kz","eubank.kz",
+  // KZ Telecom
+  "beeline.kz","kcell.kz","activ.kz","tele2.kz","altel.kz",
+  // KZ Services
+  "kolesa.kz","krisha.kz","olx.kz","wildberries.kz","mechta.kz",
+  "sulpak.kz","technodom.kz","flip.kz","aviata.kz","ticketon.kz",
+  "chocofood.kz","2gis.kz",
+  // KZ Media
+  "tengrinews.kz","nur.kz","inform.kz","zakon.kz","kapital.kz"
 ]);
 
 const FREE_TLDS = new Set([".tk",".ml",".ga",".cf",".gq",".xyz",".top",".click",".buzz",".rest",".icu",".work",".link"]);

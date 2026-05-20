@@ -242,4 +242,4 @@ async function getLanguage() {
   return result.qalqan_lang || "kk";
 }
 
-console.log("Qalqan AI v4.0 — Background Service Worker started");
+console.log("Qalqan AI v5.0 — Background Service Worker started");
