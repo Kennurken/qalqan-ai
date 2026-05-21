@@ -47,6 +47,17 @@ chrome.runtime.onInstalled.addListener((details) => {
       qalqan_stats: { checked: 0, blocked: 0, suspicious: 0, safe: 0, since: new Date().toISOString() },
       qalqan_lang: "kk"
     });
+    // Welcome notification
+    chrome.notifications.create("qalqan_welcome", {
+      type: "basic",
+      iconUrl: "icons/icon48.png",
+      title: "🛡️ QALQAN AI орнатылды!",
+      message: "Сайттарды автоматты тексеру қосылды. Фишинг, пирамида, алаяқтықтан қорғаныс іске қосылды.",
+      priority: 1
+    });
+  }
+  if (details.reason === "update") {
+    console.log(`Qalqan AI updated to v5.0 from ${details.previousVersion}`);
   }
 });
 
@@ -269,6 +280,7 @@ async function saveHistory(url, data) {
       url, domain,
       verdict: data.verdict,
       score: data.threat_score || 0,
+      threat_type: data.threat_type || "unknown",
       source: data.source || "unknown",
       time: new Date().toLocaleString()
     });

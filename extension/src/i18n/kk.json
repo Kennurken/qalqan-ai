@@ -47,5 +47,15 @@
   "confidence": "Сенімділік",
   "autocheck": "Авто-тексеру",
   "notifications": "Хабарландырулар",
-  "whitelist": "Сенімді тізім"
+  "whitelist": "Сенімді тізім",
+  "linkScanner": "Сілтемелер сканері",
+  "scanLinks": "Беттегі сілтемелерді тексеру",
+  "scanningLinks": "Тексеруде...",
+  "noLinksFound": "Сыртқы сілтемелер табылмады",
+  "scanError": "Сканерлеу қатесі. Бетті жаңартып, қайталаңыз.",
+  "dangerousLinks": "қауіпті",
+  "suspiciousLinks": "күдікті",
+  "safeLinks": "қауіпсіз",
+  "linksChecked": "сілтеме тексерілді",
+  "exportReport": "Есептеме жүктеу"
 }

@@ -47,5 +47,15 @@
   "confidence": "Confidence",
   "autocheck": "Auto-check",
   "notifications": "Notifications",
-  "whitelist": "Whitelist"
+  "whitelist": "Whitelist",
+  "linkScanner": "Link Scanner",
+  "scanLinks": "Scan Page Links",
+  "scanningLinks": "Scanning...",
+  "noLinksFound": "No external links found",
+  "scanError": "Scan error. Refresh page and retry.",
+  "dangerousLinks": "dangerous",
+  "suspiciousLinks": "suspicious",
+  "safeLinks": "safe",
+  "linksChecked": "links checked",
+  "exportReport": "Export Report"
 }

@@ -47,5 +47,15 @@
   "confidence": "Уверенность",
   "autocheck": "Авто-проверка",
   "notifications": "Уведомления",
-  "whitelist": "Белый список"
+  "whitelist": "Белый список",
+  "linkScanner": "Сканер ссылок",
+  "scanLinks": "Проверить ссылки на странице",
+  "scanningLinks": "Сканирование...",
+  "noLinksFound": "Внешние ссылки не найдены",
+  "scanError": "Ошибка сканирования. Обновите страницу.",
+  "dangerousLinks": "опасных",
+  "suspiciousLinks": "подозрительных",
+  "safeLinks": "безопасных",
+  "linksChecked": "ссылок проверено",
+  "exportReport": "Скачать отчёт"
 }

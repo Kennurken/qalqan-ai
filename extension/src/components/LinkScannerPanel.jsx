@@ -37,7 +37,7 @@ export default function LinkScannerPanel({ t, onBack }) {
       const res = await fetch(`${API_URL}/batch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urls: links.slice(0, 10), lang })
+        body: JSON.stringify({ urls: links.slice(0, 15), lang })
       });
       const data = await res.json();
       setResults(data.results || []);
@@ -46,6 +46,29 @@ export default function LinkScannerPanel({ t, onBack }) {
       console.error("Link scan error:", e);
       setStatus("error");
     }
+  };
+
+  const exportReport = () => {
+    const report = {
+      scanned_at: new Date().toISOString(),
+      total_links: totalLinks,
+      checked: results.length,
+      summary: stats,
+      results: results.map(r => ({
+        url: r.url,
+        verdict: r.verdict,
+        threat_score: r.threat_score,
+        threat_type: r.threat_type,
+        source: r.source
+      }))
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qalqan-scan-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const verdictColor = { DANGEROUS: "#f87171", SUSPICIOUS: "#fbbf24", SAFE: "#34d399" };
@@ -62,7 +85,7 @@ export default function LinkScannerPanel({ t, onBack }) {
         <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "14px" }}>
           ← {t("back")}
         </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>🔗 Link Scanner</span>
+        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>🔗 {t("linkScanner")}</span>
         <div style={{ width: 40 }} />
       </div>
 
@@ -77,18 +100,18 @@ export default function LinkScannerPanel({ t, onBack }) {
           fontWeight: 700, fontSize: "14px"
         }}
       >
-        {status === "scanning" ? "⏳ Тексеруде..." : "🔍 Беттегі сілтемелерді тексеру"}
+        {status === "scanning" ? `⏳ ${t("scanningLinks")}` : `🔍 ${t("scanLinks")}`}
       </button>
 
       {status === "done" && results.length === 0 && (
         <p style={{ textAlign: "center", color: "#64748b", fontSize: "13px" }}>
-          Сыртқы сілтемелер табылмады ({totalLinks} барлығы)
+          {t("noLinksFound")} ({totalLinks} total)
         </p>
       )}
 
       {status === "error" && (
         <p style={{ textAlign: "center", color: "#f87171", fontSize: "13px" }}>
-          ⚠️ Сканерлеу қатесі. Бетті жаңартып, қайталаңыз.
+          ⚠️ {t("scanError")}
         </p>
       )}
 
@@ -98,17 +121,17 @@ export default function LinkScannerPanel({ t, onBack }) {
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
             {stats.DANGEROUS > 0 && (
               <span style={{ fontSize: "11px", background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                🛑 {stats.DANGEROUS} қауіпті
+                🛑 {stats.DANGEROUS} {t("dangerousLinks")}
               </span>
             )}
             {stats.SUSPICIOUS > 0 && (
               <span style={{ fontSize: "11px", background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                ⚠️ {stats.SUSPICIOUS} күдікті
+                ⚠️ {stats.SUSPICIOUS} {t("suspiciousLinks")}
               </span>
             )}
             {stats.SAFE > 0 && (
               <span style={{ fontSize: "11px", background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                ✅ {stats.SAFE} қауіпсіз
+                ✅ {stats.SAFE} {t("safeLinks")}
               </span>
             )}
           </div>
@@ -145,9 +168,21 @@ export default function LinkScannerPanel({ t, onBack }) {
               );
             })}
           </div>
-          <p style={{ fontSize: "10px", color: "#64748b", textAlign: "center", marginTop: "8px" }}>
-            {results.length} / {totalLinks} сілтеме тексерілді
-          </p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
+            <p style={{ fontSize: "10px", color: "#64748b", margin: 0 }}>
+              {results.length} / {totalLinks} {t("linksChecked")}
+            </p>
+            <button
+              onClick={exportReport}
+              style={{
+                fontSize: "10px", color: "#6366f1", background: "rgba(99,102,241,0.1)",
+                border: "1px solid rgba(99,102,241,0.3)", borderRadius: "6px",
+                padding: "3px 8px", cursor: "pointer"
+              }}
+            >
+              ⬇ {t("exportReport")}
+            </button>
+          </div>
         </>
       )}
     </div>

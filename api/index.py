@@ -467,15 +467,15 @@ async def check_text(request: TextCheckRequest, req: Request):
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 
-# --- BATCH ТЕКСЕРУ (max 10 URL) ---
+# --- BATCH ТЕКСЕРУ (max 15 URL) ---
 @app.post("/batch")
 async def check_batch(request: BatchRequest, req: Request):
-    """Check up to 10 URLs in parallel. Returns list of verdicts."""
+    """Check up to 15 URLs in parallel. Returns list of verdicts."""
     client_ip = req.client.host if req.client else "unknown"
     if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
-    urls = request.urls[:10]  # hard cap
+    urls = request.urls[:15]  # hard cap
     lang = request.lang
 
     async def _check_one(url: str) -> dict:

@@ -1,5 +1,5 @@
-// Qalqan AI v3.0
-// Бас компонент: main → stats → settings views
+// Qalqan AI v5.0
+// Бас компонент: main → stats → history → scanner → settings → whitelist views
 
 import { useState, useEffect } from "react";
 import { useCheckUrl } from "./hooks/useCheckUrl";
