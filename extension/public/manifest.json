@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Qalqan AI — Cyber Shield",
+  "short_name": "Qalqan AI",
   "version": "5.0.0",
   "description": "AI-powered cybersecurity: phishing, pyramid scheme & scam detection for Kazakhstan",
+  "homepage_url": "https://github.com/Kennurken/qalqan-ai",
   "permissions": [
     "activeTab",
     "tabs",

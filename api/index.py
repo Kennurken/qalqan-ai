@@ -634,6 +634,42 @@ async def get_stats():
     }
 
 
+# --- ТРЕНДЫ (crowd-sourced) ---
+@app.get("/trends")
+async def get_trends():
+    """Top reported threat domains and types — crowd intelligence."""
+    reports = _load_reports()
+    if not reports:
+        return {"top_domains": [], "threat_type_counts": {}, "total_reports": 0}
+
+    # Top 10 most reported domains
+    sorted_domains = sorted(reports.items(), key=lambda x: x[1]["count"], reverse=True)
+    top_domains = [
+        {
+            "domain": domain,
+            "reports": data["count"],
+            "types": list(set(data.get("types", []))),
+            "auto_blocked": data["count"] >= 5
+        }
+        for domain, data in sorted_domains[:10]
+    ]
+
+    # Threat type distribution
+    type_counts: dict[str, int] = {}
+    for data in reports.values():
+        for t_type in data.get("types", []):
+            type_counts[t_type] = type_counts.get(t_type, 0) + 1
+
+    total_reports = sum(d["count"] for d in reports.values())
+
+    return {
+        "top_domains": top_domains,
+        "threat_type_counts": dict(sorted(type_counts.items(), key=lambda x: x[1], reverse=True)),
+        "total_reports": total_reports,
+        "unique_domains_reported": len(reports)
+    }
+
+
 # --- Keep-warm (Vercel cron hits every 10 min) ---
 @app.get("/ping")
 async def ping():
@@ -722,17 +758,21 @@ async def check_research(request: CheckRequest, req: Request):
     url_feats = extract_features(url)
     pyramid_hit = check_pyramid_domain(url)
     blacklist_hit = check_local_blacklist(url)
+    kz_hit = check_kz_impersonation_url(domain)
     db_results, domain_info, ai_result = await asyncio.gather(
         check_all_databases(url),
         check_domain_intelligence(domain, url),
         analyze_url(url)
     )
 
-    # Calculate final verdict
+    # Calculate final verdict (pyramid > kz_impersonation > blacklist > DB > AI)
+    effective_hit = pyramid_hit or kz_hit
     result = calculate_final_verdict(
-        db_results, ai_result, pyramid_hit,
+        db_results, ai_result if not effective_hit else None, effective_hit or None,
         domain_info=domain_info, url_features=url_feats, lang=lang
     )
+    if not effective_hit and blacklist_hit and not db_results:
+        result = calculate_final_verdict([blacklist_hit], None, None, url_features=url_feats, lang=lang)
 
     # Generate explanation
     explanation = generate_explanation(
