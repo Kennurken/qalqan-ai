@@ -1,15 +1,29 @@
 {
   "egov_impersonation": [
     "eg0v.kz", "egov-kz.com", "egov-verify.kz", "egov.kz.com", "e-gov-kz.com",
-    "egov-login.kz", "my-egov.kz", "egov.com.kz", "egov-portal.com"
+    "egov-login.kz", "my-egov.kz", "egov.com.kz", "egov-portal.com",
+    "egov-kz.net", "e-gov.com.kz", "egov-site.kz", "gov-kz-portal.com",
+    "kz-gov.com", "kazakhstan-gov.com", "gosgov-kz.com"
   ],
   "kaspi_impersonation": [
     "kaspi-bank.kz", "kaspi-verify.com", "kaspi-qr.kz", "kaspi.com.kz",
-    "kaspikz.com", "kaspi-shop.com", "kaspi-pay.kz", "my-kaspi.kz"
+    "kaspikz.com", "kaspi-shop.com", "kaspi-pay.kz", "my-kaspi.kz",
+    "kaspibank-kz.com", "kaspi-gold.com", "kaspi-support.com", "kaspi-id.kz",
+    "kaspi-login.tk", "kaspi-login.ml", "kaspi-online.xyz", "kaspii.kz"
   ],
   "halyk_impersonation": [
     "halyk-bank.com", "homebank-kz.com", "halykbank-login.kz",
-    "halyk-online.com", "my-homebank.kz"
+    "halyk-online.com", "my-homebank.kz", "halyk-support.com",
+    "homebank-login.kz", "halyk-id.com", "halykbank.com.kz"
+  ],
+  "jysan_impersonation": [
+    "jysan-bank.com", "jysanbank-kz.com", "jysan-online.kz",
+    "jysan-login.com", "my-jysan.kz"
+  ],
+  "kcell_beeline_impersonation": [
+    "kcell-kz.com", "kcell-bonus.kz", "kcell-promo.com",
+    "beeline-kz.com", "beeline-bonus.kz", "beeline-promo.com",
+    "mobile-kcell.kz", "kcell.com.kz"
   ],
   "social_engineering_kk": [
     "Сіз ұтып алдыңыз",
@@ -22,7 +36,14 @@
     "eGov порталына кіріңіз",
     "Kaspi Gold картаңыз",
     "Шектеулі уақыт",
-    "Қазір тіркеліңіз"
+    "Қазір тіркеліңіз",
+    "Жеке деректерді растаңыз",
+    "PIN кодыңызды беріңіз",
+    "Дереу аударыңыз",
+    "Қауіпсіздік бөлімі",
+    "Сіздің шотыңыз бұғатталды",
+    "Жеке кабинетке кіріңіз",
+    "Тез арада хабарласыңыз"
   ],
   "social_engineering_ru": [
     "Вы выиграли",
@@ -36,15 +57,31 @@
     "Ваша карта Kaspi Gold",
     "Ограниченное время",
     "Зарегистрируйтесь сейчас",
-    "Подтвердите личность"
+    "Подтвердите личность",
+    "Введите PIN-код",
+    "Срочно переведите",
+    "Отдел безопасности",
+    "Личный кабинет заблокирован",
+    "Верификация аккаунта",
+    "Позвоните сотруднику банка"
   ],
   "telegram_scam_patterns": [
     "инвестиция", "пассивный доход", "гарантированный заработок",
     "бот для заработка", "криптовалюта бесплатно", "удвоение средств",
-    "быстрый заработок", "партнёрская программа", "вложи и получай"
+    "быстрый заработок", "партнёрская программа", "вложи и получай",
+    "реферальная ссылка", "топ инвестиции", "сигналы для торговли",
+    "заработок на форекс", "нфт токен", "памп монеты"
   ],
   "whatsapp_scam_patterns": [
     "жүлде", "сыйлық", "акция", "тегін", "ұтыс",
-    "приз", "подарок", "бесплатно", "розыгрыш", "выигрыш"
+    "приз", "подарок", "бесплатно", "розыгрыш", "выигрыш",
+    "акция", "скидка 90", "только сегодня", "жарнама"
+  ],
+  "pyramid_text_patterns": [
+    "млм", "mlm", "многоуровневый маркетинг", "сетевой маркетинг",
+    "пассивный доход без вложений", "привлекай рефералов",
+    "купи пакет", "уровни партнёрства", "прибыль от сети",
+    "пирамида прибыли", "матрица заработка", "инвестиционная платформа",
+    "ежедневный доход", "автоматический заработок"
   ]
 }

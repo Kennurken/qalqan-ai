@@ -18,7 +18,7 @@ from pydantic import BaseModel, field_validator, Field
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
-from .services.kz_intel import check_kz_social_engineering
+from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url
 from .services.domain_intel import check_domain_intelligence
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
@@ -382,6 +382,15 @@ async def check_site(request: CheckRequest, req: Request):
         set_cached(key, result)
         return result
 
+    # --- Tier 1.7: KZ Brand Impersonation (fast, offline, very high precision) ---
+    kz_impersonation_hit = check_kz_impersonation_url(domain)
+    if kz_impersonation_hit:
+        result = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
+        result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"])
+        result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "kz_impersonation"}
+        set_cached(key, result)
+        return result
+
     # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
     db_results, domain_info = await asyncio.gather(
         check_all_databases(url),
@@ -513,6 +522,12 @@ async def check_batch(request: BatchRequest, req: Request):
             blacklist_hit = check_local_blacklist(url)
             if blacklist_hit:
                 r = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
+                set_cached(key, r)
+                return {**r, "url": url}
+
+            kz_impersonation_hit = check_kz_impersonation_url(domain)
+            if kz_impersonation_hit:
+                r = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
                 set_cached(key, r)
                 return {**r, "url": url}
 

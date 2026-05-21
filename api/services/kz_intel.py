@@ -43,6 +43,42 @@ _HARDCODED_KZ_PATTERNS = {
 }
 
 
+def check_kz_impersonation_url(domain: str) -> dict | None:
+    """
+    URL домені Қазақстан брендтерінің жалған сайттар тізіміне кіреді ме — тексеру.
+    Returns DANGEROUS result if domain matches known KZ phishing domains.
+    """
+    if not domain:
+        return None
+
+    patterns = _load_patterns()
+    domain_lower = domain.lower().replace("www.", "")
+
+    _IMPERSONATION_KEYS = {
+        "egov_impersonation": ("egov", "eGov мемлекеттік порталы"),
+        "kaspi_impersonation": ("kaspi", "Kaspi Bank"),
+        "halyk_impersonation": ("halyk", "Halyk Bank / Homebank"),
+        "jysan_impersonation": ("jysan", "Jysan Bank"),
+        "kcell_beeline_impersonation": ("kcell", "Kcell / Beeline"),
+    }
+
+    for key, (brand_id, brand_name) in _IMPERSONATION_KEYS.items():
+        for fake_domain in patterns.get(key, []):
+            if domain_lower == fake_domain.lower() or domain_lower.endswith("." + fake_domain.lower()):
+                return {
+                    "verdict": "DANGEROUS",
+                    "threat_score": 97,
+                    "threat_type": "phishing",
+                    "source": "kz_intel",
+                    "reason_kk": f"ФИШИНГ: {brand_name} ресми сайтының жалған домені анықталды!",
+                    "reason_ru": f"ФИШИНГ: Обнаружен поддельный домен официального сайта {brand_name}!",
+                    "reason_en": f"PHISHING: Fake domain impersonating {brand_name} detected!",
+                    "indicators": [f"kz_impersonation_{brand_id}", f"fake_domain_{fake_domain}"]
+                }
+
+    return None
+
+
 def check_kz_social_engineering(text: str) -> dict | None:
     """
     Мәтінде Қазақстандық алаяқтық паттерндерін тексеру.
@@ -92,6 +128,12 @@ def check_kz_social_engineering(text: str) -> dict | None:
         if f" {pattern.lower()} " in f" {text_lower} ":
             hits.append(f"wa:{pattern}")
             score += 10
+
+    # Pyramid text patterns
+    for pattern in patterns.get("pyramid_text_patterns", []):
+        if pattern.lower() in text_lower:
+            hits.append(f"pyramid:{pattern[:30]}")
+            score += 12
 
     if not hits:
         return None
