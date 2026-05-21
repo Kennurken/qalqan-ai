@@ -95,6 +95,18 @@ def generate_explanation(
             risk_factors.append({"factor": "non_standard_port", "value": "Non-standard port in URL", "impact": 10, "direction": "risk"})
         if uf.get("is_url_shortener"):
             risk_factors.append({"factor": "url_shortener", "value": f"URL shortener: {uf.get('tld', '')} — destination hidden", "impact": 8, "direction": "risk"})
+        if uf.get("has_redirect_param"):
+            risk_factors.append({"factor": "redirect_parameter", "value": "Open redirect parameter detected", "impact": 8, "direction": "risk"})
+        hex_cnt = uf.get("hex_encoding_count", 0)
+        if hex_cnt > 10:
+            risk_factors.append({"factor": "heavy_hex_encoding", "value": f"{hex_cnt} encoded chars (obfuscation)", "impact": 15, "direction": "risk"})
+        elif hex_cnt > 4:
+            risk_factors.append({"factor": "hex_encoding", "value": f"{hex_cnt} encoded chars", "impact": 8, "direction": "risk"})
+        if uf.get("many_query_params"):
+            risk_factors.append({"factor": "many_query_params", "value": f"{len(uf.get('suspicious_keywords_found', []))}+ query parameters", "impact": 5, "direction": "risk"})
+        # Exact brand on free TLD (strongest impersonation signal)
+        if uf.get("brand_edit_distance") == 0 and uf.get("is_free_tld") and uf.get("brand_match") and not uf.get("brand_in_subdomain"):
+            risk_factors.append({"factor": "exact_brand_free_tld", "value": f"Exact match '{uf['brand_match']}' on free TLD {uf.get('tld')}", "impact": 35, "direction": "risk"})
         evidence_sources.append("URL_features")
 
     # --- AI verdict ---
@@ -163,6 +175,11 @@ def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
         "suspicious_keywords": "no suspicious keywords in URL",
         "ai_analysis": "AI analysis returned SAFE",
         "known_pyramid_scheme": "not in pyramid scheme database",
+        "redirect_parameter": "no redirect/goto parameters",
+        "heavy_hex_encoding": "no URL obfuscation encoding",
+        "hex_encoding": "minimal URL encoding",
+        "exact_brand_free_tld": "proper TLD for the brand",
+        "many_query_params": "fewer query parameters",
     }
 
     conditions = [factor_names.get(f, f) for f in removable[:3]]

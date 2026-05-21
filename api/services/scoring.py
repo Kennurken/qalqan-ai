@@ -79,6 +79,30 @@ def calculate_final_verdict(
 
         return _format_verdict(ai_result, lang)
 
+    # URL features standalone fallback (when AI unavailable — prevents false negatives on high-risk URLs)
+    if url_features:
+        uf_score = url_features.get("risk_score", 0)
+        if uf_score >= 50:
+            verdict = "DANGEROUS" if uf_score >= 70 else "SUSPICIOUS"
+            indicators = []
+            if url_features.get("has_ip_address"): indicators.append("ip_address")
+            if url_features.get("is_free_tld"): indicators.append(f"free_tld_{url_features.get('tld', '').lstrip('.')}")
+            if url_features.get("has_mixed_script"): indicators.append("homoglyph_attack")
+            if url_features.get("brand_edit_distance", 999) <= 2 and url_features.get("brand_match"):
+                indicators.append(f"brand_impersonation_{url_features['brand_match']}")
+            if url_features.get("suspicious_keyword_count", 0) > 0:
+                indicators.extend(url_features.get("suspicious_keywords_found", [])[:3])
+            kw_str = ", ".join(indicators[:3]) if indicators else "URL structure"
+            result_uf = {
+                "verdict": verdict, "threat_score": uf_score,
+                "threat_type": "suspicious_infrastructure", "source": "url_features",
+                "reason_kk": f"URL белгілері бойынша күдікті: {kw_str}",
+                "reason_ru": f"Подозрительный URL (признаки: {kw_str})",
+                "reason_en": f"Suspicious URL features: {kw_str}",
+                "indicators": indicators
+            }
+            return _format_verdict(result_uf, lang)
+
     # Ешқандай деректер жоқ
     return {
         "verdict": "SAFE",
