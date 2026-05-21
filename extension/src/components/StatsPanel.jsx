@@ -123,7 +123,7 @@ export default function StatsPanel({ t, onBack }) {
         border: "1px solid #334155", borderRadius: "8px",
         cursor: "pointer", fontSize: "11px"
       }}>
-        🗑 {t("clearHistory")}
+        🗑 {t("resetStats")}
       </button>
     </div>
   );

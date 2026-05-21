@@ -57,5 +57,12 @@
   "suspiciousLinks": "suspicious",
   "safeLinks": "safe",
   "linksChecked": "links checked",
-  "exportReport": "Export Report"
+  "exportReport": "Export Report",
+  "addCurrentSite": "Add current site",
+  "whitelistEmpty": "Whitelist empty. Add a trusted site.",
+  "whitelistHint": "Whitelisted sites skip all checks",
+  "resetStats": "Reset statistics",
+  "reportNote": "Note (optional)...",
+  "reportSent": "Report submitted!",
+  "submit": "Submit"
 }

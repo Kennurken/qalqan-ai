@@ -57,5 +57,12 @@
   "suspiciousLinks": "подозрительных",
   "safeLinks": "безопасных",
   "linksChecked": "ссылок проверено",
-  "exportReport": "Скачать отчёт"
+  "exportReport": "Скачать отчёт",
+  "addCurrentSite": "Добавить текущий сайт",
+  "whitelistEmpty": "Белый список пуст. Добавьте доверенный сайт.",
+  "whitelistHint": "Сайты в белом списке не проверяются",
+  "resetStats": "Сбросить статистику",
+  "reportNote": "Примечание (необязательно)...",
+  "reportSent": "Жалоба отправлена!",
+  "submit": "Отправить"
 }

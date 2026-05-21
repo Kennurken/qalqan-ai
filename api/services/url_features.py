@@ -111,6 +111,18 @@ def extract_features(url: str) -> dict:
     # === 8.5. URL SHORTENER ===
     features["is_url_shortener"] = 1 if domain in _URL_SHORTENERS else 0
 
+    # === 8.6. REDIRECT PARAMETER ===
+    _redirect_params = {"redirect", "url", "goto", "next", "return", "returnurl", "redir", "out", "link", "to"}
+    features["has_redirect_param"] = 1 if any(p in _redirect_params for p in parse_qs(query).keys()) else 0
+
+    # === 8.7. HEX ENCODING ===
+    # Legitimate URLs rarely have many % encodings (excluding %20 for spaces)
+    hex_count = len(re.findall(r"%[0-9a-fA-F]{2}", url.replace("%20", "").replace("%2F", "").replace("%3A", "")))
+    features["hex_encoding_count"] = hex_count
+
+    # === 8.8. MANY QUERY PARAMS ===
+    features["many_query_params"] = 1 if len(parse_qs(query)) > 8 else 0
+
     # === 9. HOMOGLYPH DETECTION (Cyrillic↔Latin) ===
     homoglyph_result = _detect_homoglyphs(domain)
     features["homoglyph_count"] = homoglyph_result["count"]
@@ -268,10 +280,12 @@ def _calculate_risk_score(features: dict) -> int:
 
     # Brand similarity (low edit distance = typosquatting)
     dist = features["brand_edit_distance"]
-    if dist == 0 and features["brand_in_subdomain"]:
-        score += 20  # brand.evil.com
+    if dist == 0 and features["is_free_tld"] and not features["brand_in_subdomain"]:
+        score += 35  # kaspi.tk — exact brand on free TLD = confirmed impersonation
+    elif dist == 0 and features["brand_in_subdomain"]:
+        score += 20  # brand.evil.com — brand in subdomain
     elif 1 <= dist <= 2:
-        score += 25  # kаspi → kaspi (1 edit)
+        score += 25  # kаspi → kaspi (1 edit) typosquatting
     elif 3 <= dist <= 4:
         score += 10
 
@@ -286,5 +300,16 @@ def _calculate_risk_score(features: dict) -> int:
 
     # URL shortener (destination hidden)
     if features["is_url_shortener"]: score += 8
+
+    # Redirect parameter (open redirect vector)
+    if features.get("has_redirect_param"): score += 8
+
+    # Heavy hex encoding (obfuscation)
+    hex_cnt = features.get("hex_encoding_count", 0)
+    if hex_cnt > 10: score += 15
+    elif hex_cnt > 4: score += 8
+
+    # Many query params
+    if features.get("many_query_params"): score += 5
 
     return min(score, 100)

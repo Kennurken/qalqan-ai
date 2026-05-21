@@ -32,7 +32,7 @@ export default function ReportButton({ t }) {
 
   if (sent) return (
     <div style={{ textAlign: "center", padding: "8px", color: "#34d399", fontSize: "13px" }}>
-      ✅ {t("reportSite")} — sent!
+      ✅ {t("reportSent")}
     </div>
   );
 
@@ -60,7 +60,7 @@ export default function ReportButton({ t }) {
         ))}
       </div>
       <textarea value={note} onChange={e => setNote(e.target.value)}
-        placeholder="Ескерту (optional)..."
+        placeholder={t("reportNote")}
         style={{ width: "100%", height: "40px", background: "#0f172a", color: "#f1f5f9",
           border: "1px solid #334155", borderRadius: "6px", padding: "6px",
           fontSize: "12px", resize: "none", outline: "none", fontFamily: "inherit" }}
@@ -69,7 +69,7 @@ export default function ReportButton({ t }) {
         width: "100%", padding: "8px", marginTop: "6px",
         background: "#dc2626", color: "white", border: "none",
         borderRadius: "6px", cursor: "pointer", fontWeight: 700, fontSize: "12px"
-      }}>🚨 Report</button>
+      }}>🚨 {t("submit")}</button>
     </div>
   );
 }

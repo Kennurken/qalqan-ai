@@ -44,7 +44,10 @@ export default function WhitelistPanel({ t, onBack }) {
         <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "14px" }}>
           ← {t("back")}
         </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>✅ Whitelist</span>
+        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>
+          ✅ {t("whitelist")}
+          {domains.length > 0 && <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 400 }}> ({domains.length})</span>}
+        </span>
         <div style={{ width: 40 }} />
       </div>
 
@@ -54,7 +57,7 @@ export default function WhitelistPanel({ t, onBack }) {
         background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)",
         borderRadius: "8px", color: "#34d399", cursor: "pointer", fontSize: "13px", fontWeight: 600
       }}>
-        ✅ Қазіргі сайтты қосу
+        ✅ {t("addCurrentSite")}
       </button>
 
       {/* Manual add */}
@@ -80,7 +83,7 @@ export default function WhitelistPanel({ t, onBack }) {
       <div style={{ maxHeight: "250px", overflowY: "auto" }}>
         {domains.length === 0 ? (
           <p style={{ textAlign: "center", color: "#64748b", fontSize: "12px", padding: "20px 0" }}>
-            Whitelist бос. Сенімді сайтты қосыңыз.
+            {t("whitelistEmpty")}
           </p>
         ) : domains.map((d, i) => (
           <div key={i} style={{
@@ -98,7 +101,7 @@ export default function WhitelistPanel({ t, onBack }) {
       </div>
 
       <p style={{ marginTop: "10px", fontSize: "10px", color: "#64748b", textAlign: "center" }}>
-        Whitelist-тегі сайттар тексерілмейді
+        {t("whitelistHint")}
       </p>
     </div>
   );

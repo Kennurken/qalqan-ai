@@ -57,5 +57,12 @@
   "suspiciousLinks": "күдікті",
   "safeLinks": "қауіпсіз",
   "linksChecked": "сілтеме тексерілді",
-  "exportReport": "Есептеме жүктеу"
+  "exportReport": "Есептеме жүктеу",
+  "addCurrentSite": "Қазіргі сайтты қосу",
+  "whitelistEmpty": "Whitelist бос. Сенімді сайтты қосыңыз.",
+  "whitelistHint": "Whitelist-тегі сайттар тексерілмейді",
+  "resetStats": "Статистиканы тазарту",
+  "reportNote": "Ескерту (міндетті емес)...",
+  "reportSent": "Шағым жіберілді!",
+  "submit": "Жіберу"
 }
