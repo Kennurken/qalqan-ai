@@ -23,14 +23,39 @@ function normalizeUrl(url) {
   return url;
 }
 
-async function safeFetch(url, options) {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("Сұраныс лимиті асып кетті. 1 минут күтіңіз.");
-    if (res.status === 422) throw new Error("URL форматы дұрыс емес. Тексеріңіз.");
-    throw new Error(`Сервер қатесі: ${res.status}`);
+async function safeFetch(url, options, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) {
+      if (res.status === 429) throw new Error("Сұраныс лимиті асып кетті. 1 минут күтіңіз.");
+      if (res.status === 422) throw new Error("URL форматы дұрыс емес. Тексеріңіз.");
+      if (res.status === 503) throw new Error("Сервер уақытша қолжетімсіз. Қайталаңыз.");
+      throw new Error(`Сервер қатесі: ${res.status}`);
+    }
+    return res.json();
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === "AbortError") throw new Error("Тексеру уақыты аяқталды (20с). Қайталаңыз.");
+    throw e;
   }
-  return res.json();
+}
+
+async function safeFetchWithRetry(url, options, retries = 1) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await safeFetch(url, options);
+    } catch (e) {
+      const isRetryable = e.message.includes("503") || e.message.includes("NetworkError") || e.message.includes("Failed to fetch");
+      if (attempt < retries && isRetryable) {
+        await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+        continue;
+      }
+      throw e;
+    }
+  }
 }
 
 export function useCheckUrl() {
@@ -47,7 +72,7 @@ export function useCheckUrl() {
       if (!tabs?.length || !tabs[0]?.url) throw new Error("URL анықталмады");
 
       const tabUrl = normalizeUrl(tabs[0].url);
-      const data = await safeFetch(`${API_URL}/check`, {
+      const data = await safeFetchWithRetry(`${API_URL}/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: tabUrl, lang })
@@ -67,7 +92,7 @@ export function useCheckUrl() {
     setError(null);
     setResult(null);
     try {
-      const data = await safeFetch(`${API_URL}/check-text`, {
+      const data = await safeFetchWithRetry(`${API_URL}/check-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, lang })
