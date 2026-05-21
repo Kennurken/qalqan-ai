@@ -123,35 +123,57 @@ const OFFLINE_PHISHING = new Set([
   // eGov фишинг
   "eg0v.kz","egov-kz.com","egov-verify.kz","egov.kz.com","e-gov-kz.com",
   "egov-login.kz","my-egov.kz","egov.com.kz","egov-portal.com",
-  // Kaspi фишинг
+  "egov-kz.net","e-gov.com.kz","egov-site.kz","gov-kz-portal.com",
+  "kz-gov.com","kazakhstan-gov.com","gosgov-kz.com",
+  // Kaspi фишинг (expanded)
   "kaspi-bank.kz","kaspi-verify.com","kaspi-qr.kz","kaspi.com.kz",
   "kaspikz.com","kaspi-shop.com","kaspi-pay.kz","my-kaspi.kz",
-  // Halyk фишинг
+  "kaspibank-kz.com","kaspi-gold.com","kaspi-support.com","kaspi-id.kz",
+  "kaspi-login.tk","kaspi-login.ml","kaspi-online.xyz","kaspii.kz",
+  // Halyk фишинг (expanded)
   "halyk-bank.com","homebank-kz.com","halykbank-login.kz",
-  "halyk-online.com","my-homebank.kz",
+  "halyk-online.com","my-homebank.kz","halyk-support.com",
+  "homebank-login.kz","halyk-id.com","halykbank.com.kz",
+  // Jysan фишинг
+  "jysan-bank.com","jysanbank-kz.com","jysan-online.kz",
+  "jysan-login.com","my-jysan.kz",
+  // Kcell/Beeline фишинг
+  "kcell-kz.com","kcell-bonus.kz","kcell-promo.com",
+  "beeline-kz.com","beeline-bonus.kz","beeline-promo.com",
+  "mobile-kcell.kz","kcell.com.kz",
   // Крипто-фишинг
   "binance-login.com","coinbase-verify.com","metamask-verify.com",
   "trustwallet-verify.com","phantom-wallet.com",
-  "blockchain-verify.com","crypto-airdrop.com",
+  "blockchain-verify.com","crypto-airdrop.com","binance-earn.pro",
+  "bnb-earn.com","toncoin-claim.com","hamsterkombat-airdrop.com",
+  "hamster-claim.com","okx-bonus.com","bybit-earn.com",
   // Банки и платежи
   "paypal-verify.com","visa-secure.com","mastercard-verify.com",
   // Соцсети фишинг
   "instagram-verify.com","facebook-login.com","tiktok-verify.com",
-  "telegram-verify.com","whatsapp-verify.com"
+  "telegram-verify.com","whatsapp-verify.com","vk-login.com"
 ]);
 
 // === СКАМ / МОШЕННИЧЕСТВО ===
 const OFFLINE_SCAM = new Set([
   // Фейковые магазины
   "super-sale.kz","mega-skidka.kz","iphone-free.com",
-  "aliexpress-sale.kz","wildberries-sale.com",
+  "aliexpress-sale.kz","wildberries-sale.com","ozon-sale.kz",
+  "lamoda-sale.kz","kaspi-mall.com","kaspi-shop.kz",
   // Фейковые инвестиции
   "tesla-invest.com","amazon-invest.kz","gazprom-invest.com",
   "easy-money-bot.com","crypto-doubler.com","bitcoin-generator.com",
+  "forex-profit.kz","trading-signals.kz","invest-kz.com",
+  "tenge-cash.com","tenge-invest.kz","profit-kz.com",
   // Фейковые лотереи
   "free-lottery.com","mega-prize.com","lucky-winner.com",
+  "kcell-prize.com","beeline-lucky.com","kaspi-winner.kz",
   // Дропшиппинг скам
-  "dropship-guru.com","passive-income-bot.com"
+  "dropship-guru.com","passive-income-bot.com",
+  // Tech support scam
+  "microsoft-support.kz","google-support.kz","apple-support.kz",
+  // Fake job offers
+  "job-kz.com","rabota-kz.com","headhunter-kz.com"
 ]);
 
 // === БЕЛЫЙ СПИСОК ===
@@ -175,9 +197,15 @@ const OFFLINE_WHITELIST = new Set([
   // KZ Services
   "kolesa.kz","krisha.kz","olx.kz","wildberries.kz","mechta.kz",
   "sulpak.kz","technodom.kz","flip.kz","aviata.kz","ticketon.kz",
-  "chocofood.kz","2gis.kz",
+  "chocofood.kz","2gis.kz","arbuz.kz","magnum.kz","small.kz",
+  "hh.kz","hhkz.com","djazz.kz","tarlan.kz","market.kz",
   // KZ Media
-  "tengrinews.kz","nur.kz","inform.kz","zakon.kz","kapital.kz"
+  "tengrinews.kz","nur.kz","inform.kz","zakon.kz","kapital.kz",
+  "forbes.kz","kursiv.media","bnews.kz","liter.kz",
+  // KZ Education
+  "nu.edu.kz","kaznu.kz","kbtu.kz","sdu.edu.kz","narxoz.kz",
+  // KZ Payment
+  "qpay.kz","wooppay.com","paybox.money","cloudpayments.kz"
 ]);
 
 const FREE_TLDS = new Set([".tk",".ml",".ga",".cf",".gq",".xyz",".top",".click",".buzz",".rest",".icu",".work",".link",".online",".site",".win",".pw",".cc",".bid",".loan"]);
