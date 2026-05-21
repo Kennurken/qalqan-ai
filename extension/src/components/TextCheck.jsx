@@ -40,31 +40,28 @@ export default function TextCheck({ onCheck, loading, t }) {
           fontSize: "13px", fontFamily: "inherit"
         }}
       />
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button
-          onClick={() => { if (text.trim()) onCheck(text.trim()); }}
-          disabled={loading || !text.trim()}
-          style={{
-            flex: 1, padding: "8px",
-            background: text.trim() ? "#6366f1" : "#334155",
-            color: "white", border: "none", borderRadius: "8px",
-            cursor: text.trim() ? "pointer" : "not-allowed",
-            fontWeight: 600, fontSize: "12px"
-          }}
-        >
-          {loading ? "⏳" : "⚡"} {t("analyzeText")}
-        </button>
-        <button
-          onClick={() => { setExpanded(false); setText(""); }}
-          style={{
-            padding: "8px 12px", background: "transparent",
-            color: "#64748b", border: "1px solid #334155",
-            borderRadius: "8px", cursor: "pointer", fontSize: "12px"
-          }}
-        >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+        <span style={{ fontSize: "10px", color: text.length > 8000 ? "#f87171" : "#64748b" }}>
+          {text.length}/10000
+        </span>
+        <button onClick={() => { setExpanded(false); setText(""); }}
+          style={{ background: "transparent", border: "none", color: "#64748b", cursor: "pointer", fontSize: "13px", padding: "0 4px" }}>
           ✕
         </button>
       </div>
+      <button
+        onClick={() => { if (text.trim()) onCheck(text.trim()); }}
+        disabled={loading || !text.trim()}
+        style={{
+          width: "100%", padding: "8px",
+          background: text.trim() ? "#6366f1" : "#334155",
+          color: "white", border: "none", borderRadius: "8px",
+          cursor: text.trim() ? "pointer" : "not-allowed",
+          fontWeight: 600, fontSize: "12px"
+        }}
+      >
+        {loading ? "⏳" : "⚡"} {t("analyzeText")}
+      </button>
     </div>
   );
 }

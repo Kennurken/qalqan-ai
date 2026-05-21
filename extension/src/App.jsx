@@ -35,6 +35,17 @@ export default function App() {
     });
   }, []);
 
+  // Keyboard shortcut: Escape → main, Enter → check (when on main + idle)
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "Escape" && view !== "main") {
+        setView("main");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [view]);
+
   const changeLang = (newLang) => {
     setLang(newLang);
     chrome.storage.local.set({ qalqan_lang: newLang });
