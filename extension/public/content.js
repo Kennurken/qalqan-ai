@@ -17,6 +17,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true; // keep channel open for async response
   }
+
+  if (message.action === "GET_LINKS") {
+    // Collect unique external links from page (max 20)
+    const links = [...new Set(
+      Array.from(document.querySelectorAll("a[href]"))
+        .map(a => { try { return new URL(a.href).href; } catch { return null; } })
+        .filter(h => h && (h.startsWith("http://") || h.startsWith("https://")))
+        .filter(h => !h.startsWith(window.location.origin))  // external only
+    )].slice(0, 20);
+    sendResponse({ links, total: document.querySelectorAll("a[href]").length });
+    return true;
+  }
 });
 
 function esc(str) {

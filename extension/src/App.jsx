@@ -15,6 +15,7 @@ import SettingsPanel from "./components/SettingsPanel";
 import ReportButton from "./components/ReportButton";
 import HistoryPanel from "./components/HistoryPanel";
 import WhitelistPanel from "./components/WhitelistPanel";
+import LinkScannerPanel from "./components/LinkScannerPanel";
 
 import kkStrings from "./i18n/kk.json";
 import ruStrings from "./i18n/ru.json";
@@ -53,7 +54,7 @@ export default function App() {
       {/* Header — барлық views-те көрінеді */}
       {view === "main" && (
         <>
-          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onSettings={() => setView("settings")} />
+          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onScanner={() => setView("scanner")} onSettings={() => setView("settings")} />
 
           {/* Негізгі тексеру батырмасы */}
           {!result && !error && (
@@ -110,11 +111,12 @@ export default function App() {
       {view === "settings" && <SettingsPanel lang={lang} onLangChange={changeLang} t={t} onBack={() => setView("main")} onWhitelist={() => setView("whitelist")} />}
       {view === "history" && <HistoryPanel t={t} onBack={() => setView("main")} />}
       {view === "whitelist" && <WhitelistPanel t={t} onBack={() => setView("main")} />}
+      {view === "scanner" && <LinkScannerPanel t={t} onBack={() => setView("main")} />}
     </div>
   );
 }
 
-function Header({ t, lang, onStats, onHistory, onSettings }) {
+function Header({ t, lang, onStats, onHistory, onScanner, onSettings }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
       <div>
@@ -129,6 +131,7 @@ function Header({ t, lang, onStats, onHistory, onSettings }) {
       <div style={{ display: "flex", gap: "4px" }}>
         <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>📊</button>
         <button onClick={() => onHistory && onHistory()} title="History" style={iconBtnStyle}>📜</button>
+        <button onClick={onScanner} title="Link Scanner" style={iconBtnStyle}>🔗</button>
         <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>⚙️</button>
       </div>
     </div>
