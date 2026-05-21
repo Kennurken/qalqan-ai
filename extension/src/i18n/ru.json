@@ -70,5 +70,9 @@
   "copyResult": "Скопировать результат",
   "copied": "Скопировано!",
   "search": "Поиск",
-  "searchHistory": "Поиск по домену..."
+  "searchHistory": "Поиск по домену...",
+  "sensitivity": "Уровень чувствительности",
+  "sensitivityHigh": "Высокий (блок ≥60)",
+  "sensitivityMedium": "Средний (блок ≥70)",
+  "sensitivityLow": "Низкий (блок ≥80)"
 }

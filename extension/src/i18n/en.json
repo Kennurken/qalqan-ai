@@ -70,5 +70,9 @@
   "copyResult": "Copy result",
   "copied": "Copied!",
   "search": "Search",
-  "searchHistory": "Search by domain..."
+  "searchHistory": "Search by domain...",
+  "sensitivity": "Block sensitivity",
+  "sensitivityHigh": "High (block ≥60)",
+  "sensitivityMedium": "Medium (block ≥70)",
+  "sensitivityLow": "Low (block ≥80)"
 }

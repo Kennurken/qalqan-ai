@@ -70,5 +70,9 @@
   "copyResult": "Нәтижені көшіру",
   "copied": "Көшірілді!",
   "search": "Іздеу",
-  "searchHistory": "Домен бойынша іздеу..."
+  "searchHistory": "Домен бойынша іздеу...",
+  "sensitivity": "Сезімталдық деңгейі",
+  "sensitivityHigh": "Жоғары (≥60 бұғаттайды)",
+  "sensitivityMedium": "Орташа (≥70 бұғаттайды)",
+  "sensitivityLow": "Төмен (≥80 бұғаттайды)"
 }

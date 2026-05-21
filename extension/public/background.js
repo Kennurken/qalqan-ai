@@ -185,7 +185,14 @@ async function checkUrl(url, tabId) {
     setDomainCache(domain, data);
     updateBadge(tabId, data);
 
-    if (data.verdict === "DANGEROUS") {
+    // Read sensitivity threshold (high=60, medium=70, low=80; default=70)
+    const sensitivityData = await chrome.storage.local.get("qalqan_sensitivity");
+    const sensitivity = sensitivityData.qalqan_sensitivity || "medium";
+    const BLOCK_THRESHOLD = { high: 60, medium: 70, low: 80 }[sensitivity] ?? 70;
+
+    const shouldBlock = data.verdict === "DANGEROUS" || data.threat_score >= BLOCK_THRESHOLD;
+
+    if (shouldBlock) {
       const notifSettings = await chrome.storage.local.get("qalqan_notifications");
       if (notifSettings.qalqan_notifications !== false) {
         chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {

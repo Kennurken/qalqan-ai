@@ -6,14 +6,21 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
   const [theme, setTheme] = useState("dark");
   const [autoCheck, setAutoCheck] = useState(true);
   const [notifications, setNotifications] = useState(true);
+  const [sensitivity, setSensitivity] = useState("medium");
 
   useEffect(() => {
-    chrome.storage.local.get(["qalqan_theme", "qalqan_autocheck", "qalqan_notifications"], (r) => {
+    chrome.storage.local.get(["qalqan_theme", "qalqan_autocheck", "qalqan_notifications", "qalqan_sensitivity"], (r) => {
       if (r.qalqan_theme) setTheme(r.qalqan_theme);
       if (r.qalqan_autocheck !== undefined) setAutoCheck(r.qalqan_autocheck);
       if (r.qalqan_notifications !== undefined) setNotifications(r.qalqan_notifications);
+      if (r.qalqan_sensitivity) setSensitivity(r.qalqan_sensitivity);
     });
   }, []);
+
+  const changeSensitivity = (s) => {
+    setSensitivity(s);
+    chrome.storage.local.set({ qalqan_sensitivity: s });
+  };
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -104,6 +111,24 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Sensitivity */}
+      <div style={{ background: "rgba(30,41,59,0.6)", borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
+        <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "8px" }}>🎯 {t("sensitivity")}</div>
+        <div style={{ display: "flex", gap: "6px" }}>
+          {["high", "medium", "low"].map(level => (
+            <button key={level} onClick={() => changeSensitivity(level)} style={{
+              flex: 1, padding: "7px 4px", borderRadius: "7px", cursor: "pointer",
+              fontSize: "10px", fontWeight: sensitivity === level ? 700 : 400,
+              background: sensitivity === level ? "rgba(99,102,241,0.25)" : "rgba(30,41,59,0.6)",
+              border: sensitivity === level ? "1px solid #6366f1" : "1px solid #334155",
+              color: sensitivity === level ? "#a5b4fc" : "#64748b"
+            }}>
+              {t(`sensitivity${level.charAt(0).toUpperCase() + level.slice(1)}`)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Whitelist button */}
