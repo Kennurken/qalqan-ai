@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 export default function HistoryPanel({ t, onBack }) {
   const [history, setHistory] = useState([]);
   const [filter, setFilter] = useState("ALL"); // ALL | DANGEROUS | SUSPICIOUS | SAFE
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     chrome.storage.local.get("qalqan_history", (r) => {
@@ -25,7 +26,9 @@ export default function HistoryPanel({ t, onBack }) {
     return acc;
   }, {});
 
-  const filtered = filter === "ALL" ? history : history.filter(h => h.verdict === filter);
+  const filtered = history
+    .filter(h => filter === "ALL" || h.verdict === filter)
+    .filter(h => !search || (h.domain || h.url || "").toLowerCase().includes(search.toLowerCase()));
 
   const filterBtnStyle = (v) => ({
     fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "6px",
@@ -48,6 +51,22 @@ export default function HistoryPanel({ t, onBack }) {
           🗑
         </button>
       </div>
+
+      {/* Search */}
+      {history.length > 0 && (
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t("searchHistory")}
+          style={{
+            width: "100%", padding: "7px 10px", marginBottom: "8px",
+            background: "#0f172a", color: "#f1f5f9",
+            border: "1px solid #334155", borderRadius: "7px",
+            fontSize: "12px", outline: "none", fontFamily: "inherit",
+            boxSizing: "border-box"
+          }}
+        />
+      )}
 
       {/* Filter tabs */}
       {history.length > 0 && (

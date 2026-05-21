@@ -85,6 +85,31 @@
     }
   });
 
+  // --- WebRTC IP leak detection ---
+  // Sites using RTCPeerConnection to discover local/real IP = fingerprinting/tracking
+  if (window.RTCPeerConnection) {
+    const origRTC = window.RTCPeerConnection;
+    window.RTCPeerConnection = function(...args) {
+      detected.add("webrtc_fingerprint");
+      return new origRTC(...args);
+    };
+    window.RTCPeerConnection.prototype = origRTC.prototype;
+    Object.setPrototypeOf(window.RTCPeerConnection, origRTC);
+  }
+
+  // --- Performance timing fingerprinting ---
+  // Heavy use of performance.getEntries/getEntriesByType = timing attack
+  if (window.PerformanceObserver) {
+    let perfObsCount = 0;
+    const origPerfObs = window.PerformanceObserver;
+    window.PerformanceObserver = function(cb, ...args) {
+      perfObsCount++;
+      if (perfObsCount > 3) detected.add("timing_fingerprint");
+      return new origPerfObs(cb, ...args);
+    };
+    window.PerformanceObserver.prototype = origPerfObs.prototype;
+  }
+
   // --- Report after page settles ---
   setTimeout(() => {
     const unique = [...detected];

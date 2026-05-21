@@ -86,7 +86,7 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
       {/* Toggles */}
       <div style={{ background: "rgba(30,41,59,0.6)", borderRadius: "12px", padding: "14px", marginBottom: "12px" }}>
         {[
-          { label: "🌓 " + (theme === "dark" ? "Dark" : "Light") + " Mode", value: theme === "dark", toggle: toggleTheme },
+          { label: "🌓 " + (theme === "dark" ? t("darkMode") : t("lightMode")), value: theme === "dark", toggle: toggleTheme },
           { label: "🔄 " + t("autocheck"), value: autoCheck, toggle: toggleAutoCheck },
           { label: "🔔 " + t("notifications"), value: notifications, toggle: toggleNotifications },
         ].map((item, i) => (

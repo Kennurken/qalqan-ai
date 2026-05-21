@@ -5,6 +5,22 @@ import { useState } from "react";
 
 export default function ResultCard({ result, t }) {
   const [showXAI, setShowXAI] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyResult = () => {
+    const text = [
+      `🛡️ QALQAN AI`,
+      `${result.verdict === "DANGEROUS" ? "❌" : result.verdict === "SUSPICIOUS" ? "⚠️" : "✅"} ${result.verdict} (${result.threat_score}/100)`,
+      result.threat_type && result.threat_type !== "safe" ? `🏷 ${result.threat_type}` : "",
+      `📋 ${result.detail || result.detail_kk || ""}`,
+      `🔍 ${result.source || ""}`,
+      result.explanation?.counterfactual ? `💡 ${result.explanation.counterfactual}` : ""
+    ].filter(Boolean).join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   if (!result) return null;
 
@@ -110,6 +126,20 @@ export default function ResultCard({ result, t }) {
           ))}
         </div>
       )}
+
+      {/* Copy result */}
+      <button
+        onClick={copyResult}
+        style={{
+          marginTop: "8px", padding: "4px 10px",
+          background: copied ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)",
+          border: `1px solid ${copied ? "rgba(16,185,129,0.4)" : "rgba(255,255,255,0.08)"}`,
+          borderRadius: "6px", color: copied ? "#34d399" : "#64748b",
+          cursor: "pointer", fontSize: "10px"
+        }}
+      >
+        {copied ? `✓ ${t("copied")}` : `📋 ${t("copyResult")}`}
+      </button>
 
       {/* XAI Toggle */}
       {hasXAI && (

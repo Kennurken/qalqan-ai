@@ -64,5 +64,11 @@
   "resetStats": "Reset statistics",
   "reportNote": "Note (optional)...",
   "reportSent": "Report submitted!",
-  "submit": "Submit"
+  "submit": "Submit",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "copyResult": "Copy result",
+  "copied": "Copied!",
+  "search": "Search",
+  "searchHistory": "Search by domain..."
 }
