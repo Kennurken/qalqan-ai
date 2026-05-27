@@ -103,15 +103,28 @@ export default function ResultCard({ result, t }) {
         {result.metadata?.processing_time_ms && <span>⏱ {result.metadata.processing_time_ms}ms</span>}
       </div>
 
-      {/* Domain Intelligence — age + SSL */}
+      {/* Domain Intelligence — age + SSL expanded */}
       {result.domain_details && (
-        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "6px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          {result.domain_details.domain_age_days !== undefined && (
-            <span>📅 {result.domain_details.domain_age_days}d old</span>
-          )}
-          {result.domain_details.ssl?.status && (
-            <span>🔒 SSL: {result.domain_details.ssl.status.replace(/_/g, " ")}</span>
-          )}
+        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "6px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {result.domain_details.domain_age_days !== undefined && (() => {
+            const age = result.domain_details.domain_age_days;
+            const col = age < 30 ? "#f87171" : age < 90 ? "#fbbf24" : "#64748b";
+            return <span style={{ color: col }}>📅 {age}d</span>;
+          })()}
+          {(() => {
+            const ssl = result.domain_details.ssl;
+            if (!ssl) return null;
+            const icons = { valid: "🔒", expired: "🔓", self_signed: "⚠️", no_ssl: "🔓", expiring_soon: "⚠️", unknown: "❓" };
+            const cols = { valid: "#34d399", expired: "#f87171", self_signed: "#fbbf24", no_ssl: "#f87171", expiring_soon: "#fbbf24" };
+            const icon = icons[ssl.status] || "❓";
+            const col = cols[ssl.status] || "#64748b";
+            let label = `${icon} SSL: ${ssl.status.replace(/_/g, " ")}`;
+            if (ssl.days_left && ssl.status === "valid") label += ` (${ssl.days_left}d)`;
+            if (ssl.days_expired) label += ` (${ssl.days_expired}d ago)`;
+            if (ssl.issuer && ssl.issuer !== "Unknown") label += ` — ${ssl.issuer.slice(0, 20)}`;
+            if (ssl.free_ca) label += " ⚡";
+            return <span style={{ color: col }}>{label}</span>;
+          })()}
         </div>
       )}
 

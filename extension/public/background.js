@@ -301,6 +301,20 @@ async function saveHistory(url, data) {
     // Keep last 200
     if (history.length > 200) history.splice(0, history.length - 200);
     chrome.storage.local.set({ qalqan_history: history });
+
+    // Auto-whitelist: domain checked SAFE 3+ times → add to user whitelist
+    if (data.verdict === "SAFE" && data.source !== "user_whitelist" && data.source !== "offline_whitelist") {
+      const safeCount = history.filter(h => h.domain === domain && h.verdict === "SAFE").length;
+      if (safeCount >= 3) {
+        const wlData = await chrome.storage.local.get("qalqan_user_whitelist");
+        const wl = wlData.qalqan_user_whitelist || [];
+        if (!wl.includes(domain)) {
+          wl.push(domain);
+          chrome.storage.local.set({ qalqan_user_whitelist: wl });
+          console.log(`Qalqan: auto-whitelisted ${domain} (${safeCount}x safe)`);
+        }
+      }
+    }
   } catch {}
 }
 
