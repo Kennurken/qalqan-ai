@@ -81,27 +81,53 @@ def check_kz_impersonation_url(domain: str) -> dict | None:
 
 # Unlicensed gambling / case-battle sites banned in Kazakhstan
 _GAMBLING_DOMAINS: set[str] = {
-    "1xbet.com", "1xbet.kz", "1xbet.net", "1xbet.co",
-    "mostbet.com", "mostbet-kz.com", "mostbet.kz",
-    "bet365.com", "betway.com", "bwin.com",
+    # 1xBet family
+    "1xbet.com", "1xbet.kz", "1xbet.net", "1xbet.co", "1xbet.ru", "1xbet.org",
+    "1xslots.com", "1xgames.com",
+    # Mostbet family
+    "mostbet.com", "mostbet-kz.com", "mostbet.kz", "mostbet.ru", "mostbet.uz",
+    # Bet365 / Betway / Bwin
+    "bet365.com", "betway.com", "bwin.com", "bwin.net",
+    # PokerDom
     "pokerdom.com", "poker-dom.com",
-    "pin-up.casino", "pin-up.bet", "pinup.kz",
-    "melbet.com", "melbet.kz",
-    "parimatch.com", "parimatch.kz",
-    "olimp.bet", "olimp.com",
-    "bcgame.com", "stake.com", "rollbit.com",
+    # Pin-Up
+    "pin-up.casino", "pin-up.bet", "pinup.kz", "pin-up.kz", "pinupcasino.com",
+    # Melbet
+    "melbet.com", "melbet.kz", "melbet.ru",
+    # Parimatch
+    "parimatch.com", "parimatch.kz", "parimatch.ru",
+    # Olimp
+    "olimp.bet", "olimp.com", "olimp.kz",
+    # Crypto casinos
+    "bcgame.com", "stake.com", "stake.us", "rollbit.com", "roobet.com",
+    "duelbits.com", "jackbit.com", "cloudbet.com", "primedice.com",
+    # CS case battles (underage risk)
     "hellcase.com", "hellcase.org", "farmskins.com",
-    "csgo500.com", "datdrop.com", "gamdom.com",
-    "roobet.com", "duelbits.com", "casinogorilla.com",
-    "vavada.com", "vavada.ru", "vavada.casino",
-    "joycasino.com", "volcanobet.net", "slotsvulkan.com",
-    "1win.com", "1win.xyz", "1win.kz",
-    "betwinner.com", "betwinner.kz",
+    "csgo500.com", "datdrop.com", "gamdom.com", "csgoempire.com",
+    "csgobig.com", "csgopolygon.com", "key-drop.com", "skinsback.com",
+    # Misc casinos
+    "casinogorilla.com", "vavada.com", "vavada.ru", "vavada.casino",
+    "joycasino.com", "joycasino.ru",
+    "volcanobet.net", "slotsvulkan.com", "vulkanvegas.com",
+    # 1Win
+    "1win.com", "1win.xyz", "1win.kz", "1win.ru", "1win.pro",
+    # Betwinner
+    "betwinner.com", "betwinner.kz", "betwinner.ru",
+    # 22Bet
     "22bet.com", "22bet.kz",
-    "betsafe.com", "betsson.com",
-    "leon.bet", "leonbets.com",
-    "fonbet.kz", "fonbet.com",
+    # Betsafe / Betsson / Leonbets
+    "betsafe.com", "betsson.com", "leon.bet", "leonbets.com",
+    # Fonbet
+    "fonbet.kz", "fonbet.com", "fonbet.ru",
+    # Others
     "xbet.kz", "linebet.com",
+    "vbet.com", "vbet.kz",
+    "betmaster.io", "betmaster.com",
+    "rox.casino", "rox.kz",
+    "nbet.kz", "betboro.com",
+    "vulkan.com", "slot-v.com",
+    "casinoroom.com", "comeon.com",
+    "winline.ru", "marathonbet.com",
 }
 
 _GAMBLING_KEYWORDS = [
@@ -109,6 +135,14 @@ _GAMBLING_KEYWORDS = [
     "jackpot", "джекпот", "poker", "покер", "bet", "betting",
     "gambling", "roulette", "рулетка", "баккара", "baccarat",
     "case-battle", "кейс-батл", "case battle", "case opening",
+    "sports-bet", "sportsbet", "crashgame", "crash-game",
+]
+
+# Gambling partial domain patterns (subdomain or keyword in hostname)
+_GAMBLING_PARTIAL = [
+    "casino", "gambl", "betting", "sportsbet", "pokerdom", "1xbet",
+    "mostbet", "melbet", "parimatch", "pin-up", "pinup", "vulkan",
+    "slotv", "joycasino", "rox-casino",
 ]
 
 
@@ -131,7 +165,7 @@ def check_gambling_domain(domain: str) -> dict | None:
             "indicators": [f"gambling_match_{domain_lower}", "unlicensed_kz"]
         }
 
-    # Subdomain match
+    # Subdomain match (e.g. promo.1xbet.com)
     for blocked in _GAMBLING_DOMAINS:
         if domain_lower.endswith("." + blocked):
             return {
@@ -143,6 +177,20 @@ def check_gambling_domain(domain: str) -> dict | None:
                 "reason_ru": f"ГЕМБЛИНГ: Поддомен {blocked} — запрещён в РК.",
                 "reason_en": f"GAMBLING: Subdomain of banned {blocked}.",
                 "indicators": [f"gambling_subdomain_{blocked}", "unlicensed_kz"]
+            }
+
+    # Partial keyword match in domain (e.g. casino-xyz.com, my1xbetmirror.com)
+    for kw in _GAMBLING_PARTIAL:
+        if kw in domain_lower:
+            return {
+                "verdict": "SUSPICIOUS",
+                "threat_score": 70,
+                "threat_type": "gambling",
+                "source": "kz_intel_gambling",
+                "reason_kk": f"ҚҰМАР ОЙЫН: Домен атауында ойын сайты белгісі бар: «{kw}»",
+                "reason_ru": f"ГЕМБЛИНГ: В домене обнаружен признак азартного сайта: «{kw}»",
+                "reason_en": f"GAMBLING: Domain contains gambling keyword: '{kw}'",
+                "indicators": [f"gambling_keyword_{kw}", "unlicensed_kz"]
             }
 
     return None

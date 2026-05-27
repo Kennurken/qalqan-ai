@@ -49,6 +49,8 @@ export default function ResultCard({ result, t }) {
     offline_casebattle: "Offline: Case Battle DB", offline_phishing: "Offline: Phishing DB",
     offline_scam: "Offline: Scam DB", offline_tld: "Offline: TLD Check",
     offline_whitelist: "Offline: Trusted List",
+    quick_check: "Qalqan Quick Check",
+    kz_impersonation: "KZ Brand Protection",
     demo_cache: "Demo Mode", no_data: "—", ai_error: "AI Error", error_handler: "Error",
     privacy_mode: "Privacy Mode",
   };

@@ -5,7 +5,8 @@
 importScripts("offline-db.js");
 
 const API_URL = "https://qalqan-ai-nu.vercel.app";
-const DEBOUNCE_MS = 3000;
+const DEBOUNCE_MS = 800;   // Reduced: 3000→800ms
+const FAST_DEBOUNCE_MS = 200;  // For the instant pre-check on navigation start
 const recentChecks = new Map();
 
 // Domain-level result cache (30-min TTL) — avoids repeated API calls for same site
@@ -75,15 +76,110 @@ setInterval(() => {
   }
 }, 3600000);
 
-// --- Auto-check on tab update ---
+// --- Fast pattern check (no API) — blocks known threats before page renders ---
+function quickRiskCheck(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    const path = new URL(url).pathname.toLowerCase();
+
+    // Gambling (inline — critical for speed)
+    const GAMBLE = ["1xbet","mostbet","pin-up","vavada","1win","melbet","pokerdom",
+                    "vulkan","hellcase","rollbit","parimatch","stake","rox","betmaster"];
+    if (GAMBLE.some(g => host.includes(g))) {
+      return { verdict: "DANGEROUS", threat_score: 90, threat_type: "gambling", source: "quick_check",
+               detail: "Unlicensed gambling site blocked", detail_kk: "Лицензиясыз құмар ойын сайты бұғатталды",
+               detail_ru: "Заблокирован нелицензированный сайт азартных игр", detail_en: "Unlicensed gambling site blocked", indicators: [] };
+    }
+
+    // Free TLD + KZ brand = phishing
+    const FREE_TLDS = [".tk",".ml",".ga",".cf",".gq",".xyz",".top",".pw",".cc",".icu",".buzz"];
+    const KZ_BRANDS = ["kaspi","egov","halyk","kcell","beeline","tengri","kolesa","homecredit","jysan","bereke"];
+    const hasFree = FREE_TLDS.some(t => host.endsWith(t));
+    const hasBrand = KZ_BRANDS.some(b => host.includes(b));
+    if (hasFree && hasBrand) {
+      return { verdict: "DANGEROUS", threat_score: 92, threat_type: "phishing", source: "quick_check",
+               detail: "KZ brand phishing on free TLD", detail_kk: "Тегін домендегі KZ брендін еліктеу",
+               detail_ru: "Фишинг KZ-бренда на бесплатном домене", detail_en: "KZ brand phishing on free TLD", indicators: ["free_tld","kz_brand_impersonation"] };
+    }
+
+    // Known pyramid keywords in domain
+    const PYRAMID_KEYS = ["crowd1","finiko","onecoin","forsage","bitconnect","qubittech","antares.trade"];
+    if (PYRAMID_KEYS.some(p => host.includes(p))) {
+      return { verdict: "DANGEROUS", threat_score: 95, threat_type: "pyramid", source: "quick_check",
+               detail: "Known pyramid scheme", detail_kk: "Белгілі қаржылық пирамида",
+               detail_ru: "Известная финансовая пирамида", detail_en: "Known pyramid scheme", indicators: ["pyramid_scheme"] };
+    }
+
+    // IP address URL
+    if (/^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(host)) {
+      return { verdict: "SUSPICIOUS", threat_score: 65, threat_type: "suspicious_infrastructure", source: "quick_check",
+               detail: "IP address URL", detail_kk: "IP мекенжайлы URL", detail_ru: "URL с IP-адресом", detail_en: "IP address URL", indicators: ["ip_address"] };
+    }
+
+    return null;
+  } catch { return null; }
+}
+
+// --- Auto-check on tab update — TWO PHASE ---
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete") return;
   if (!tab.url || !tab.url.startsWith("http")) return;
   if (tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) return;
 
-  // Respect auto-check setting
   const settings = await chrome.storage.local.get("qalqan_autocheck");
   if (settings.qalqan_autocheck === false) return;
+
+  // ── PHASE 1: Fires on "loading" (navigation start, before page renders) ──
+  // Runs offline DB + quick pattern check only — no API, no I/O, <5ms
+  if (changeInfo.status === "loading") {
+    const url = tab.url;
+    const fastRecent = recentChecks.get(`fast_${tabId}`);
+    if (fastRecent && fastRecent.url === url && Date.now() - fastRecent.timestamp < FAST_DEBOUNCE_MS) return;
+    recentChecks.set(`fast_${tabId}`, { url, timestamp: Date.now() });
+
+    // User whitelist check
+    const wlData = await chrome.storage.local.get("qalqan_user_whitelist");
+    const userWl = wlData.qalqan_user_whitelist || [];
+    try {
+      const domain = new URL(url).hostname.replace("www.", "").toLowerCase();
+      if (userWl.includes(domain) || userWl.some(d => domain.endsWith("." + d))) return;
+
+      // Domain cache hit
+      const cached = getDomainCache(domain);
+      if (cached && cached.verdict === "DANGEROUS") {
+        await sendBlockCommand(tabId, cached);
+        return;
+      }
+      if (cached) return;  // Safe/suspicious — let phase 2 handle
+    } catch {}
+
+    // Offline DB
+    const offResult = typeof offlineCheck === "function" ? offlineCheck(url) : null;
+    if (offResult && offResult.verdict === "DANGEROUS") {
+      chrome.storage.local.set({ [`result_${tabId}`]: offResult });
+      updateBadge(tabId, offResult);
+      updateStats(offResult.verdict);
+      saveHistory(url, offResult);
+      try { const d = new URL(url).hostname.replace("www.","").toLowerCase(); setDomainCache(d, offResult); } catch {}
+      await sendBlockCommand(tabId, offResult);
+      return;
+    }
+
+    // Quick pattern check (inline JS, <1ms)
+    const quick = quickRiskCheck(url);
+    if (quick && quick.verdict === "DANGEROUS") {
+      chrome.storage.local.set({ [`result_${tabId}`]: quick });
+      updateBadge(tabId, quick);
+      updateStats(quick.verdict);
+      saveHistory(url, quick);
+      try { const d = new URL(url).hostname.replace("www.","").toLowerCase(); setDomainCache(d, quick); } catch {}
+      await sendBlockCommand(tabId, quick);
+      // Don't return — phase 2 will still run full API to get proper result & update
+    }
+    return;
+  }
+
+  // ── PHASE 2: Fires on "complete" (full API check) ──
+  if (changeInfo.status !== "complete") return;
 
   const recent = recentChecks.get(tabId);
   if (recent && recent.url === tab.url && Date.now() - recent.timestamp < DEBOUNCE_MS) return;
@@ -144,7 +240,7 @@ async function checkUrl(url, tabId) {
           chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
             type: "basic", iconUrl: "icons/icon128.png",
             title: "QALQAN AI: Қауіп анықталды!",
-            message: (offResult.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
+            message: (offResult.detail_kk || offResult.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
             priority: 2
           });
         }
@@ -205,7 +301,7 @@ async function checkUrl(url, tabId) {
         chrome.notifications.create(`threat_${tabId}_${Date.now()}`, {
           type: "basic", iconUrl: "icons/icon128.png",
           title: "QALQAN AI: Қауіп анықталды!",
-          message: (data.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
+          message: (data.detail_kk || data.detail || "Бұл сайт қауіпті деп танылды.").slice(0, 200),
           priority: 2
         });
       }
@@ -244,14 +340,6 @@ async function sendBlockCommand(tabId, data) {
 
 // --- Message listener ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "BYPASS") {
-    chrome.storage.session.get("bypass_list", (result) => {
-      const list = result.bypass_list || [];
-      list.push(message.url);
-      chrome.storage.session.set({ bypass_list: list });
-    });
-    sendResponse({ status: "ok" });
-  }
   if (message.action === "GET_RESULT") {
     const key = `result_${sender.tab?.id}`;
     chrome.storage.local.get(key, (result) => sendResponse(result[key] || null));

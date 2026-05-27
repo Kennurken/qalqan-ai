@@ -27,12 +27,24 @@ const strings = { kk: kkStrings, ru: ruStrings, en: enStrings };
 export default function App() {
   const [view, setView] = useState("main");
   const [lang, setLang] = useState("kk");
-  const { result, loading, error, checkCurrentTab, checkText, checkScreen, sendAppeal, reset } = useCheckUrl();
+  const { result, loading, error, checkCurrentTab, checkText, checkScreen, sendAppeal, reset, setResult } = useCheckUrl();
 
-  // Тілді жүктеу
+  // Тілді жүктеу + cached result auto-load
   useEffect(() => {
     chrome.storage.local.get("qalqan_lang", (r) => {
       if (r.qalqan_lang) setLang(r.qalqan_lang);
+    });
+
+    // Auto-load cached result for current tab (no click needed)
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs?.length || !tabs[0]?.id) return;
+      const tabId = tabs[0].id;
+      chrome.storage.local.get(`result_${tabId}`, (r) => {
+        const cached = r[`result_${tabId}`];
+        if (cached && cached.verdict) {
+          setResult(cached);
+        }
+      });
     });
   }, []);
 

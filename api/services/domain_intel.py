@@ -21,6 +21,13 @@ _RDAP_BOOTSTRAP = {
     "org": "https://rdap.publicinterestregistry.org/rdap/domain/",
     "io":  "https://rdap.nic.io/domain/",
     "ru":  "https://rdap.tcinet.ru/domain/",
+    "uz":  "https://rdap.cctld.uz/domain/",
+    "info": "https://rdap.afilias.net/rdap/info/domain/",
+    "biz":  "https://rdap.afilias.net/rdap/biz/domain/",
+    "co":   "https://rdap.nic.co/domain/",
+    "xyz":  "https://rdap.nic.xyz/domain/",
+    "site": "https://rdap.centralnic.com/site/domain/",
+    "online": "https://rdap.centralnic.com/online/domain/",
 }
 _RDAP_FALLBACK = "https://rdap.org/domain/"
 

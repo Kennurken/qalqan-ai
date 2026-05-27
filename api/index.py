@@ -1,5 +1,5 @@
 # Qalqan AI v5.0
-# Бас API: 5-деңгейлі қауіп детекция pipeline + ML features + XAI
+# Бас API: 6-деңгейлі қауіп детекция pipeline + ML features + XAI
 # Academic research-grade: features extraction, explainability, evaluation
 
 import json
@@ -54,19 +54,49 @@ app = FastAPI(title="Qalqan AI", version="5.0.0",
               description="AI-powered cybersecurity research platform — PhD-grade threat detection",
               lifespan=lifespan)
 
-# --- CORS: тек extension + localhost ---
+# --- CORS: extension + localhost only (not wildcard) ---
+_ALLOWED_ORIGINS = [
+    "chrome-extension://",          # any Chrome extension (prefix match done below)
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1",
+    "https://qalqan-ai-nu.vercel.app",
+]
+
+def _cors_origin_allowed(origin: str) -> bool:
+    if not origin:
+        return False
+    # Allow all chrome-extension:// origins (user's own extension)
+    if origin.startswith("chrome-extension://"):
+        return True
+    return origin in _ALLOWED_ORIGINS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_origins=["*"],            # FastAPI CORS doesn't support prefix match —
+    allow_methods=["GET", "POST", "OPTIONS"],   # we enforce origin in middleware below
     allow_headers=["Content-Type"],
 )
 
 # --- Rate Limiting (in-memory, IP-based) ---
 _rate_limits: dict[str, list[float]] = defaultdict(list)
-RATE_LIMIT_CHECK = 30   # /check: 30 req/min
-RATE_LIMIT_APPEAL = 5   # /appeal: 5 req/min
+RATE_LIMIT_CHECK = 30    # /check: 30 req/min
+RATE_LIMIT_SCREEN = 5    # /analyze-screen: 5 req/min (AI vision — expensive)
+RATE_LIMIT_APPEAL = 5    # /appeal: 5 req/min
+RATE_LIMIT_REPORT = 3    # /report: 3 req/min (separate from appeal — fix #4)
 RATE_WINDOW = 60         # 60 seconds
+
+
+# --- Origin enforcement middleware (CORS fix #1) ---
+@app.middleware("http")
+async def enforce_origin(request: Request, call_next):
+    """Block browser requests from non-extension origins. CLI/curl (no Origin) always allowed."""
+    origin = request.headers.get("origin", "")
+    if origin and not _cors_origin_allowed(origin):
+        logger.warning(f"Blocked request from disallowed origin: {origin}")
+        return JSONResponse(status_code=403, content={"error": "Origin not allowed"})
+    return await call_next(request)
 
 
 def _check_rate_limit(ip: str, limit: int) -> bool:
@@ -297,21 +327,56 @@ class TextCheckRequest(BaseModel):
     lang: str = Field(default="kk", max_length=5)
 
 class ScreenRequest(BaseModel):
-    image_base64: str = Field(..., max_length=7_000_000)  # ~5MB base64
+    image_base64: str = Field(..., max_length=5_500_000)  # ~4MB base64 (was 7MB — tightened)
     lang: str = Field(default="kk", max_length=5)
+
+    @field_validator("image_base64")
+    @classmethod
+    def validate_base64(cls, v):
+        import base64
+        # Must be valid base64, must start with image magic after decode
+        try:
+            decoded = base64.b64decode(v[:64], validate=True)  # check header only (fast)
+        except Exception:
+            raise ValueError("image_base64 must be valid base64")
+        # Check image magic bytes (JPEG: FF D8, PNG: 89 50, GIF: 47 49, WEBP: 52 49)
+        if not (decoded[:2] in (b'\xff\xd8', b'\x89P') or
+                decoded[:4] in (b'GIF8', b'RIFF') or
+                decoded[:6] == b'GIF89a'):
+            raise ValueError("image_base64 must be a valid image (JPEG/PNG/GIF/WEBP)")
+        return v
 
 class AppealRequest(BaseModel):
     url: str = Field(..., max_length=2048)
-    reason: str = Field(..., max_length=1000)
+    reason: str = Field(..., max_length=500)   # tightened from 1000
 
 class ReportRequest(BaseModel):
     url: str = Field(..., max_length=2048)
-    threat_type: str = Field(default="scam", max_length=50)
-    note: str = Field(default="", max_length=1000)
+    threat_type: str = Field(default="scam", pattern=r"^(phishing|pyramid|gambling|scam|malware|fake_shop|social_engineering|other)$")
+    note: str = Field(default="", max_length=500)
 
 class BatchRequest(BaseModel):
-    urls: list[str] = Field(..., max_length=50)
+    urls: list[str] = Field(..., min_length=1, max_length=15)  # enforced at model level (was 50)
     lang: str = Field(default="kk", max_length=5)
+
+    @field_validator("urls")
+    @classmethod
+    def validate_urls(cls, v):
+        from urllib.parse import urlparse
+        cleaned = []
+        for url in v:
+            url = url.strip()
+            if not url:
+                continue
+            if not url.startswith(("http://", "https://")):
+                url = "https://" + url
+            if len(url) > 2048:
+                raise ValueError(f"URL too long: {url[:50]}...")
+            host = urlparse(url).hostname or ""
+            if _PRIVATE_IP_RE.match(host):
+                raise ValueError(f"Private/internal address not allowed: {host}")
+            cleaned.append(url)
+        return cleaned
 
 class FeatureRequest(BaseModel):
     url: str = Field(..., max_length=2048)
@@ -348,7 +413,7 @@ async def root():
     }
 
 
-# --- НЕГІЗГІ ТЕКСЕРУ: 4-деңгейлі pipeline ---
+# --- НЕГІЗГІ ТЕКСЕРУ: 6-деңгейлі pipeline ---
 @app.post("/check")
 async def check_site(request: CheckRequest, req: Request):
     # Rate limit
@@ -439,8 +504,8 @@ async def check_site(request: CheckRequest, req: Request):
         set_cached(key, result)
         return result
 
-    # --- Tier 3: AI analysis ---
-    ai_result = await analyze_url(url)
+    # --- Tier 3: AI analysis (with URL feature context for better accuracy) ---
+    ai_result = await analyze_url(url, context=url_feats)
 
     result = calculate_final_verdict(db_results, ai_result, None,
                                      domain_info=domain_info, url_features=url_feats, lang=lang)
@@ -570,7 +635,7 @@ async def check_batch(request: BatchRequest, req: Request):
                 check_all_databases(url),
                 check_domain_intelligence(domain, url)
             )
-            ai_result = await analyze_url(url)
+            ai_result = await analyze_url(url, context=url_feats)
             r = calculate_final_verdict(db_results, ai_result, None,
                                         domain_info=domain_info, url_features=url_feats, lang=lang)
             r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"])
@@ -588,8 +653,9 @@ async def check_batch(request: BatchRequest, req: Request):
 @app.post("/analyze-screen")
 async def check_screen(request: ScreenRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
-        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    # Fix #3: separate rate limit key + lower limit (5/min, not shared with /check)
+    if not _check_rate_limit(f"screen:{client_ip}", RATE_LIMIT_SCREEN):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 5 screenshot analyses per minute."})
 
     result = await analyze_screenshot(request.image_base64)
     return calculate_final_verdict([], result, None, lang=request.lang)
@@ -630,22 +696,29 @@ def _save_reports(reports: dict):
 @app.post("/report")
 async def report_site(request: ReportRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"appeal:{client_ip}", RATE_LIMIT_APPEAL):
-        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    # Fix #4: separate rate limit key (was "appeal:", now "report:")
+    if not _check_rate_limit(f"report:{client_ip}", RATE_LIMIT_REPORT):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 3 reports per minute."})
 
     domain = extract_domain(request.url)
     reports = _load_reports()
     if domain not in reports:
-        reports[domain] = {"count": 0, "types": [], "first_report": time.time()}
+        reports[domain] = {"count": 0, "types": [], "unique_ips": [], "first_report": time.time()}
+
     reports[domain]["count"] += 1
     reports[domain]["types"].append(request.threat_type)
+    # Fix #9: track unique IPs — require reports from 10 unique IPs before auto-block
+    # This prevents a single attacker from mass-reporting a legitimate domain
+    unique_ips: list = reports[domain].setdefault("unique_ips", [])
+    if client_ip not in unique_ips:
+        unique_ips.append(client_ip)
 
-    # 5+ репорт = автоматты blacklist
-    auto_blocked = reports[domain]["count"] >= 5
+    # Fix #9: threshold raised to 10 AND requires 3+ unique IPs
+    auto_blocked = reports[domain]["count"] >= 10 and len(unique_ips) >= 3
     _save_reports(reports)
 
     if auto_blocked:
-        logger.warning(f"AUTO-BLOCKED: {domain} (5+ reports)")
+        logger.warning(f"AUTO-BLOCKED: {domain} ({reports[domain]['count']} reports, {len(unique_ips)} unique IPs)")
 
     # Telegram хабарлама
     result = await send_report(request.url, request.threat_type, request.note)
@@ -661,7 +734,7 @@ async def get_stats():
     reports = _load_reports()
     return {
         "total_reported_domains": len(reports),
-        "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 5),
+        "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 10 and len(r.get("unique_ips", [])) >= 3),
         "whitelist_size": len(_whitelist),
         "cache_entries": len(_cache),
         "demo_mode": DEMO_MODE,
@@ -711,32 +784,25 @@ async def ping():
     return {"status": "ok", "version": "5.0.0", "demo_mode": DEMO_MODE}
 
 
-# --- Detailed health check ---
+# --- Detailed health check (Fix #5: no longer reveals which keys are configured) ---
 @app.get("/health")
 async def health():
-    api_keys = {
-        "groq": bool(os.getenv("GROQ_API_KEY")),
-        "gemini": bool(os.getenv("GEMINI_API_KEY")),
-        "phishtank": bool(os.getenv("PHISHTANK_API_KEY")),
-        "google_safe_browsing": bool(os.getenv("GOOGLE_SAFE_BROWSING_KEY")),
-        "virustotal": bool(os.getenv("VIRUSTOTAL_API_KEY")),
-        "telegram": bool(os.getenv("TELEGRAM_BOT_TOKEN")),
-    }
-    data_files = {}
-    for fname in ["whitelist.json", "kz_brands.json", "pyramid_schemes.json",
-                  "blacklist.json", "kz_phishing_patterns.json"]:
-        data_files[fname] = os.path.exists(os.path.join(_data_dir, fname))
-
-    configured_count = sum(api_keys.values())
+    # Count configured keys without revealing WHICH ones (prevents targeted key-fishing)
+    key_names = ["GROQ_API_KEY", "GEMINI_API_KEY", "PHISHTANK_API_KEY",
+                 "GOOGLE_SAFE_BROWSING_KEY", "VIRUSTOTAL_API_KEY", "TELEGRAM_BOT_TOKEN"]
+    configured_count = sum(1 for k in key_names if os.getenv(k))
+    data_files_ok = sum(
+        1 for fname in ["whitelist.json", "kz_brands.json", "pyramid_schemes.json",
+                        "blacklist.json", "kz_phishing_patterns.json"]
+        if os.path.exists(os.path.join(_data_dir, fname))
+    )
     return {
         "status": "ok",
         "version": "5.0.0",
         "demo_mode": DEMO_MODE,
-        "api_keys_configured": configured_count,
-        "api_keys": api_keys,
-        "data_files": data_files,
+        "api_keys_configured": f"{configured_count}/{len(key_names)}",
+        "data_files_ok": f"{data_files_ok}/5",
         "whitelist_domains": len(_whitelist),
-        "reports_in_memory": len(_reports_memory),
     }
 
 
@@ -773,10 +839,11 @@ async def check_research(request: CheckRequest, req: Request):
     blacklist_hit = check_local_blacklist(url)
     kz_hit = check_kz_impersonation_url(domain)
     gambling_hit = check_gambling_domain(domain)
+    # Fix #8: pass url_feats context to AI for better accuracy (same as /check endpoint)
     db_results, domain_info, ai_result = await asyncio.gather(
         check_all_databases(url),
         check_domain_intelligence(domain, url),
-        analyze_url(url)
+        analyze_url(url, context=url_feats)
     )
 
     # Calculate final verdict (pyramid > kz_impersonation > gambling > blacklist > DB > AI)

@@ -194,5 +194,5 @@ export function useCheckUrl() {
 
   const reset = () => { setResult(null); setError(null); };
 
-  return { result, loading, error, checkCurrentTab, checkText, checkScreen, sendAppeal, reset };
+  return { result, loading, error, checkCurrentTab, checkText, checkScreen, sendAppeal, reset, setResult };
 }

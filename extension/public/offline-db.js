@@ -10,7 +10,13 @@ const OFFLINE_PYRAMIDS = new Set([
   "g-time.kz","kilt.kz","smartbusiness.kz","bepic.com","qnet.net",
   "crowd1.club","joy-way.club","garantbox.kz","imperialfinance.kz",
   "telexfree.com","tradeallcrypto.com","esperio.org","forexoptimum.com",
-  "binance-earn.pro","bnb-earn.com","hamsterkombat-airdrop.com","hamster-claim.com"
+  "binance-earn.pro","bnb-earn.com","hamsterkombat-airdrop.com","hamster-claim.com",
+  // 2024-2025 KZ-specific pyramids
+  "mir-invest.kz","profit-kg.com","kazinvest.pro","invest-top.kz",
+  "money-farm.kz","passive-kz.com","doublemoney.kz","cryptoearn.kz",
+  "globalshare.kz","worldshare.com","evergrow.io","tripleclicks.com",
+  "imetrics.kz","kztrade.io","astana-invest.com","almaty-profit.com",
+  "kz-profit.com","tenge-profit.com","kazfinance.pro","capitalinvest.kz"
 ]);
 
 // === АЗАРТНЫЕ ИГРЫ / GAMBLING / КАЗИНО ===
@@ -221,37 +227,62 @@ function offlineCheck(url) {
 
     if (OFFLINE_WHITELIST.has(domain) || OFFLINE_WHITELIST.has(hostname)) {
       return { verdict: "SAFE", threat_score: 0, source: "offline_whitelist",
-        detail: "Trusted site (offline check)", threat_type: "safe" };
+        detail: "Сенімді сайт", detail_kk: "Сенімді сайт",
+        detail_ru: "Надёжный сайт", detail_en: "Trusted site", threat_type: "safe" };
     }
 
     if (OFFLINE_PYRAMIDS.has(domain) || OFFLINE_PYRAMIDS.has(hostname)) {
       return { verdict: "DANGEROUS", threat_score: 95, source: "offline_pyramid",
-        detail: "Known financial pyramid / MLM scheme (offline check)", threat_type: "pyramid" };
+        detail: "ҚАРЖЫЛЫҚ ПИРАМИДА: Бұл сайт белгілі алаяқтық схема. Ақша салмаңыз!",
+        detail_kk: "ҚАРЖЫЛЫҚ ПИРАМИДА: Бұл сайт белгілі алаяқтық схема. Ақша салмаңыз!",
+        detail_ru: "ФИНАНСОВАЯ ПИРАМИДА: Известная мошенническая схема. Не вкладывайте деньги!",
+        detail_en: "FINANCIAL PYRAMID: Known MLM/pyramid scheme. Do not invest!",
+        threat_type: "pyramid", indicators: ["pyramid_offline_db"] };
     }
 
     if (OFFLINE_GAMBLING.has(domain) || OFFLINE_GAMBLING.has(hostname)) {
       return { verdict: "DANGEROUS", threat_score: 90, source: "offline_gambling",
-        detail: "Gambling / casino / betting site (offline check)", threat_type: "gambling" };
+        detail: "ҚҰМАР ОЙЫН: Лицензиясыз казино немесе букмекер. ҚР-да тыйым салынған.",
+        detail_kk: "ҚҰМАР ОЙЫН: Лицензиясыз казино немесе букмекер. ҚР-да тыйым салынған.",
+        detail_ru: "ГЕМБЛИНГ: Нелицензированное казино или букмекер. Запрещено в РК.",
+        detail_en: "GAMBLING: Unlicensed casino / bookmaker. Banned in Kazakhstan.",
+        threat_type: "gambling", indicators: ["gambling_offline_db", "unlicensed_kz"] };
     }
 
     if (OFFLINE_CASE_BATTLES.has(domain) || OFFLINE_CASE_BATTLES.has(hostname)) {
       return { verdict: "DANGEROUS", threat_score: 85, source: "offline_casebattle",
-        detail: "Case battle / case opening / skin gambling (offline check)", threat_type: "gambling" };
+        detail: "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын. Жасөспірімдерге қауіпті.",
+        detail_kk: "КЕЙС-БАТ: CS2 кейстерін ашу — азартты ойын. Жасөспірімдерге қауіпті.",
+        detail_ru: "КЕЙС-БАТЛ: Открытие кейсов CS2 — азартная игра. Опасно для несовершеннолетних.",
+        detail_en: "CASE BATTLE: CS2 case opening — gambling. Dangerous for minors.",
+        threat_type: "gambling", indicators: ["case_battle_offline_db"] };
     }
 
     if (OFFLINE_PHISHING.has(domain) || OFFLINE_PHISHING.has(hostname)) {
       return { verdict: "DANGEROUS", threat_score: 95, source: "offline_phishing",
-        detail: "Known phishing site (offline check)", threat_type: "phishing" };
+        detail: "ФИШИНГ: Белгілі жалған сайт. Жеке деректерді енгізбеңіз!",
+        detail_kk: "ФИШИНГ: Белгілі жалған сайт. Жеке деректерді енгізбеңіз!",
+        detail_ru: "ФИШИНГ: Известный поддельный сайт. Не вводите личные данные!",
+        detail_en: "PHISHING: Known phishing site. Do not enter personal data!",
+        threat_type: "phishing", indicators: ["phishing_offline_db"] };
     }
 
     if (OFFLINE_SCAM.has(domain) || OFFLINE_SCAM.has(hostname)) {
       return { verdict: "DANGEROUS", threat_score: 90, source: "offline_scam",
-        detail: "Known scam / fraud site (offline check)", threat_type: "scam" };
+        detail: "АЛАЯҚТЫҚ: Жалған сайт немесе алаяқтық схема.",
+        detail_kk: "АЛАЯҚТЫҚ: Жалған сайт немесе алаяқтық схема.",
+        detail_ru: "МОШЕННИЧЕСТВО: Поддельный сайт или мошенническая схема.",
+        detail_en: "SCAM: Known scam / fraud site.",
+        threat_type: "scam", indicators: ["scam_offline_db"] };
     }
 
     if (FREE_TLDS.has(tld)) {
       return { verdict: "SUSPICIOUS", threat_score: 40, source: "offline_tld",
-        detail: "Free TLD detected — potential risk", threat_type: "suspicious_infrastructure" };
+        detail: "Тегін домен — ықтимал фишинг белгісі",
+        detail_kk: "Тегін домен — ықтимал фишинг белгісі",
+        detail_ru: "Бесплатный домен — возможный признак фишинга",
+        detail_en: "Free TLD detected — potential phishing risk",
+        threat_type: "suspicious_infrastructure", indicators: [`free_tld_${tld.slice(1)}`] };
     }
 
     return null; // Unknown — need API

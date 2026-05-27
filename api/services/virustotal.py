@@ -38,10 +38,36 @@ async def check_virustotal(url: str) -> dict | None:
                     headers={"x-apikey": key},
                     data={"url": url}
                 )
-                if submit_res.status_code != 200:
+                if submit_res.status_code not in (200, 201):
                     return None
-                # After submission, results take time — return None for now
-                return None
+                # Poll once after 3 seconds — enough time for fast engines
+                import asyncio
+                await asyncio.sleep(3)
+                retry = await client.get(
+                    f"https://www.virustotal.com/api/v3/urls/{url_id}",
+                    headers={"x-apikey": key}
+                )
+                if retry.status_code != 200:
+                    return None  # Still not ready
+                data = retry.json()
+                attrs = data.get("data", {}).get("attributes", {})
+                stats = attrs.get("last_analysis_stats", {})
+                malicious = stats.get("malicious", 0)
+                suspicious = stats.get("suspicious", 0)
+                total = sum(stats.values())
+                if malicious + suspicious < 2:
+                    return None
+                score = min(int((malicious + suspicious) / max(total, 1) * 100), 100)
+                return {
+                    "verdict": "DANGEROUS" if malicious >= 3 else "SUSPICIOUS",
+                    "threat_score": score,
+                    "threat_type": "malware",
+                    "source": "virustotal",
+                    "reason_kk": f"VirusTotal: {malicious}/{total} антивирус қауіпті деп таныды (жаңа тексеру)",
+                    "reason_ru": f"VirusTotal: {malicious}/{total} антивирусов обнаружили угрозу (новая проверка)",
+                    "reason_en": f"VirusTotal: {malicious}/{total} engines flagged (fresh scan)",
+                    "indicators": [f"vt_malicious_{malicious}"]
+                }
 
             if res.status_code != 200:
                 return None
