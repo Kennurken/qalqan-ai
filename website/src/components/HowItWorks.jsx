@@ -6,31 +6,37 @@ const STEPS = [
     n: "01", icon: "🌐", color: "#3b82f6",
     title: "Сайтты ашасыз",
     desc: "Chrome-де кез келген сайтқа кіресіз. Qalqan AI фонда автоматты тексеруді бастайды немесе батырма арқылы қолмен іске қосасыз.",
-    tags: ["Auto-check", "Manual trigger"],
+    tags: ["Auto-check", "Manual trigger", "0ms start"],
   },
   {
     n: "02", icon: "⚡", color: "#f59e0b",
-    title: "Мгновенды офлайн тексеру",
-    desc: "200+ белгілі қауіпті домен API-сыз тексеріледі. 0ms. Whitelist, Pyramid DB, Phishing DB — жергілікті тізімдерде.",
-    tags: ["0ms", "Offline DB", "200+ threats"],
+    title: "Офлайн + KZ тексеру",
+    desc: "200+ белгілі домен API-сыз тексеріледі. Whitelist, Pyramid DB, KZ Intel, Gambling DB — жергілікті тізімдерде. 0ms нәтиже.",
+    tags: ["0ms", "Pyramid DB", "KZ Intel", "Gambling DB"],
   },
   {
     n: "03", icon: "🔬", color: "#6366f1",
     title: "URL + Domain талдауы",
-    desc: "20+ параметр параллельді тексеріледі: URL белгілері, RDAP домен жасы, SSL сертификат, KZ брендтері имитациясы.",
-    tags: ["RDAP", "SSL", "URL features", "KZ Intel"],
+    desc: "30+ параметр параллельді тексеріледі: URL белгілері, RDAP домен жасы, SSL сертификат, homoglyph шабуыл, KZ бренд имитациясы.",
+    tags: ["RDAP", "SSL", "30+ features", "Homoglyph"],
   },
   {
-    n: "04", icon: "🤖", color: "#8b5cf6",
-    title: "AI талдауы",
-    desc: "Groq Llama + Gemini Vision — беттің мазмұнын оқиды, скриншоттан алаяқтықты анықтайды. XAI факторлар себебін түсіндіреді.",
-    tags: ["Groq AI", "Gemini Vision", "XAI"],
+    n: "04", icon: "🌍", color: "#10b981",
+    title: "Сыртқы дерекқорлар",
+    desc: "PhishTank, Google Safe Browsing, URLhaus, OpenPhish — параллельді asyncio.gather арқылы. Нақты уақыт threat intelligence.",
+    tags: ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish"],
   },
   {
-    n: "05", icon: "🛡️", color: "#ef4444",
+    n: "05", icon: "🤖", color: "#8b5cf6",
+    title: "AI талдауы + XAI",
+    desc: "Groq Llama + Gemini Vision — беттің мазмұнын оқиды, скриншоттан алаяқтықты анықтайды. XAI факторлар неге қауіпті екенін түсіндіреді.",
+    tags: ["Groq AI", "Gemini Vision", "XAI", "SHAP-style"],
+  },
+  {
+    n: "06", icon: "🛡️", color: "#ef4444",
     title: "Вердикт + Қорғаныс",
-    desc: "SAFE / SUSPICIOUS / DANGEROUS вердикт 0.8с ішінде. Қауіпті сайт автоматты бұғатталады. Апелляция мүмкіндігі бар.",
-    tags: ["Auto-block", "Appeal", "Notification"],
+    desc: "SAFE / SUSPICIOUS / DANGEROUS вердикт 0.8с ішінде. Қауіпті сайт автоматты бұғатталады. 5с кері санау + апелляция мүмкіндігі.",
+    tags: ["Auto-block", "Appeal", "5s countdown", "Notification"],
   },
 ];
 
@@ -71,7 +77,7 @@ export default function HowItWorks() {
             ҚАЛАЙ ЖҰМЫС ІСТЕЙДІ
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 900, marginBottom: 16, lineHeight: 1.1 }}>
-            5 деңгейлі{" "}
+            6 деңгейлі{" "}
             <span style={{
               background: "linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",

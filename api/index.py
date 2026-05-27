@@ -18,7 +18,7 @@ from pydantic import BaseModel, field_validator, Field
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
-from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url
+from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url, check_gambling_domain
 from .services.domain_intel import check_domain_intelligence
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
@@ -309,6 +309,27 @@ class ReportRequest(BaseModel):
     threat_type: str = Field(default="scam", max_length=50)
     note: str = Field(default="", max_length=1000)
 
+class BatchRequest(BaseModel):
+    urls: list[str] = Field(..., max_length=50)
+    lang: str = Field(default="kk", max_length=5)
+
+class FeatureRequest(BaseModel):
+    url: str = Field(..., max_length=2048)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v):
+        from urllib.parse import urlparse
+        v = v.strip()
+        if not v:
+            raise ValueError("URL cannot be empty")
+        if not v.startswith(("http://", "https://")):
+            v = "https://" + v
+        host = urlparse(v).hostname or ""
+        if _PRIVATE_IP_RE.match(host):
+            raise ValueError("Private or internal addresses not allowed")
+        return v
+
 
 # --- Health check ---
 @app.get("/")
@@ -317,8 +338,8 @@ async def root():
         "status": "online",
         "name": "Qalqan AI",
         "version": "5.0.0",
-        "pipeline": "5-tier: cache → ML_features → databases → domain_intel → AI + XAI",
-        "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "RDAP", "SSL"],
+        "pipeline": "6-tier: cache → ML_features → pyramid/kz/gambling → databases → domain_intel → AI + XAI",
+        "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "RDAP", "SSL", "KZ_Gambling"],
         "ml_features": "30+ URL lexical features, homoglyph detection, brand similarity",
         "ai_providers": {
             "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
@@ -388,6 +409,14 @@ async def check_site(request: CheckRequest, req: Request):
         result = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
         result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"])
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "kz_impersonation"}
+        set_cached(key, result)
+        return result
+
+    # --- Tier 1.8: Gambling / unlicensed bookmaker (KZ banned sites) ---
+    gambling_hit = check_gambling_domain(domain)
+    if gambling_hit:
+        result = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
+        result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "gambling_list"}
         set_cached(key, result)
         return result
 
@@ -528,6 +557,12 @@ async def check_batch(request: BatchRequest, req: Request):
             kz_impersonation_hit = check_kz_impersonation_url(domain)
             if kz_impersonation_hit:
                 r = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
+                set_cached(key, r)
+                return {**r, "url": url}
+
+            gambling_hit = check_gambling_domain(domain)
+            if gambling_hit:
+                r = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
                 set_cached(key, r)
                 return {**r, "url": url}
 
@@ -709,28 +744,6 @@ async def health():
 # RESEARCH API ENDPOINTS (doctoral-grade)
 # ============================================================
 
-class FeatureRequest(BaseModel):
-    url: str = Field(..., max_length=2048)
-
-    @field_validator("url")
-    @classmethod
-    def validate_url(cls, v):
-        from urllib.parse import urlparse
-        v = v.strip()
-        if not v:
-            raise ValueError("URL cannot be empty")
-        if not v.startswith(("http://", "https://")):
-            v = "https://" + v
-        host = urlparse(v).hostname or ""
-        if _PRIVATE_IP_RE.match(host):
-            raise ValueError("Private or internal addresses not allowed")
-        return v
-
-class BatchRequest(BaseModel):
-    urls: list[str] = Field(..., max_length=50)
-    lang: str = Field(default="kk", max_length=5)
-
-
 @app.post("/features")
 async def get_features(request: FeatureRequest, req: Request):
     """Extract 30+ ML features from URL (no HTTP request, pure lexical analysis).
@@ -759,14 +772,15 @@ async def check_research(request: CheckRequest, req: Request):
     pyramid_hit = check_pyramid_domain(url)
     blacklist_hit = check_local_blacklist(url)
     kz_hit = check_kz_impersonation_url(domain)
+    gambling_hit = check_gambling_domain(domain)
     db_results, domain_info, ai_result = await asyncio.gather(
         check_all_databases(url),
         check_domain_intelligence(domain, url),
         analyze_url(url)
     )
 
-    # Calculate final verdict (pyramid > kz_impersonation > blacklist > DB > AI)
-    effective_hit = pyramid_hit or kz_hit
+    # Calculate final verdict (pyramid > kz_impersonation > gambling > blacklist > DB > AI)
+    effective_hit = pyramid_hit or kz_hit or gambling_hit
     result = calculate_final_verdict(
         db_results, ai_result if not effective_hit else None, effective_hit or None,
         domain_info=domain_info, url_features=url_feats, lang=lang
@@ -811,6 +825,8 @@ async def check_research(request: CheckRequest, req: Request):
         "tier_results": {
             "pyramid": pyramid_hit,
             "blacklist": blacklist_hit,
+            "kz_impersonation": kz_hit,
+            "gambling": gambling_hit,
             "databases": db_results,
             "domain_intel": domain_info,
             "ai": {k: v for k, v in (ai_result or {}).items() if k != "source"} if ai_result else None,

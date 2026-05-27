@@ -79,6 +79,75 @@ def check_kz_impersonation_url(domain: str) -> dict | None:
     return None
 
 
+# Unlicensed gambling / case-battle sites banned in Kazakhstan
+_GAMBLING_DOMAINS: set[str] = {
+    "1xbet.com", "1xbet.kz", "1xbet.net", "1xbet.co",
+    "mostbet.com", "mostbet-kz.com", "mostbet.kz",
+    "bet365.com", "betway.com", "bwin.com",
+    "pokerdom.com", "poker-dom.com",
+    "pin-up.casino", "pin-up.bet", "pinup.kz",
+    "melbet.com", "melbet.kz",
+    "parimatch.com", "parimatch.kz",
+    "olimp.bet", "olimp.com",
+    "bcgame.com", "stake.com", "rollbit.com",
+    "hellcase.com", "hellcase.org", "farmskins.com",
+    "csgo500.com", "datdrop.com", "gamdom.com",
+    "roobet.com", "duelbits.com", "casinogorilla.com",
+    "vavada.com", "vavada.ru", "vavada.casino",
+    "joycasino.com", "volcanobet.net", "slotsvulkan.com",
+    "1win.com", "1win.xyz", "1win.kz",
+    "betwinner.com", "betwinner.kz",
+    "22bet.com", "22bet.kz",
+    "betsafe.com", "betsson.com",
+    "leon.bet", "leonbets.com",
+    "fonbet.kz", "fonbet.com",
+    "xbet.kz", "linebet.com",
+}
+
+_GAMBLING_KEYWORDS = [
+    "casino", "казино", "букмекер", "ставки", "слоты", "slots",
+    "jackpot", "джекпот", "poker", "покер", "bet", "betting",
+    "gambling", "roulette", "рулетка", "баккара", "baccarat",
+    "case-battle", "кейс-батл", "case battle", "case opening",
+]
+
+
+def check_gambling_domain(domain: str) -> dict | None:
+    """Check if domain is an unlicensed gambling site banned in Kazakhstan."""
+    if not domain:
+        return None
+    domain_lower = domain.lower().replace("www.", "")
+
+    # Exact match
+    if domain_lower in _GAMBLING_DOMAINS:
+        return {
+            "verdict": "DANGEROUS",
+            "threat_score": 88,
+            "threat_type": "gambling",
+            "source": "kz_intel_gambling",
+            "reason_kk": "ҚҰМАР ОЙЫН: Лицензиясыз букмекер немесе онлайн казино. ҚР-да тыйым салынған.",
+            "reason_ru": "ГЕМБЛИНГ: Нелицензированный букмекер или онлайн-казино. Запрещён в РК.",
+            "reason_en": "GAMBLING: Unlicensed bookmaker / online casino. Prohibited in Kazakhstan.",
+            "indicators": [f"gambling_match_{domain_lower}", "unlicensed_kz"]
+        }
+
+    # Subdomain match
+    for blocked in _GAMBLING_DOMAINS:
+        if domain_lower.endswith("." + blocked):
+            return {
+                "verdict": "DANGEROUS",
+                "threat_score": 85,
+                "threat_type": "gambling",
+                "source": "kz_intel_gambling",
+                "reason_kk": f"ҚҰМАР ОЙЫН: {blocked} сайтының тармағы — ҚР-да тыйым салынған.",
+                "reason_ru": f"ГЕМБЛИНГ: Поддомен {blocked} — запрещён в РК.",
+                "reason_en": f"GAMBLING: Subdomain of banned {blocked}.",
+                "indicators": [f"gambling_subdomain_{blocked}", "unlicensed_kz"]
+            }
+
+    return None
+
+
 def check_kz_social_engineering(text: str) -> dict | None:
     """
     Мәтінде Қазақстандық алаяқтық паттерндерін тексеру.
