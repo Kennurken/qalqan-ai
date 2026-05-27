@@ -1,38 +1,73 @@
-import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+// 21st.dev-inspired dark hero with particle grid + Framer Motion
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
-// Animated background grid
-function GridBg() {
+// Animated dot grid background (canvas-based, like 21st.dev)
+function ParticleGrid() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animFrame;
+    let dots = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      dots = [];
+      const spacing = 40;
+      for (let x = 0; x < canvas.width; x += spacing) {
+        for (let y = 0; y < canvas.height; y += spacing) {
+          dots.push({ x, y, r: Math.random() * 0.8 + 0.2, phase: Math.random() * Math.PI * 2 });
+        }
+      }
+    };
+
+    let t = 0;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      t += 0.008;
+      dots.forEach(d => {
+        const alpha = 0.08 + 0.06 * Math.sin(t + d.phase);
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(99,102,241,${alpha})`;
+        ctx.fill();
+      });
+      animFrame = requestAnimationFrame(draw);
+    };
+
+    resize();
+    draw();
+    window.addEventListener("resize", resize);
+    return () => { cancelAnimationFrame(animFrame); window.removeEventListener("resize", resize); };
+  }, []);
+
   return (
-    <div style={{
-      position: "absolute", inset: 0, overflow: "hidden",
-      backgroundImage: `
-        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px)
-      `,
-      backgroundSize: "40px 40px",
-      maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%)",
+    <canvas ref={canvasRef} style={{
+      position: "absolute", inset: 0,
+      width: "100%", height: "100%",
+      pointerEvents: "none",
     }} />
   );
 }
 
-// Floating threat indicator pill
-function ThreatPill({ label, color, delay, x, y }) {
+// Threat pill that fades in, floats up, fades out in loop
+function ThreatPill({ label, color, bg, delay, style }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        scale: [0.5, 1, 1, 0.8],
-        y: [y, y - 10, y - 10, y - 20],
-      }}
-      transition={{ duration: 4, delay, repeat: Infinity, repeatDelay: 3 }}
+      initial={{ opacity: 0, scale: 0.7, y: 0 }}
+      animate={{ opacity: [0, 1, 1, 0], scale: [0.7, 1, 1, 0.85], y: [0, -8, -8, -20] }}
+      transition={{ duration: 3.5, delay, repeat: Infinity, repeatDelay: 3 + delay * 0.5 }}
       style={{
-        position: "absolute", left: x, top: y,
+        position: "absolute", ...style,
         padding: "6px 14px", borderRadius: 20,
-        background: `${color}22`, border: `1px solid ${color}66`,
-        color: color, fontSize: 12, fontWeight: 700,
+        background: bg, border: `1px solid ${color}66`,
+        color, fontSize: 12, fontWeight: 700,
         whiteSpace: "nowrap", pointerEvents: "none",
+        backdropFilter: "blur(8px)",
       }}
     >
       {label}
@@ -40,173 +75,202 @@ function ThreatPill({ label, color, delay, x, y }) {
   );
 }
 
-export default function Hero() {
-  const pills = [
-    { label: "⛔ Фишинг анықталды", color: "#ef4444", delay: 0.5, x: "5%", y: "25%" },
-    { label: "⚠️ Күдікті URL", color: "#f59e0b", delay: 1.8, x: "72%", y: "20%" },
-    { label: "✅ Қауіпсіз", color: "#10b981", delay: 3.2, x: "80%", y: "55%" },
-    { label: "🔒 SSL жоқ", color: "#f97316", delay: 2.5, x: "8%", y: "60%" },
-    { label: "⛔ Пирамида", color: "#ef4444", delay: 4.0, x: "60%", y: "78%" },
-    { label: "🛡️ KZ Intel", color: "#6366f1", delay: 1.2, x: "22%", y: "78%" },
-  ];
+const PILLS = [
+  { label: "⛔ kaspi-login.tk — DANGEROUS", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 0.3, style: { left: "4%", top: "22%" } },
+  { label: "⚠️ Күдікті URL анықталды", color: "#fbbf24", bg: "rgba(245,158,11,0.15)", delay: 2.1, style: { right: "5%", top: "18%" } },
+  { label: "✅ google.com — SAFE", color: "#34d399", bg: "rgba(16,185,129,0.15)", delay: 3.8, style: { right: "6%", top: "55%" } },
+  { label: "⛔ Финансовая пирамида", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 1.4, style: { left: "3%", top: "65%" } },
+  { label: "🛡️ KZ Intel: egov жалған", color: "#a5b4fc", bg: "rgba(99,102,241,0.15)", delay: 5.0, style: { left: "20%", top: "80%" } },
+  { label: "🔒 SSL жоқ — +30 score", color: "#fb923c", bg: "rgba(249,115,22,0.15)", delay: 2.8, style: { right: "18%", top: "78%" } },
+];
 
+const STATS = [
+  { n: "5+", label: "Тексеру деңгейі" },
+  { n: "10+", label: "Threat Intelligence" },
+  { n: "97%", label: "Дәлдік" },
+  { n: "0.8s", label: "Орташа уақыт" },
+];
+
+export default function Hero() {
   return (
     <section style={{
       position: "relative", minHeight: "100vh",
       display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "0 24px", overflow: "hidden",
+      padding: "80px 24px 40px", overflow: "hidden",
     }}>
-      <GridBg />
+      <ParticleGrid />
 
       {/* Glow orbs */}
       <div style={{
-        position: "absolute", top: "10%", left: "30%",
-        width: 600, height: 600,
-        background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)",
+        position: "absolute", top: "15%", left: "20%",
+        width: 700, height: 500,
+        background: "radial-gradient(ellipse, rgba(99,102,241,0.1) 0%, transparent 70%)",
         pointerEvents: "none",
       }} />
       <div style={{
-        position: "absolute", top: "40%", left: "60%",
-        width: 400, height: 400,
-        background: "radial-gradient(circle, rgba(239,68,68,0.08) 0%, transparent 70%)",
+        position: "absolute", bottom: "10%", right: "15%",
+        width: 500, height: 400,
+        background: "radial-gradient(ellipse, rgba(239,68,68,0.07) 0%, transparent 70%)",
         pointerEvents: "none",
       }} />
 
       {/* Floating pills */}
-      {pills.map((p, i) => <ThreatPill key={i} {...p} />)}
+      {PILLS.map((p, i) => <ThreatPill key={i} {...p} />)}
 
       {/* Main content */}
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: 780 }}>
-        {/* Badge */}
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: 820 }}>
+
+        {/* Live badge */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "6px 16px", borderRadius: 20,
-            background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)",
-            marginBottom: 32, fontSize: 13, color: "#a5b4fc",
+            padding: "6px 18px", borderRadius: 20,
+            background: "rgba(99,102,241,0.08)",
+            border: "1px solid rgba(99,102,241,0.25)",
+            marginBottom: 36, fontSize: 12, color: "#a5b4fc",
+            letterSpacing: "0.1em",
           }}
         >
           <span style={{
-            width: 8, height: 8, borderRadius: "50%", background: "#10b981",
-            boxShadow: "0 0 8px #10b981",
-            animation: "pulse 2s infinite",
+            width: 7, height: 7, borderRadius: "50%", background: "#10b981",
+            boxShadow: "0 0 10px #10b981",
+            animation: "hero-pulse 2s infinite",
           }} />
-          Қазақстанда жасалған • Republican Competition 2026
+          Қазақстанда жасалған • ДЭР байқауы 2026
         </motion.div>
 
         {/* Headline */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 900, lineHeight: 1.1, marginBottom: 24 }}
+          transition={{ duration: 0.75, delay: 0.1 }}
+          style={{
+            fontSize: "clamp(38px,6.5vw,76px)",
+            fontWeight: 900, lineHeight: 1.05,
+            marginBottom: 28, letterSpacing: "-1px",
+          }}
         >
-          <span className="gradient-text">Қазақстанның</span>
+          <span style={{
+            background: "linear-gradient(135deg, #60a5fa, #818cf8, #a78bfa)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          }}>
+            Қазақстанның
+          </span>
           <br />
-          киберқорғаныс{" "}
-          <span style={{ color: "var(--text)" }}>жүйесі</span>
+          <span style={{ color: "#f8fafc" }}>киберқалқаны</span>
         </motion.h1>
 
         {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          style={{ fontSize: 18, color: "var(--text2)", maxWidth: 580, margin: "0 auto 48px", lineHeight: 1.7 }}
+          transition={{ duration: 0.7, delay: 0.22 }}
+          style={{
+            fontSize: "clamp(15px,2vw,19px)",
+            color: "#94a3b8", maxWidth: 600,
+            margin: "0 auto 52px", lineHeight: 1.75,
+          }}
         >
-          QALQAN AI — фишинг, алаяқтық, қаржылық пирамида сайттарын
-          нақты уақытта анықтайтын Chrome кеңейтімі.
+          Фишинг, алаяқтық, қаржылық пирамида сайттарын нақты уақытта анықтайтын{" "}
+          <strong style={{ color: "#c7d2fe" }}>Chrome кеңейтімі</strong>.
           5 деңгейлі тексеру + жасанды интеллект.
         </motion.p>
 
-        {/* CTA buttons */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}
+          transition={{ duration: 0.7, delay: 0.34 }}
+          style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}
         >
-          <a
+          <motion.a
             href="https://github.com/Kennurken/qalqan-ai"
             target="_blank" rel="noopener noreferrer"
+            whileHover={{ scale: 1.04, boxShadow: "0 16px 48px rgba(99,102,241,0.5)" }}
+            whileTap={{ scale: 0.97 }}
             style={{
-              padding: "14px 32px", borderRadius: 12,
+              display: "inline-flex", alignItems: "center", gap: 10,
+              padding: "14px 34px", borderRadius: 12,
               background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-              color: "white", fontWeight: 700, fontSize: 15,
+              color: "#fff", fontWeight: 800, fontSize: 15,
               boxShadow: "0 8px 32px rgba(99,102,241,0.35)",
-              transition: "transform 0.2s, box-shadow 0.2s",
+              letterSpacing: "0.02em",
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(99,102,241,0.5)"; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(99,102,241,0.35)"; }}
           >
             🛡️ Chrome-ге орнату
-          </a>
-          <a
-            href="#how"
+          </motion.a>
+          <motion.a
+            href="#features"
+            whileHover={{ scale: 1.03, borderColor: "#6366f1", color: "#f8fafc" }}
             style={{
-              padding: "14px 32px", borderRadius: 12,
-              background: "transparent", border: "1px solid var(--border)",
-              color: "var(--text2)", fontWeight: 600, fontSize: 15,
-              transition: "border-color 0.2s, color 0.2s",
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "14px 28px", borderRadius: 12,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#94a3b8", fontWeight: 600, fontSize: 15,
+              transition: "all 0.2s",
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.color = "var(--text)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text2)"; }}
           >
-            Қалай жұмыс істейді →
-          </a>
+            Мүмкіндіктер →
+          </motion.a>
         </motion.div>
 
         {/* Stats row */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.9, duration: 0.8 }}
           style={{
-            display: "flex", gap: 48, justifyContent: "center",
-            marginTop: 72, flexWrap: "wrap",
+            display: "flex", gap: 0, justifyContent: "center",
+            marginTop: 80, flexWrap: "wrap",
           }}
         >
-          {[
-            { n: "5+", label: "Тексеру деңгейі" },
-            { n: "10+", label: "Threat Intelligence" },
-            { n: "3", label: "Тіл қолдауы" },
-            { n: "97%", label: "Анықтау дәлдігі" },
-          ].map((s, i) => (
+          {STATS.map((s, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 + i * 0.1 }}
-              style={{ textAlign: "center" }}
+              transition={{ delay: 1 + i * 0.1 }}
+              style={{
+                textAlign: "center", padding: "0 36px",
+                borderRight: i < STATS.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
+              }}
             >
-              <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text)" }}>{s.n}</div>
-              <div style={{ fontSize: 12, color: "var(--text3)" }}>{s.label}</div>
+              <div style={{
+                fontSize: 32, fontWeight: 900, color: "#f8fafc",
+                background: "linear-gradient(135deg, #60a5fa, #818cf8)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              }}>
+                {s.n}
+              </div>
+              <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, letterSpacing: "0.05em" }}>
+                {s.label}
+              </div>
             </motion.div>
           ))}
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll hint */}
       <motion.div
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity }}
         style={{
-          position: "absolute", bottom: 32, left: "50%", transform: "translateX(-50%)",
-          color: "var(--text3)", fontSize: 12, display: "flex", flexDirection: "column",
-          alignItems: "center", gap: 6,
+          position: "absolute", bottom: 28, left: "50%",
+          transform: "translateX(-50%)",
+          color: "#334155", fontSize: 20,
         }}
       >
-        <span>Төмен қарай</span>
-        <span>↓</span>
+        ↓
       </motion.div>
 
       <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
+        @keyframes hero-pulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 10px #10b981; }
+          50% { opacity: 0.4; box-shadow: 0 0 4px #10b981; }
         }
       `}</style>
     </section>
