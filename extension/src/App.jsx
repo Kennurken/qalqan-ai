@@ -1,5 +1,5 @@
 // Qalqan AI v5.0
-// Бас компонент: main → stats → history → scanner → settings → whitelist views
+// Бас компонент: main → stats → history → scanner → trends → settings → whitelist views
 
 import { useState, useEffect } from "react";
 import { useCheckUrl } from "./hooks/useCheckUrl";
@@ -16,6 +16,7 @@ import ReportButton from "./components/ReportButton";
 import HistoryPanel from "./components/HistoryPanel";
 import WhitelistPanel from "./components/WhitelistPanel";
 import LinkScannerPanel from "./components/LinkScannerPanel";
+import TrendsPanel from "./components/TrendsPanel";
 
 import kkStrings from "./i18n/kk.json";
 import ruStrings from "./i18n/ru.json";
@@ -65,7 +66,7 @@ export default function App() {
       {/* Header — барлық views-те көрінеді */}
       {view === "main" && (
         <>
-          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onScanner={() => setView("scanner")} onSettings={() => setView("settings")} />
+          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onScanner={() => setView("scanner")} onTrends={() => setView("trends")} onSettings={() => setView("settings")} />
 
           {/* Негізгі тексеру батырмасы */}
           {!result && !error && (
@@ -123,11 +124,12 @@ export default function App() {
       {view === "history" && <HistoryPanel t={t} onBack={() => setView("main")} />}
       {view === "whitelist" && <WhitelistPanel t={t} onBack={() => setView("main")} />}
       {view === "scanner" && <LinkScannerPanel t={t} onBack={() => setView("main")} />}
+      {view === "trends" && <TrendsPanel t={t} onBack={() => setView("main")} />}
     </div>
   );
 }
 
-function Header({ t, lang, onStats, onHistory, onScanner, onSettings }) {
+function Header({ t, lang, onStats, onHistory, onScanner, onTrends, onSettings }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
       <div>
@@ -141,8 +143,9 @@ function Header({ t, lang, onStats, onHistory, onScanner, onSettings }) {
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
         <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>📊</button>
-        <button onClick={() => onHistory && onHistory()} title="History" style={iconBtnStyle}>📜</button>
-        <button onClick={onScanner} title="Link Scanner" style={iconBtnStyle}>🔗</button>
+        <button onClick={() => onHistory && onHistory()} title={t("history")} style={iconBtnStyle}>📜</button>
+        <button onClick={onScanner} title={t("linkScanner")} style={iconBtnStyle}>🔗</button>
+        <button onClick={onTrends} title={t("trends")} style={iconBtnStyle}>📈</button>
         <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>⚙️</button>
       </div>
     </div>
