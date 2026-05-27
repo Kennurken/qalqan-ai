@@ -65,11 +65,20 @@ def generate_explanation(
         if ssl_status == "no_ssl":
             risk_factors.append({"factor": "no_ssl", "value": "No SSL certificate", "impact": 30, "direction": "risk"})
         elif ssl_status == "expired":
-            risk_factors.append({"factor": "ssl_expired", "value": "SSL certificate expired", "impact": 25, "direction": "risk"})
+            days_exp = ssl.get("days_expired", "?")
+            risk_factors.append({"factor": "ssl_expired", "value": f"SSL expired {days_exp} day(s) ago", "impact": 25, "direction": "risk"})
         elif ssl_status == "self_signed":
             risk_factors.append({"factor": "ssl_self_signed", "value": "Self-signed certificate", "impact": 15, "direction": "risk"})
+        elif ssl_status == "expiring_soon":
+            days_left = ssl.get("days_left", "?")
+            risk_factors.append({"factor": "ssl_expiring_soon", "value": f"SSL expires in {days_left} day(s)", "impact": 8, "direction": "risk"})
         elif ssl_status == "valid":
-            safe_factors.append({"factor": "valid_ssl", "value": f"Issuer: {ssl.get('issuer', 'Unknown')}", "impact": -5, "direction": "safe"})
+            issuer = ssl.get("issuer", "Unknown")
+            days_left = ssl.get("days_left", "?")
+            if ssl.get("free_ca"):
+                risk_factors.append({"factor": "free_ca_ssl", "value": f"Free CA: {issuer} (phishing indicator)", "impact": 5, "direction": "risk"})
+            else:
+                safe_factors.append({"factor": "valid_ssl", "value": f"Issuer: {issuer} ({days_left}d remaining)", "impact": -5, "direction": "safe"})
             evidence_sources.append("SSL_check")
 
     # --- URL features ---
@@ -180,6 +189,8 @@ def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
         "hex_encoding": "minimal URL encoding",
         "exact_brand_free_tld": "proper TLD for the brand",
         "many_query_params": "fewer query parameters",
+        "ssl_expiring_soon": "valid long-term SSL certificate",
+        "free_ca_ssl": "certificate from trusted paid CA",
     }
 
     conditions = [factor_names.get(f, f) for f in removable[:3]]

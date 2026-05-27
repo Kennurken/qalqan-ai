@@ -7,13 +7,15 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
   const [autoCheck, setAutoCheck] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [sensitivity, setSensitivity] = useState("medium");
+  const [privacyMode, setPrivacyMode] = useState(false);
 
   useEffect(() => {
-    chrome.storage.local.get(["qalqan_theme", "qalqan_autocheck", "qalqan_notifications", "qalqan_sensitivity"], (r) => {
+    chrome.storage.local.get(["qalqan_theme", "qalqan_autocheck", "qalqan_notifications", "qalqan_sensitivity", "qalqan_privacy_mode"], (r) => {
       if (r.qalqan_theme) setTheme(r.qalqan_theme);
       if (r.qalqan_autocheck !== undefined) setAutoCheck(r.qalqan_autocheck);
       if (r.qalqan_notifications !== undefined) setNotifications(r.qalqan_notifications);
       if (r.qalqan_sensitivity) setSensitivity(r.qalqan_sensitivity);
+      if (r.qalqan_privacy_mode !== undefined) setPrivacyMode(r.qalqan_privacy_mode);
     });
   }, []);
 
@@ -37,6 +39,11 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
   const toggleNotifications = () => {
     setNotifications(!notifications);
     chrome.storage.local.set({ qalqan_notifications: !notifications });
+  };
+
+  const togglePrivacyMode = () => {
+    setPrivacyMode(!privacyMode);
+    chrome.storage.local.set({ qalqan_privacy_mode: !privacyMode });
   };
 
   const languages = [
@@ -96,12 +103,13 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
           { label: "🌓 " + (theme === "dark" ? t("darkMode") : t("lightMode")), value: theme === "dark", toggle: toggleTheme },
           { label: "🔄 " + t("autocheck"), value: autoCheck, toggle: toggleAutoCheck },
           { label: "🔔 " + t("notifications"), value: notifications, toggle: toggleNotifications },
+          { label: "🔒 " + t("privacyMode"), value: privacyMode, toggle: togglePrivacyMode },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
             <span style={{ fontSize: "13px", color: "#e2e8f0" }}>{item.label}</span>
             <button onClick={item.toggle} style={{
               width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer",
-              background: item.value ? "#3b82f6" : "#334155", position: "relative", transition: "all 0.3s"
+              background: item.value ? (i === 3 ? "#10b981" : "#3b82f6") : "#334155", position: "relative", transition: "all 0.3s"
             }}>
               <div style={{
                 width: "18px", height: "18px", borderRadius: "50%", background: "white",
@@ -111,6 +119,11 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
             </button>
           </div>
         ))}
+        {privacyMode && (
+          <div style={{ marginTop: "8px", padding: "8px 10px", background: "rgba(16,185,129,0.08)", borderRadius: "8px", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <div style={{ fontSize: "11px", color: "#34d399" }}>🔒 {t("privacyModeHint")}</div>
+          </div>
+        )}
       </div>
 
       {/* Sensitivity */}

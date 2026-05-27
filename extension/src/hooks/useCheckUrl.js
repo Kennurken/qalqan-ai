@@ -58,6 +58,24 @@ async function safeFetchWithRetry(url, options, retries = 1) {
   }
 }
 
+async function isPrivacyMode() {
+  return new Promise(resolve => {
+    chrome.storage.local.get("qalqan_privacy_mode", (r) => resolve(!!r.qalqan_privacy_mode));
+  });
+}
+
+// Privacy mode: offline-only result object
+function privacyModeResult(lang = "kk") {
+  const msgs = {
+    kk: "Құпиялылық режимі қосулы — URL серверге жіберілмейді. Тек офлайн дерекқор тексеріледі.",
+    ru: "Режим конфиденциальности включён — URL не отправляется. Используется только офлайн база.",
+    en: "Privacy mode enabled — URL not sent to server. Using offline database only."
+  };
+  return { verdict: "SAFE", threat_score: 0, threat_type: "safe", source: "privacy_mode",
+           detail: msgs[lang] || msgs.kk, detail_kk: msgs.kk, detail_ru: msgs.ru, detail_en: msgs.en,
+           indicators: [], privacy_mode: true };
+}
+
 export function useCheckUrl() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -72,6 +90,14 @@ export function useCheckUrl() {
       if (!tabs?.length || !tabs[0]?.url) throw new Error("URL анықталмады");
 
       const tabUrl = normalizeUrl(tabs[0].url);
+
+      // Privacy mode — skip API, return offline-only notice
+      if (await isPrivacyMode()) {
+        const res = privacyModeResult(lang);
+        setResult(res);
+        return res;
+      }
+
       const data = await safeFetchWithRetry(`${API_URL}/check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,6 +118,11 @@ export function useCheckUrl() {
     setError(null);
     setResult(null);
     try {
+      if (await isPrivacyMode()) {
+        const res = privacyModeResult(lang);
+        setResult(res);
+        return res;
+      }
       const data = await safeFetchWithRetry(`${API_URL}/check-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,6 +143,11 @@ export function useCheckUrl() {
     setError(null);
     setResult(null);
     try {
+      if (await isPrivacyMode()) {
+        const res = privacyModeResult(lang);
+        setResult(res);
+        return res;
+      }
       const dataUrl = await new Promise((resolve, reject) => {
         try {
           chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 80 }, (url) => {

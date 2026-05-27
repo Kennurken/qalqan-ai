@@ -79,6 +79,16 @@ def calculate_final_verdict(
 
         return _format_verdict(ai_result, lang)
 
+    # Domain intel standalone (new domain + no SSL when AI unavailable)
+    if domain_info and domain_info.get("threat_score", 0) >= 25:
+        di_score = domain_info["threat_score"]
+        # Boost with URL features if available
+        if url_features:
+            uf_score = url_features.get("risk_score", 0)
+            di_score = min(di_score + int(uf_score * 0.25), 100)
+        di_result = {**domain_info, "threat_score": di_score}
+        return _format_verdict(di_result, lang)
+
     # URL features standalone fallback (when AI unavailable — prevents false negatives on high-risk URLs)
     if url_features:
         uf_score = url_features.get("risk_score", 0)

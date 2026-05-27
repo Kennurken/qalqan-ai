@@ -74,5 +74,13 @@
   "sensitivity": "Block sensitivity",
   "sensitivityHigh": "High (block ≥60)",
   "sensitivityMedium": "Medium (block ≥70)",
-  "sensitivityLow": "Low (block ≥80)"
+  "sensitivityLow": "Low (block ≥80)",
+  "privacyMode": "Privacy Mode",
+  "privacyModeHint": "URL never sent to server — offline checks only",
+  "privacyModeActive": "Privacy mode ON — offline checks only",
+  "trends": "Trends",
+  "topThreats": "Top Detected Threats",
+  "noTrends": "No trends yet",
+  "autoReported": "Auto-blocked",
+  "reports": "reports"
 }

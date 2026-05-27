@@ -154,7 +154,14 @@ async function checkUrl(url, tabId) {
       // SUSPICIOUS offline: still make API call for richer analysis
     }
 
-    // 4. API call
+    // 4. Privacy mode check — skip API if enabled
+    const privacyData = await chrome.storage.local.get("qalqan_privacy_mode");
+    if (privacyData.qalqan_privacy_mode) {
+      console.log("Qalqan: privacy mode ON — skipping API call");
+      return;
+    }
+
+    // 5. API call
     const lang = await getLanguage();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);

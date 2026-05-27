@@ -74,5 +74,13 @@
   "sensitivity": "Уровень чувствительности",
   "sensitivityHigh": "Высокий (блок ≥60)",
   "sensitivityMedium": "Средний (блок ≥70)",
-  "sensitivityLow": "Низкий (блок ≥80)"
+  "sensitivityLow": "Низкий (блок ≥80)",
+  "privacyMode": "Режим конфиденциальности",
+  "privacyModeHint": "URL не отправляется на сервер — только офлайн проверка",
+  "privacyModeActive": "Режим конфиденциальности — только офлайн проверка",
+  "trends": "Тренды",
+  "topThreats": "Топ угроз",
+  "noTrends": "Нет трендов",
+  "autoReported": "Авто-заблокировано",
+  "reports": "жалоб"
 }
