@@ -123,6 +123,28 @@ def extract_features(url: str) -> dict:
     # === 8.8. MANY QUERY PARAMS ===
     features["many_query_params"] = 1 if len(parse_qs(query)) > 8 else 0
 
+    # === 8.9. FAKE LOGIN / CREDENTIAL HARVEST PATH ===
+    _login_paths = {
+        "login", "signin", "sign-in", "logon", "log-in", "auth", "authenticate",
+        "account", "secure", "security", "verify", "verification", "confirm",
+        "update", "recover", "reset", "password", "credentials", "wallet",
+        "banking", "payment", "checkout", "card", "id-confirm", "identity",
+        "personal-info", "user-data",
+    }
+    path_lower = path.lower()
+    features["has_login_path"] = 1 if any(f"/{p}" in path_lower or path_lower.startswith(p) for p in _login_paths) else 0
+
+    # === 8.10. DATA: / JAVASCRIPT: URI ===
+    features["has_data_uri"] = 1 if full_url.startswith(("data:", "javascript:", "vbscript:")) else 0
+
+    # === 8.11. EXCESSIVE SUBDOMAIN DEPTH ===
+    features["subdomain_depth"] = domain.count(".")
+
+    # === 8.12. LONG SUBDOMAIN ===
+    subdomains = domain.split(".")[:-2] if domain.count(".") > 1 else []
+    features["longest_subdomain_length"] = max((len(s) for s in subdomains), default=0)
+    features["has_suspicious_subdomain"] = 1 if features["longest_subdomain_length"] > 20 else 0
+
     # === 9. HOMOGLYPH DETECTION (Cyrillic↔Latin) ===
     homoglyph_result = _detect_homoglyphs(domain)
     features["homoglyph_count"] = homoglyph_result["count"]
@@ -311,5 +333,22 @@ def _calculate_risk_score(features: dict) -> int:
 
     # Many query params
     if features.get("many_query_params"): score += 5
+
+    # Fake login/credential harvest path
+    if features.get("has_login_path"):
+        # Only penalize if combined with other risk signals
+        if score >= 15:
+            score += 12
+
+    # data: / javascript: URI
+    if features.get("has_data_uri"): score += 30
+
+    # Excessive subdomain depth
+    depth = features.get("subdomain_depth", 0)
+    if depth >= 4: score += 10
+    elif depth == 3: score += 5
+
+    # Very long subdomain (often used to embed fake brand)
+    if features.get("has_suspicious_subdomain"): score += 8
 
     return min(score, 100)
