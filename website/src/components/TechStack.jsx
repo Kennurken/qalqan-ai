@@ -196,8 +196,8 @@ export default function TechStack() {
         >
           {[
             { n: "16+", label: "Технологиялар", color: "#3b82f6" },
-            { n: "10+", label: "Threat Intel дереккөзі", color: "#ef4444" },
-            { n: "200+", label: "Офлайн домен", color: "#f59e0b" },
+            { n: "12+", label: "Threat Intel DB", color: "#ef4444" },
+            { n: "250+", label: "Офлайн домен", color: "#f59e0b" },
             { n: "3", label: "AI модельдер", color: "#a78bfa" },
           ].map((s, i, arr) => (
             <div key={i} style={{

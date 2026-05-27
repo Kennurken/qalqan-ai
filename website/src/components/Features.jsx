@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 
 const features = [
   {
-    icon: "🔍", meta: "TIER 1-5", span: "lg:col-span-3 lg:row-span-2",
-    title: "5 деңгейлі тексеру",
-    desc: "Whitelist → Cache → Pyramid DB → KZ Impersonation → External DBs → Domain Intel → AI. Секундтың ішінде — офлайннан AI-ға дейін.",
-    tags: ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish"],
+    icon: "🔍", meta: "TIER 1-6", span: "lg:col-span-3 lg:row-span-2",
+    title: "6 деңгейлі тексеру",
+    desc: "Whitelist → Pyramid/KZ/Gambling DB → External DBs → Domain Intel → AI + XAI. Секундтың ішінде — офлайннан AI-ға дейін. 35+ URL белгілері.",
+    tags: ["PhishTank", "SafeBrowsing", "URLhaus", "Gambling DB", "KZ Intel"],
     color: "59,130,246",
     large: true,
   },
@@ -47,16 +47,23 @@ const features = [
     color: "239,68,68",
   },
   {
+    icon: "🎰", meta: "GAMBLING DB",
+    title: "Лицензиясыз сайттар",
+    desc: "50+ тыйым салынған онлайн казино мен букмекерлер. 1xbet, Mostbet, PIN-UP, Vavada және т.б.",
+    tags: ["Gambling", "Bookmaker", "KZ ban"],
+    color: "234,179,8",
+  },
+  {
     icon: "🔗", meta: "SCANNER",
     title: "Link Scanner",
-    desc: "Беттегі 15 URL параллель тексеру. JSON экспорт.",
-    tags: ["Batch", "Export"],
+    desc: "Беттегі 15 URL параллель тексеру. CSV + JSON экспорт.",
+    tags: ["Batch", "CSV", "Export"],
     color: "14,165,233",
   },
   {
     icon: "🌐", meta: "I18N", span: "lg:col-span-2",
     title: "3 тіл",
-    desc: "Интерфейс, нәтижелер, себептер — қазақ, орыс, ағылшын.",
+    desc: "Интерфейс, нәтижелер, себептер — қазақ, орыс, ағылшын тілдерінде.",
     tags: ["KK", "RU", "EN"],
     color: "34,197,94",
   },
