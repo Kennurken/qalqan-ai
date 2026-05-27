@@ -3,9 +3,11 @@
 
 import time
 from ..services.pyramid_detector import check_pyramid_domain
+from ..services.kz_intel import check_kz_impersonation_url, check_gambling_domain
 from ..services.url_features import extract_features
 from ..services.scoring import calculate_final_verdict
 from .metrics import calculate_metrics
+from ..services.threat_db import extract_domain as _extract_domain
 
 
 TEST_URLS = {
@@ -33,9 +35,10 @@ TEST_URLS = {
     # === DANGEROUS — Gambling (banned in KZ) ===
     "https://1xbet.com": "DANGEROUS",
     "https://mostbet.com": "DANGEROUS",
-    "https://pin-up.com": "DANGEROUS",
-    "https://vulkan-vegas.com": "DANGEROUS",
+    "https://pin-up.casino": "DANGEROUS",
     "https://hellcase.com": "DANGEROUS",
+    "https://vavada.com": "DANGEROUS",
+    "https://1win.com": "DANGEROUS",
 
     # === DANGEROUS — Phishing (KZ brands) ===
     "https://kaspi-login.tk": "DANGEROUS",
@@ -57,11 +60,18 @@ async def run_benchmark(test_urls: dict | None = None) -> dict:
 
     for url, actual_label in urls.items():
         start = time.time()
+        domain = _extract_domain(url)
         pyramid_hit = check_pyramid_domain(url)
+        kz_hit = check_kz_impersonation_url(domain)
+        gambling_hit = check_gambling_domain(domain)
         url_feats = extract_features(url)
 
         if pyramid_hit:
             verdict_data = calculate_final_verdict([], None, pyramid_hit, lang="en")
+        elif kz_hit:
+            verdict_data = calculate_final_verdict([], kz_hit, None, url_features=url_feats, lang="en")
+        elif gambling_hit:
+            verdict_data = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang="en")
         else:
             risk = url_feats.get("risk_score", 0)
             verdict_data = {
