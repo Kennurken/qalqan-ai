@@ -15,6 +15,20 @@ def generate_explanation(
     safe_factors = []
     evidence_sources = []
 
+    # --- Gambling hit (new tier 1.8) ---
+    # NOTE: gambling_hit is not passed as separate arg (uses db_results or pyramid_hit path)
+    # But check db_results for gambling source
+    for db in db_results:
+        if db.get("source") in ("kz_intel_gambling", "gambling_list") or db.get("threat_type") == "gambling":
+            risk_factors.append({
+                "factor": "gambling_blacklist",
+                "value": db.get("reason_en", "Unlicensed gambling site banned in Kazakhstan"),
+                "impact": 88,
+                "direction": "risk"
+            })
+            evidence_sources.append("KZ_Gambling_DB")
+            break
+
     # --- Pyramid hit ---
     if pyramid_hit:
         risk_factors.append({
@@ -113,6 +127,12 @@ def generate_explanation(
             risk_factors.append({"factor": "hex_encoding", "value": f"{hex_cnt} encoded chars", "impact": 8, "direction": "risk"})
         if uf.get("many_query_params"):
             risk_factors.append({"factor": "many_query_params", "value": f"{len(uf.get('suspicious_keywords_found', []))}+ query parameters", "impact": 5, "direction": "risk"})
+        if uf.get("has_data_uri"):
+            risk_factors.append({"factor": "data_uri", "value": "data:/javascript: URI — code injection risk", "impact": 30, "direction": "risk"})
+        if uf.get("has_login_path"):
+            risk_factors.append({"factor": "credential_harvest_path", "value": "Login/verify/account path — possible phishing", "impact": 12, "direction": "risk"})
+        if uf.get("has_suspicious_subdomain"):
+            risk_factors.append({"factor": "suspicious_subdomain", "value": f"Unusually long subdomain ({uf.get('longest_subdomain_length')} chars)", "impact": 8, "direction": "risk"})
         # Exact brand on free TLD (strongest impersonation signal)
         if uf.get("brand_edit_distance") == 0 and uf.get("is_free_tld") and uf.get("brand_match") and not uf.get("brand_in_subdomain"):
             risk_factors.append({"factor": "exact_brand_free_tld", "value": f"Exact match '{uf['brand_match']}' on free TLD {uf.get('tld')}", "impact": 35, "direction": "risk"})
@@ -191,6 +211,10 @@ def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
         "many_query_params": "fewer query parameters",
         "ssl_expiring_soon": "valid long-term SSL certificate",
         "free_ca_ssl": "certificate from trusted paid CA",
+        "gambling_blacklist": "not a known gambling site",
+        "data_uri": "no data:/javascript: URI",
+        "credential_harvest_path": "no login/verify/account path",
+        "suspicious_subdomain": "shorter subdomain names",
     }
 
     conditions = [factor_names.get(f, f) for f in removable[:3]]
