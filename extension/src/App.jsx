@@ -1,9 +1,9 @@
-// Qalqan AI v5.0
-// Бас компонент: main → stats → history → scanner → trends → settings → whitelist views
+// Qalqan AI v5.1
+// Бас компонент: main → stats → history → scanner → trends → settings → whitelist → goszakup views
 
 import { useState, useEffect } from "react";
 import { useCheckUrl } from "./hooks/useCheckUrl";
-import { APP_VERSION } from "./config";
+import { APP_VERSION, API_URL } from "./config";
 
 import CheckButton from "./components/CheckButton";
 import ResultCard from "./components/ResultCard";
@@ -17,6 +17,7 @@ import HistoryPanel from "./components/HistoryPanel";
 import WhitelistPanel from "./components/WhitelistPanel";
 import LinkScannerPanel from "./components/LinkScannerPanel";
 import TrendsPanel from "./components/TrendsPanel";
+import GoszakupPanel from "./components/GoszakupPanel";
 
 import kkStrings from "./i18n/kk.json";
 import ruStrings from "./i18n/ru.json";
@@ -78,7 +79,7 @@ export default function App() {
       {/* Header — барлық views-те көрінеді */}
       {view === "main" && (
         <>
-          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onScanner={() => setView("scanner")} onTrends={() => setView("trends")} onSettings={() => setView("settings")} />
+          <Header t={t} lang={lang} onStats={() => setView("stats")} onHistory={() => setView("history")} onScanner={() => setView("scanner")} onTrends={() => setView("trends")} onSettings={() => setView("settings")} onGoszakup={() => setView("goszakup")} />
 
           {/* Негізгі тексеру батырмасы */}
           {!result && !error && (
@@ -89,6 +90,19 @@ export default function App() {
                 <ScreenshotCheck onCheck={() => checkScreen(lang)} loading={loading} t={t} />
               </div>
               <ReportButton t={t} />
+              {/* KZ Threat Report download */}
+              <button
+                onClick={() => chrome.tabs.create({ url: `${API_URL}/report/generate` })}
+                style={{
+                  width: "100%", padding: "7px", marginTop: "6px",
+                  background: "rgba(16,185,129,0.08)", color: "#10b981",
+                  border: "1px solid rgba(16,185,129,0.3)", borderRadius: "6px",
+                  fontSize: "11px", cursor: "pointer", fontWeight: "500",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                [ PDF ]  KZ Cyber Threat Report 2026
+              </button>
             </>
           )}
 
@@ -137,28 +151,30 @@ export default function App() {
       {view === "whitelist" && <WhitelistPanel t={t} onBack={() => setView("main")} />}
       {view === "scanner" && <LinkScannerPanel t={t} onBack={() => setView("main")} />}
       {view === "trends" && <TrendsPanel t={t} onBack={() => setView("main")} />}
+      {view === "goszakup" && <GoszakupPanel t={t} onBack={() => setView("main")} />}
     </div>
   );
 }
 
-function Header({ t, lang, onStats, onHistory, onScanner, onTrends, onSettings }) {
+function Header({ t, lang, onStats, onHistory, onScanner, onTrends, onSettings, onGoszakup }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ width: "4px", height: "24px", background: "#3b82f6", borderRadius: "4px" }} />
-          <span style={{ fontSize: "20px", fontWeight: 800 }}>🛡️ {t("appName")}</span>
+          <span style={{ fontSize: "20px", fontWeight: 800 }}>[ Q ] {t("appName")}</span>
         </div>
         <div style={{ fontSize: "10px", color: "#94a3b8", marginLeft: "12px", letterSpacing: "1px" }}>
           {t("subtitle")} • v{APP_VERSION}
         </div>
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
-        <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>📊</button>
-        <button onClick={() => onHistory && onHistory()} title={t("history")} style={iconBtnStyle}>📜</button>
-        <button onClick={onScanner} title={t("linkScanner")} style={iconBtnStyle}>🔗</button>
-        <button onClick={onTrends} title={t("trends")} style={iconBtnStyle}>📈</button>
-        <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>⚙️</button>
+        <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>+</button>
+        <button onClick={() => onHistory && onHistory()} title={t("history")} style={iconBtnStyle}>H</button>
+        <button onClick={onScanner} title={t("linkScanner")} style={iconBtnStyle}>L</button>
+        <button onClick={onGoszakup} title="Госзакупки fraud check" style={{...iconBtnStyle, color: "#10b981"}}>G</button>
+        <button onClick={onTrends} title={t("trends")} style={iconBtnStyle}>T</button>
+        <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>S</button>
       </div>
     </div>
   );

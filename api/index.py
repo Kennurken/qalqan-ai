@@ -1,4 +1,4 @@
-# Qalqan AI v5.0
+# Qalqan AI v5.1
 # Бас API: 6-деңгейлі қауіп детекция pipeline + ML features + XAI
 # Academic research-grade: features extraction, explainability, evaluation
 
@@ -20,6 +20,7 @@ from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
 from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url, check_gambling_domain
 from .services.domain_intel import check_domain_intelligence
+from .services.goszakup import check_goszakup_url, analyse_procurement_data, is_goszakup_url
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
@@ -50,7 +51,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Qalqan AI", version="5.0.0",
+app = FastAPI(title="Qalqan AI", version="5.1.0",
               description="AI-powered cybersecurity research platform — PhD-grade threat detection",
               lifespan=lifespan)
 
@@ -485,6 +486,16 @@ async def check_site(request: CheckRequest, req: Request):
         set_cached(key, result)
         return result
 
+    # --- Tier 1.9: Госзакупки fraud detection (goszakup.gov.kz URLs) ---
+    if is_goszakup_url(url):
+        goszakup_hit = await check_goszakup_url(url)
+        if goszakup_hit and goszakup_hit.get("verdict") in ("DANGEROUS", "SUSPICIOUS"):
+            result = calculate_final_verdict([goszakup_hit], None, None, url_features=url_feats, lang=lang)
+            result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "goszakup_fraud"}
+            result["red_flags"] = goszakup_hit.get("red_flags", [])
+            set_cached(key, result)
+            return result
+
     # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
     db_results, domain_info = await asyncio.gather(
         check_all_databases(url),
@@ -738,7 +749,15 @@ async def get_stats():
         "whitelist_size": len(_whitelist),
         "cache_entries": len(_cache),
         "demo_mode": DEMO_MODE,
-        "version": "5.0.0"
+        "version": "5.1.0",
+        "features": [
+            "goszakup_fraud_detection",
+            "telegram_bot",
+            "kz_threat_report",
+            "6tier_pipeline",
+            "xai_explainer",
+        ],
+        "report_url": "/report/generate",
     }
 
 
@@ -924,3 +943,155 @@ async def evaluate(req: Request):
 
     results = await run_benchmark()
     return results
+
+
+# ── Telegram Bot Webhook ──────────────────────────────────────────────────────
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(req: Request):
+    """Receive Telegram Bot API updates via webhook.
+    Security: verified by TELEGRAM_WEBHOOK_SECRET header token.
+    """
+    # Verify secret token (set when registering webhook via setWebhook)
+    secret = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+    if secret:
+        incoming = req.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+        if incoming != secret:
+            logger.warning("Telegram webhook: invalid secret token")
+            return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    try:
+        update = await req.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Invalid JSON"})
+
+    # Fire-and-forget dispatch (don't await — respond 200 to Telegram immediately)
+    asyncio.create_task(_dispatch_update(update))
+    return JSONResponse(status_code=200, content={"ok": True})
+
+
+async def _dispatch_update(update: dict):
+    try:
+        from .services.bot_handler import dispatch
+        await dispatch(update)
+    except Exception as e:
+        logger.error(f"Bot dispatch error: {e}")
+
+
+@app.get("/telegram/set-webhook")
+async def set_telegram_webhook(req: Request):
+    """Register Telegram webhook. Call once after deployment.
+    Protected: requires TELEGRAM_WEBHOOK_SECRET env var to be set.
+    GET /telegram/set-webhook?secret=<TELEGRAM_WEBHOOK_SECRET>
+    """
+    secret = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+    token  = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    if not token:
+        return JSONResponse(status_code=500, content={"error": "TELEGRAM_BOT_TOKEN not set"})
+
+    # Auth: caller must supply the secret in query param
+    caller_secret = req.query_params.get("secret", "")
+    if secret and caller_secret != secret:
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+
+    base = os.getenv("QALQAN_API_URL", str(req.base_url).rstrip("/"))
+    webhook_url = f"{base}/telegram/webhook"
+
+    payload: dict = {"url": webhook_url, "allowed_updates": ["message", "inline_query"]}
+    if secret:
+        payload["secret_token"] = secret
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                f"https://api.telegram.org/bot{token}/setWebhook",
+                json=payload
+            )
+            data = res.json()
+        logger.info(f"Telegram setWebhook: {data}")
+        return {"ok": data.get("ok"), "webhook_url": webhook_url, "telegram_response": data}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ── Госзакупки Fraud Detection API ───────────────────────────────────────────
+
+class GoszakupRequest(BaseModel):
+    """Raw procurement data for fraud analysis (when caller scrapes it themselves)."""
+    tender_number:      str | None = None
+    supplier_bin:       str | None = None
+    purchase_method_code: str | None = None
+    participants_count: int | None = None
+    lot_amount:         float | None = None
+    ref_price:          float | None = None
+    created_date:       str | None = None
+    end_date:           str | None = None
+    name_ru:            str | None = None
+    name_kz:            str | None = None
+    supplier:           dict | None = None   # nested supplier object
+    region_stats:       dict | None = None   # {total_tenders, won_tenders}
+
+
+@app.post("/goszakup/analyse")
+async def goszakup_analyse(request: GoszakupRequest, req: Request):
+    """Analyse government procurement data for fraud red-flags.
+    Accepts raw tender/supplier data JSON and returns fraud verdict + red flags.
+    10 detection rules: monopoly, inflated pricing, shell company, tailored specs, etc.
+    """
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    data = request.model_dump(exclude_none=True)
+    result = await analyse_procurement_data(data)
+    logger.info(f"GOSZAKUP {data.get('tender_number','?')} → {result['verdict']} ({result['threat_score']})")
+    return result
+
+
+@app.get("/goszakup/check/{tender_number}")
+async def goszakup_check_tender(tender_number: str, req: Request):
+    """Fetch tender from goszakup.gov.kz by number and run fraud analysis."""
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    from .services.goszakup import check_tender_by_number
+    result = await check_tender_by_number(tender_number)
+    return result
+
+
+# ── KZ Threat Report ──────────────────────────────────────────────────────────
+
+@app.get("/report/generate")
+async def generate_threat_report(req: Request, month: str | None = None):
+    """
+    Generate 'KZ Cyber Threat Landscape 2026' PDF report.
+    GET /report/generate              → PDF with default (demo) stats
+    GET /report/generate?month=Jun    → same, custom month label
+    Returns: application/pdf
+    """
+    from fastapi.responses import Response
+    client_ip = req.client.host if req.client else "unknown"
+    if not _check_rate_limit(f"report:{client_ip}", 3):   # max 3/min
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    try:
+        from .services.threat_report import generate_report, DEFAULT_STATS
+        import copy
+        stats = copy.deepcopy(DEFAULT_STATS)
+        if month:
+            stats["report_month"] = month
+
+        pdf_bytes = generate_report(stats)
+        logger.info(f"Threat report generated: {len(pdf_bytes):,} bytes for {client_ip}")
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="KZ_Threat_Report_{stats["report_month"].replace(" ", "_")}.pdf"',
+                "Content-Length": str(len(pdf_bytes)),
+            },
+        )
+    except Exception as e:
+        logger.error(f"Report generation failed: {e}")
+        return JSONResponse(status_code=500, content={"error": f"Report generation failed: {str(e)[:100]}"})
