@@ -1120,3 +1120,50 @@ async def generate_threat_report(req: Request, month: str | None = None):
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
         return JSONResponse(status_code=500, content={"error": f"Report generation failed: {str(e)[:100]}"})
+
+
+# ── Offline DB update feed ────────────────────────────────────────────────────
+
+@app.get("/offline-db")
+async def offline_db_feed():
+    """
+    Returns flat domain lists for extension offline DB auto-update.
+    Extension fetches this daily, merges into in-memory Sets.
+    """
+    import hashlib as _hl
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+
+    def _load(filename: str, key: str) -> list[str]:
+        try:
+            with open(os.path.join(data_dir, filename)) as f:
+                obj = json.load(f)
+            return obj.get(key, [])
+        except Exception:
+            return []
+
+    # Pyramid domains: flatten list-of-{domains:[...]} entries
+    try:
+        with open(os.path.join(data_dir, "pyramid_schemes.json")) as f:
+            schemes = json.load(f).get("known_schemes", [])
+        pyramids = [d for s in schemes for d in s.get("domains", [])]
+    except Exception:
+        pyramids = []
+
+    whitelist = _load("whitelist.json", "trusted_domains")
+    blacklist = _load("blacklist.json", "domains")
+
+    payload = {"pyramids": pyramids, "whitelist": whitelist, "blacklist": blacklist}
+
+    # ETag: fingerprint for cache — extension skips update if unchanged
+    raw = json.dumps(payload, sort_keys=True)
+    etag = _hl.md5(raw.encode()).hexdigest()[:12]
+
+    from fastapi.responses import Response as _Resp
+    return _Resp(
+        content=raw,
+        media_type="application/json",
+        headers={
+            "ETag": etag,
+            "Cache-Control": "public, max-age=43200",  # 12h CDN cache
+        },
+    )

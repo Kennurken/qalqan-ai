@@ -40,6 +40,40 @@ function updateBadge(tabId, data) {
   }
 }
 
+// --- Offline DB auto-update ---
+
+function mergeOfflineDb(data) {
+  if (!data) return;
+  let added = 0;
+  (data.pyramids || []).forEach(d => { if (!OFFLINE_PYRAMIDS.has(d)) { OFFLINE_PYRAMIDS.add(d); added++; } });
+  (data.whitelist || []).forEach(d => { if (!OFFLINE_WHITELIST.has(d)) { OFFLINE_WHITELIST.add(d); added++; } });
+  (data.blacklist || []).forEach(d => { if (!OFFLINE_SCAM.has(d)) { OFFLINE_SCAM.add(d); added++; } });
+  if (added > 0) console.log(`[Qalqan] offline-db merged +${added} domains`);
+}
+
+async function fetchAndUpdateOfflineDb() {
+  try {
+    const r = await fetch(`${API_URL}/offline-db`);
+    if (!r.ok) return;
+    const data = await r.json();
+    mergeOfflineDb(data);
+    await chrome.storage.local.set({ qalqan_offline_db: { data, ts: Date.now() } });
+    console.log("[Qalqan] offline-db updated from API");
+  } catch (e) {
+    console.warn("[Qalqan] offline-db fetch failed:", e.message);
+  }
+}
+
+async function loadCachedOfflineDb() {
+  const s = await chrome.storage.local.get("qalqan_offline_db");
+  const cache = s.qalqan_offline_db;
+  if (!cache) return;
+  const age = Date.now() - (cache.ts || 0);
+  mergeOfflineDb(cache.data);
+  // Refetch if cache is older than 24h
+  if (age > 86400000) fetchAndUpdateOfflineDb();
+}
+
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
   console.log(`Qalqan AI v5.1 installed (${details.reason})`);
@@ -48,7 +82,6 @@ chrome.runtime.onInstalled.addListener((details) => {
       qalqan_stats: { checked: 0, blocked: 0, suspicious: 0, safe: 0, since: new Date().toISOString() },
       qalqan_lang: "kk"
     });
-    // Welcome notification
     chrome.notifications.create("qalqan_welcome", {
       type: "basic",
       iconUrl: "icons/icon48.png",
@@ -56,11 +89,21 @@ chrome.runtime.onInstalled.addListener((details) => {
       message: "Сайттарды автоматты тексеру қосылды. Фишинг, пирамида, алаяқтықтан қорғаныс іске қосылды.",
       priority: 1
     });
+    fetchAndUpdateOfflineDb();
   }
   if (details.reason === "update") {
     console.log(`Qalqan AI updated to v5.1 from ${details.previousVersion}`);
+    fetchAndUpdateOfflineDb();
   }
+  chrome.alarms.create("qalqan_db_update", { periodInMinutes: 1440 });
 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "qalqan_db_update") fetchAndUpdateOfflineDb();
+});
+
+// On SW startup: load cached DB into memory
+loadCachedOfflineDb();
 
 // --- Memory cleanup: таб жабылғанда ---
 chrome.tabs.onRemoved.addListener((tabId) => {
