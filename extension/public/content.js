@@ -370,6 +370,11 @@ function _render(data, lang) {
 
         <button id="qback">${esc(t.back)}</button>
 
+        ${ttKey === "gambling" ? `<div style="margin-top:14px;padding:10px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;text-align:center;">
+          <div style="font-size:11px;color:#34d399;font-weight:600;margin-bottom:4px;">${lang === "kk" ? "🆘 Лудомания — емделетін ауру" : lang === "ru" ? "🆘 Лудомания — это болезнь, которую лечат" : "🆘 Gambling addiction is treatable"}</div>
+          <div style="font-size:11px;color:#94a3b8;">${lang === "kk" ? "Тегін психологиялық көмек:" : lang === "ru" ? "Бесплатная психологическая помощь:" : "Free helpline (Kazakhstan):"} <strong style="color:#f8fafc;">8-800-080-88-87</strong></div>
+        </div>` : ""}
+
         <p id="qappeal">${esc(t.appeal)}</p>
         <p style="font-size:10px;color:#1e293b;text-align:center;margin-top:8px;">⌨️ ESC — ${esc(t.back)}</p>
       </div>

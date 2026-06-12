@@ -1,4 +1,4 @@
-// Qalqan AI v5.0
+// Qalqan AI v5.1
 // Background Service Worker: auto-check + badge + notifications + offline + history
 // Memory-safe: cleanup on tab close + periodic purge
 
@@ -42,7 +42,7 @@ function updateBadge(tabId, data) {
 
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log(`Qalqan AI v5.0 installed (${details.reason})`);
+  console.log(`Qalqan AI v5.1 installed (${details.reason})`);
   if (details.reason === "install") {
     chrome.storage.local.set({
       qalqan_stats: { checked: 0, blocked: 0, suspicious: 0, safe: 0, since: new Date().toISOString() },
@@ -58,7 +58,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     });
   }
   if (details.reason === "update") {
-    console.log(`Qalqan AI updated to v5.0 from ${details.previousVersion}`);
+    console.log(`Qalqan AI updated to v5.1 from ${details.previousVersion}`);
   }
 });
 
@@ -77,43 +77,36 @@ setInterval(() => {
 }, 3600000);
 
 // --- Fast pattern check (no API) — blocks known threats before page renders ---
+// Pattern-only quick check — domain lists are already in offlineCheck() via offline-db.js.
+// This catches regex patterns not representable as exact domain entries.
 function quickRiskCheck(url) {
   try {
     const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
-    const path = new URL(url).pathname.toLowerCase();
 
-    // Gambling (inline — critical for speed)
-    const GAMBLE = ["1xbet","mostbet","pin-up","vavada","1win","melbet","pokerdom",
-                    "vulkan","hellcase","rollbit","parimatch","stake","rox","betmaster"];
-    if (GAMBLE.some(g => host.includes(g))) {
-      return { verdict: "DANGEROUS", threat_score: 90, threat_type: "gambling", source: "quick_check",
-               detail: "Unlicensed gambling site blocked", detail_kk: "Лицензиясыз құмар ойын сайты бұғатталды",
-               detail_ru: "Заблокирован нелицензированный сайт азартных игр", detail_en: "Unlicensed gambling site blocked", indicators: [] };
+    // Gambling keyword patterns — catches subdomain variants and unlisted TLDs
+    // e.g. "bet365.ng", "casinoX.co", "slots-online.ru" not in offline-db exact list
+    if (/(\b|[-.])(bet|casino|slots?|poker|gambling|букмекер|ставки)(\b|[-.])/i.test(host)) {
+      return { verdict: "DANGEROUS", threat_score: 85, threat_type: "gambling", source: "quick_check",
+               detail: "Gambling site pattern", detail_kk: "Құмар ойын сайты паттерні",
+               detail_ru: "Паттерн сайта азартных игр", detail_en: "Gambling site pattern",
+               indicators: ["gambling_pattern"] };
     }
 
-    // Free TLD + KZ brand = phishing
-    const FREE_TLDS = [".tk",".ml",".ga",".cf",".gq",".xyz",".top",".pw",".cc",".icu",".buzz"];
-    const KZ_BRANDS = ["kaspi","egov","halyk","kcell","beeline","tengri","kolesa","homecredit","jysan","bereke"];
-    const hasFree = FREE_TLDS.some(t => host.endsWith(t));
-    const hasBrand = KZ_BRANDS.some(b => host.includes(b));
-    if (hasFree && hasBrand) {
+    // Free TLD + KZ brand = phishing (regex — faster than array iteration)
+    const FREE_TLD_RE = /\.(tk|ml|ga|cf|gq|xyz|top|pw|cc|icu|buzz|su|ws)$/;
+    const KZ_BRAND_RE = /kaspi|egov|halyk|kcell|beeline|tengri|kolesa|homecredit|jysan|bereke|sberbank|qazaq/;
+    if (FREE_TLD_RE.test(host) && KZ_BRAND_RE.test(host)) {
       return { verdict: "DANGEROUS", threat_score: 92, threat_type: "phishing", source: "quick_check",
                detail: "KZ brand phishing on free TLD", detail_kk: "Тегін домендегі KZ брендін еліктеу",
-               detail_ru: "Фишинг KZ-бренда на бесплатном домене", detail_en: "KZ brand phishing on free TLD", indicators: ["free_tld","kz_brand_impersonation"] };
+               detail_ru: "Фишинг KZ-бренда на бесплатном домене", detail_en: "KZ brand phishing on free TLD",
+               indicators: ["free_tld", "kz_brand_impersonation"] };
     }
 
-    // Known pyramid keywords in domain
-    const PYRAMID_KEYS = ["crowd1","finiko","onecoin","forsage","bitconnect","qubittech","antares.trade"];
-    if (PYRAMID_KEYS.some(p => host.includes(p))) {
-      return { verdict: "DANGEROUS", threat_score: 95, threat_type: "pyramid", source: "quick_check",
-               detail: "Known pyramid scheme", detail_kk: "Белгілі қаржылық пирамида",
-               detail_ru: "Известная финансовая пирамида", detail_en: "Known pyramid scheme", indicators: ["pyramid_scheme"] };
-    }
-
-    // IP address URL
+    // IP address URL — never legitimate for financial/gov services
     if (/^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(host)) {
       return { verdict: "SUSPICIOUS", threat_score: 65, threat_type: "suspicious_infrastructure", source: "quick_check",
-               detail: "IP address URL", detail_kk: "IP мекенжайлы URL", detail_ru: "URL с IP-адресом", detail_en: "IP address URL", indicators: ["ip_address"] };
+               detail: "IP address URL", detail_kk: "IP мекенжайлы URL",
+               detail_ru: "URL с IP-адресом", detail_en: "IP address URL", indicators: ["ip_address"] };
     }
 
     return null;
@@ -290,7 +283,7 @@ async function checkUrl(url, tabId) {
 
     // Read sensitivity threshold (high=60, medium=70, low=80; default=70)
     const sensitivityData = await chrome.storage.local.get("qalqan_sensitivity");
-    const sensitivity = sensitivityData.qalqan_sensitivity || "medium";
+    const sensitivity = sensitivityData.qalqan_sensitivity || "high";
     const BLOCK_THRESHOLD = { high: 60, medium: 70, low: 80 }[sensitivity] ?? 70;
 
     const shouldBlock = data.verdict === "DANGEROUS" || data.threat_score >= BLOCK_THRESHOLD;
@@ -411,4 +404,4 @@ async function getLanguage() {
   return result.qalqan_lang || "kk";
 }
 
-console.log("Qalqan AI v5.0 — Background Service Worker started");
+console.log("Qalqan AI v5.1 — Background Service Worker started");

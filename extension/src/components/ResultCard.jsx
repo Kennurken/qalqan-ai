@@ -106,6 +106,11 @@ export default function ResultCard({ result, t }) {
         <span>🔍 {sourceNames[result.source] || result.source}</span>
         {result.cached && <span>⚡ cached</span>}
         {result.metadata?.processing_time_ms && <span>⏱ {result.metadata.processing_time_ms}ms</span>}
+        {result.ai_skipped && (
+          <span style={{ color: "#f59e0b", fontSize: "10px", background: "rgba(245,158,11,0.1)", padding: "1px 6px", borderRadius: "4px", border: "1px solid rgba(245,158,11,0.3)" }}>
+            ⚡ AI офлайн — базалар бойынша
+          </span>
+        )}
       </div>
 
       {/* Domain Intelligence — age + SSL expanded */}

@@ -517,15 +517,24 @@ async def check_site(request: CheckRequest, req: Request):
 
     # --- Tier 3: AI analysis (with URL feature context for better accuracy) ---
     ai_result = await analyze_url(url, context=url_feats)
+    ai_failed = ai_result.get("source") == "ai_error"
 
-    result = calculate_final_verdict(db_results, ai_result, None,
-                                     domain_info=domain_info, url_features=url_feats, lang=lang)
-    result["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, result["threat_score"])
+    result = calculate_final_verdict(
+        db_results,
+        None if ai_failed else ai_result,
+        None, domain_info=domain_info, url_features=url_feats, lang=lang
+    )
+    result["explanation"] = generate_explanation(url_feats, domain_info, db_results,
+                                                  None if ai_failed else ai_result, None, result["threat_score"])
     result["metadata"] = {
         "processing_time_ms": int((time.time() - start_time) * 1000),
-        "tier_hit": "ai",
-        "ai_provider": ai_result.get("source", "unknown") if ai_result else "none"
+        "tier_hit": "heuristics_only" if ai_failed else "ai",
+        "ai_provider": ai_result.get("source", "unknown") if not ai_failed else "none"
     }
+    if ai_failed:
+        result["ai_skipped"] = True
+        result["ai_skip_reason"] = "all_providers_failed"
+        logger.warning(f"AI_SKIPPED for {domain} — scoring by heuristics only")
     if domain_info and domain_info.get("domain_details"):
         result["domain_details"] = domain_info["domain_details"]
     set_cached(key, result)
