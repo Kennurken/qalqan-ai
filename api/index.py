@@ -24,7 +24,7 @@ from .services.goszakup import check_goszakup_url, analyse_procurement_data, is_
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
-from .utils.cache import url_hash, get_cached, set_cached, clear_cache
+from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_health as redis_health
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
@@ -857,7 +857,7 @@ async def health():
                         "blacklist.json", "kz_phishing_patterns.json"]
         if os.path.exists(os.path.join(_data_dir, fname))
     )
-    sb_health = await supabase_health()
+    sb_health, rd_health = await asyncio.gather(supabase_health(), redis_health())
     return {
         "status": "ok",
         "version": "5.1.0",
@@ -866,6 +866,7 @@ async def health():
         "data_files_ok": f"{data_files_ok}/5",
         "whitelist_domains": len(_whitelist),
         "supabase": sb_health,
+        "redis": rd_health,
     }
 
 

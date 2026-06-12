@@ -128,3 +128,20 @@ async def set_cached(key: str, result: dict) -> None:
 
 def clear_cache() -> None:
     _mem.clear()
+
+
+async def check_health() -> dict:
+    if not _redis_available():
+        return {"status": "disabled", "reason": "env vars not set", "mem_entries": len(_mem)}
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(
+                f"{_redis_url()}/ping",
+                headers=_redis_headers(),
+            )
+            data = r.json()
+            if data.get("result") == "PONG":
+                return {"status": "ok", "mem_entries": len(_mem)}
+            return {"status": "error", "response": str(data)[:80]}
+    except Exception as e:
+        return {"status": "error", "reason": str(e)[:80]}
