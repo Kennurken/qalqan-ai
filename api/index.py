@@ -8,7 +8,6 @@ import re
 import time
 import logging
 import asyncio
-from collections import defaultdict
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,7 +23,7 @@ from .services.goszakup import check_goszakup_url, analyse_procurement_data, is_
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
-from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_health as redis_health
+from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_rate_limit, check_health as redis_health
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
@@ -81,13 +80,11 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-# --- Rate Limiting (in-memory, IP-based) ---
-_rate_limits: dict[str, list[float]] = defaultdict(list)
+# --- Rate Limits (per IP, per endpoint, 60s window via Redis) ---
 RATE_LIMIT_CHECK = 30    # /check: 30 req/min
 RATE_LIMIT_SCREEN = 5    # /analyze-screen: 5 req/min (AI vision — expensive)
 RATE_LIMIT_APPEAL = 5    # /appeal: 5 req/min
-RATE_LIMIT_REPORT = 3    # /report: 3 req/min (separate from appeal — fix #4)
-RATE_WINDOW = 60         # 60 seconds
+RATE_LIMIT_REPORT = 3    # /report: 3 req/min
 
 
 # --- Origin enforcement middleware (CORS fix #1) ---
@@ -99,23 +96,6 @@ async def enforce_origin(request: Request, call_next):
         logger.warning(f"Blocked request from disallowed origin: {origin}")
         return JSONResponse(status_code=403, content={"error": "Origin not allowed"})
     return await call_next(request)
-
-
-def _check_rate_limit(ip: str, limit: int) -> bool:
-    """True = разрешено, False = лимит асып кетті."""
-    now = time.time()
-    # Prevent unbounded growth: purge IPs inactive for >5 minutes
-    if len(_rate_limits) > 5000:
-        cutoff = now - 300
-        dead = [k for k, v in _rate_limits.items() if not v or max(v) < cutoff]
-        for k in dead:
-            del _rate_limits[k]
-    timestamps = _rate_limits[ip]
-    _rate_limits[ip] = [ts for ts in timestamps if now - ts < RATE_WINDOW]
-    if len(_rate_limits[ip]) >= limit:
-        return False
-    _rate_limits[ip].append(now)
-    return True
 
 
 # --- Request Logging Middleware ---
@@ -420,7 +400,7 @@ async def root():
 async def check_site(request: CheckRequest, req: Request):
     # Rate limit
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={
             "error": "Rate limit exceeded", "detail": "Max 30 requests per minute"
         })
@@ -563,7 +543,7 @@ async def check_site(request: CheckRequest, req: Request):
 @app.post("/check-text")
 async def check_text(request: TextCheckRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     text = request.text
@@ -607,7 +587,7 @@ async def check_text(request: TextCheckRequest, req: Request):
 async def check_batch(request: BatchRequest, req: Request):
     """Check up to 15 URLs in parallel. Returns list of verdicts."""
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     urls = request.urls[:15]  # hard cap
@@ -686,7 +666,7 @@ async def check_batch(request: BatchRequest, req: Request):
 async def check_screen(request: ScreenRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
     # Fix #3: separate rate limit key + lower limit (5/min, not shared with /check)
-    if not _check_rate_limit(f"screen:{client_ip}", RATE_LIMIT_SCREEN):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="screen"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 5 screenshot analyses per minute."})
 
     result = await analyze_screenshot(request.image_base64)
@@ -697,7 +677,7 @@ async def check_screen(request: ScreenRequest, req: Request):
 @app.post("/appeal")
 async def appeal(request: AppealRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"appeal:{client_ip}", RATE_LIMIT_APPEAL):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_APPEAL, endpoint="appeal"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     result = await send_appeal(request.url, request.reason)
 
@@ -739,7 +719,7 @@ def _save_reports(reports: dict):
 async def report_site(request: ReportRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
     # Fix #4: separate rate limit key (was "appeal:", now "report:")
-    if not _check_rate_limit(f"report:{client_ip}", RATE_LIMIT_REPORT):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 3 reports per minute."})
 
     domain = extract_domain(request.url)
@@ -879,7 +859,7 @@ async def get_features(request: FeatureRequest, req: Request):
     """Extract 30+ ML features from URL (no HTTP request, pure lexical analysis).
     Use for: ML model training, feature importance analysis, dataset building."""
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     return extract_features(request.url)
 
@@ -889,7 +869,7 @@ async def check_research(request: CheckRequest, req: Request):
     """Full research output: all features, all scores, explanation, metadata.
     Use for: paper benchmarks, ablation studies, system evaluation."""
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     url = request.url
@@ -983,7 +963,7 @@ async def check_research(request: CheckRequest, req: Request):
 async def evaluate(req: Request):
     """Run benchmark on built-in test dataset. Returns accuracy, F1, MCC, per-URL results."""
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", 5):  # max 5 evals/min
+    if not await check_rate_limit(client_ip, 5, endpoint="eval"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     results = await run_benchmark()
@@ -1084,7 +1064,7 @@ async def goszakup_analyse(request: GoszakupRequest, req: Request):
     10 detection rules: monopoly, inflated pricing, shell company, tailored specs, etc.
     """
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     data = request.model_dump(exclude_none=True)
@@ -1097,7 +1077,7 @@ async def goszakup_analyse(request: GoszakupRequest, req: Request):
 async def goszakup_check_tender(tender_number: str, req: Request):
     """Fetch tender from goszakup.gov.kz by number and run fraud analysis."""
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"check:{client_ip}", RATE_LIMIT_CHECK):
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     from .services.goszakup import check_tender_by_number
@@ -1117,7 +1097,7 @@ async def generate_threat_report(req: Request, month: str | None = None):
     """
     from fastapi.responses import Response
     client_ip = req.client.host if req.client else "unknown"
-    if not _check_rate_limit(f"report:{client_ip}", 3):   # max 3/min
+    if not await check_rate_limit(client_ip, 3, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     try:

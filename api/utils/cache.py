@@ -130,6 +130,45 @@ def clear_cache() -> None:
     _mem.clear()
 
 
+async def check_rate_limit(ip: str, limit: int, endpoint: str = "", window: int = 60) -> bool:
+    """True = allowed. Uses Redis INCR+EXPIRE sliding window when available, else in-memory."""
+    ip_part = hashlib.md5(ip.encode()).hexdigest()[:12]
+    key = f"rl:{endpoint}:{ip_part}" if endpoint else f"rl:{ip_part}:{limit}"
+    if _redis_available():
+        try:
+            async with httpx.AsyncClient(timeout=2) as client:
+                # INCR returns new count; set TTL only on first request (NX)
+                r = await client.post(
+                    f"{_redis_url()}",
+                    headers={**_redis_headers(), "Content-Type": "application/json"},
+                    json=["INCR", key],
+                )
+                count = r.json().get("result", 1)
+                if count == 1:
+                    # First request — set expiry
+                    await client.post(
+                        f"{_redis_url()}",
+                        headers={**_redis_headers(), "Content-Type": "application/json"},
+                        json=["EXPIRE", key, str(window)],
+                    )
+                return int(count) <= limit
+        except Exception as e:
+            logger.warning(f"Redis rate limit failed, falling back to mem: {e}")
+    # In-memory fallback
+    now = time.time()
+    if key not in _mem:
+        _mem[key] = ([now], now + window)
+        return True
+    timestamps, expires = _mem[key]
+    if time.time() > expires:
+        _mem[key] = ([now], now + window)
+        return True
+    timestamps = [t for t in timestamps if now - t < window]
+    timestamps.append(now)
+    _mem[key] = (timestamps, expires)
+    return len(timestamps) <= limit
+
+
 async def check_health() -> dict:
     if not _redis_available():
         return {"status": "disabled", "reason": "env vars not set", "mem_entries": len(_mem)}
