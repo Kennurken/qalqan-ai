@@ -22,9 +22,13 @@ _openphish_lock = asyncio.Lock()
 
 
 def extract_domain(url: str) -> str:
+    """Fix #6: use parsed.hostname (strips port) instead of netloc (includes :port).
+    netloc='evil.com:8080' would bypass whitelist/DB checks that compare by domain."""
     try:
         parsed = urlparse(url)
-        return parsed.netloc.lower().replace("www.", "")
+        # hostname strips port; netloc includes it — use hostname
+        host = (parsed.hostname or "").lower()
+        return host.removeprefix("www.")
     except Exception:
         return url.lower()
 

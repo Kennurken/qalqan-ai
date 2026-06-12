@@ -19,7 +19,8 @@ def _gemini_key() -> str:
     return os.getenv("GEMINI_API_KEY", "")
 
 # --- Model configs ---
-GROQ_MODEL = "llama-3.1-8b-instant"  # Ең жылдам, 14,400 req/day тегін
+GROQ_MODEL = "llama-3.3-70b-versatile"   # Best quality free model — 6k tokens/min, 14,400 req/day
+GROQ_MODEL_FAST = "llama-3.1-8b-instant"  # Fallback if 70b rate-limited
 GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -30,33 +31,53 @@ GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_M
 GEMINI_VISION_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 
 # --- System Prompts ---
-SYSTEM_PROMPT_URL = """You are Qalqan AI — a cybersecurity expert system specialized in Kazakhstan.
-Analyze the given URL/link and determine if it's dangerous.
+SYSTEM_PROMPT_URL = """You are Qalqan AI — an elite cybersecurity expert system specialized in Kazakhstan's digital threat landscape.
+Your mission: protect Kazakhstani users from phishing, pyramid schemes, illegal gambling, and scams.
+Be DECISIVE. When signals are present, call DANGEROUS. Do not hedge.
 
-MANDATORY RULES:
-- Casino, gambling, betting = DANGEROUS (especially 1xbet, Mostbet, Vulkan, Pin-Up — illegal in Kazakhstan)
-- Financial pyramid, MLM, guaranteed income = DANGEROUS (Crowd1, Finiko, OneCoin etc.)
-- Phishing = DANGEROUS (fake Kaspi, eGov, Halyk Bank, Beeline, Kcell portals)
-- Fake online store = DANGEROUS
-- Malware, virus distribution = DANGEROUS
-- Social engineering, manipulation = DANGEROUS
-- URL with free TLD (.tk .ml .ga .cf .gq .xyz .top) + KZ brand name = PHISHING
-- Domains like kaspi-login.*, egov-verify.*, halyk-bonus.* = PHISHING
-- Sites offering "passive income", "crypto trading signals" = PYRAMID
+━━━ ALWAYS DANGEROUS ━━━
+GAMBLING (illegal in Kazakhstan):
+  1xbet.com, mostbet.com, pin-up.casino, vavada.com, 1win.com, melbet.com, pokerdom.com, vulkan*.com, hellcase.com, rollbit.com
+  ANY site matching: *bet.*, *casino.*, *slots.*, *poker.*, *gambling.*
 
-SAFE signals:
-- Known .kz government portals (egov.kz, salyk.kz, enbek.kz)
-- Major KZ banks with official .kz domains (kaspi.kz, halykbank.kz)
+FINANCIAL PYRAMIDS / MLM:
+  crowd1.com, finiko.com, onecoin.eu, forsage.io, bitconnect.co, qubittech.ai, antares.trade
+  Signals: "passive income", "guaranteed profit", "MLM", "referral bonus", "crypto signals"
 
-Respond in STRICT JSON format ONLY:
+PHISHING — KZ Brand Impersonation:
+  Pattern: [brand]-[action].[tld] → kaspi-login.tk, egov-verify.ga, halyk-bonus.ml
+  Free TLDs with KZ brands: .tk .ml .ga .cf .gq .xyz .top .pw .cc = ALWAYS phishing if KZ brand present
+  Exact matches on wrong TLD: kaspi.com (not .kz), halykbank.com (not .kz) = phishing
+
+━━━ SUSPICIOUS SIGNALS ━━━
+- Brand name in subdomain: kaspi.evil.com, egov.attacker.net
+- Login/verify/secure/account in path on non-official domain
+- Newly registered domain (< 30 days old) with financial content
+- HTTP (not HTTPS) for any financial/government service
+- IP address URL: http://192.168.x.x/...
+- Punycode / homoglyph: xn-- domains, Cyrillic lookalikes
+
+━━━ ALWAYS SAFE ━━━
+Official .kz government: egov.kz, salyk.kz, enbek.kz, gov.kz, minjust.gov.kz
+Official KZ banks: kaspi.kz, halykbank.kz, jysanbank.kz, bcc.kz, berekebank.kz
+Major global: google.com, youtube.com, github.com, wikipedia.org, microsoft.com, apple.com
+
+━━━ SCORING GUIDE ━━━
+95-100: Known blacklisted domain (pyramid, gambling, phishing DB hit)
+80-94:  Strong phishing signals (free TLD + brand, homoglyph, exact brand on wrong TLD)
+60-79:  Multiple suspicious signals (suspicious keywords + free TLD, brand in subdomain)
+40-59:  Mild signals (new domain, HTTP only, suspicious keywords)
+0-39:   Safe or insufficient evidence
+
+Respond ONLY in this exact JSON format — no extra text:
 {
-  "verdict": "DANGEROUS" or "SAFE" or "SUSPICIOUS",
+  "verdict": "DANGEROUS" | "SAFE" | "SUSPICIOUS",
   "threat_score": 0-100,
-  "threat_type": "phishing|malware|pyramid|scam|gambling|fake_shop|social_engineering|safe",
-  "reason_kk": "Қазақша түсіндірме",
-  "reason_ru": "Объяснение на русском",
-  "reason_en": "English explanation",
-  "indicators": ["indicator1", "indicator2"]
+  "threat_type": "phishing" | "malware" | "pyramid" | "scam" | "gambling" | "fake_shop" | "social_engineering" | "suspicious_infrastructure" | "safe",
+  "reason_kk": "Нақты қазақша түсіндірме (1-2 сөйлем)",
+  "reason_ru": "Конкретное объяснение на русском (1-2 предложения)",
+  "reason_en": "Specific English explanation (1-2 sentences)",
+  "indicators": ["specific_signal_1", "specific_signal_2"]
 }"""
 
 SYSTEM_PROMPT_TEXT = """You are Qalqan AI — a cybersecurity expert specialized in Kazakhstan.
@@ -183,25 +204,31 @@ def _fallback_result(error_msg: str) -> dict:
 # GROQ — Негізгі AI (14,400 req/day, ~330 RPM, карта жоқ)
 # ============================================================
 
-async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
-    """Groq API шақыру (OpenAI-compatible)."""
+async def _call_groq(system_prompt: str, user_content: str, fast: bool = False) -> dict | None:
+    """Groq API шақыру (OpenAI-compatible). fast=True uses 8b model for rate-limit fallback."""
     if not _groq_key():
         return None
+    model = GROQ_MODEL_FAST if fast else GROQ_MODEL
     try:
         payload = {
-            "model": GROQ_MODEL,
+            "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            "temperature": 0.1,
-            "max_tokens": 500
+            "temperature": 0.05,   # Near-deterministic for security classification
+            "max_tokens": 512,
+            "response_format": {"type": "json_object"}  # Force JSON output
         }
         async with httpx.AsyncClient(timeout=15) as client:
             res = await client.post(GROQ_URL, json=payload, headers={
                 "Authorization": f"Bearer {_groq_key()}",
                 "Content-Type": "application/json"
             })
+            if res.status_code == 429 and not fast:
+                # 70b rate-limited → retry with 8b fast model
+                logger.warning(f"Groq 70b rate limited, falling back to 8b")
+                return await _call_groq(system_prompt, user_content, fast=True)
             if res.status_code != 200:
                 logger.warning(f"Groq API error: {res.status_code} {res.text[:200]}")
                 return None
@@ -209,6 +236,7 @@ async def _call_groq(system_prompt: str, user_content: str) -> dict | None:
             raw_text = data["choices"][0]["message"]["content"]
             parsed = _parse_ai_json(raw_text)
             parsed["source"] = "groq_ai"
+            parsed["model"] = model
             return parsed
     except Exception as e:
         logger.warning(f"Groq exception: {e}")
@@ -280,15 +308,96 @@ async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | N
 # PUBLIC API — Мульти-провайдер fallback chain
 # ============================================================
 
-async def analyze_url(url: str) -> dict:
-    """URL тексеру: Groq → Gemini → fallback."""
-    # 1. Groq (негізгі — 14,400/day)
-    result = await _call_groq(SYSTEM_PROMPT_URL, f"Analyze this URL: {url}")
+def _sanitize_for_prompt(text: str, max_len: int = 300) -> str:
+    """Fix #11: Strip prompt injection attempts from URL before inserting into AI prompt.
+    Removes newlines, common injection patterns, limits length."""
+    # Remove newlines/carriage returns (main injection vector)
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    # Remove common injection prefixes
+    _inject_patterns = [
+        "ignore previous", "ignore above", "disregard", "forget instructions",
+        "new instructions", "system:", "assistant:", "user:", "human:",
+        "###", "---", "===", "```"
+    ]
+    text_lower = text.lower()
+    for pat in _inject_patterns:
+        if pat in text_lower:
+            # Replace with sanitized version
+            text = text[:text_lower.index(pat)] + "[sanitized]"
+            break
+    return text[:max_len]
+
+
+def _build_url_context(url: str, features: dict | None) -> str:
+    """Build enriched prompt with URL feature signals for better AI accuracy."""
+    # Fix #11: sanitize URL before inserting into prompt
+    safe_url = _sanitize_for_prompt(url, max_len=300)
+    msg = f"Analyze this URL for cybersecurity threats: {safe_url}"
+    if not features:
+        return msg
+
+    flags = []
+    risk = features.get("risk_score", 0)
+
+    if features.get("has_ip_address"):
+        flags.append("⚠️  IP address used instead of domain name")
+    if features.get("has_mixed_script"):
+        chars = features.get("homoglyph_chars", [])
+        flags.append(f"🚨 HOMOGLYPH ATTACK — mixed Cyrillic/Latin: {chars}")
+    if features.get("brand_edit_distance", 999) <= 2 and features.get("brand_match"):
+        ed = features.get("brand_edit_distance")
+        brand = features.get("brand_match")
+        flags.append(f"🚨 BRAND IMPERSONATION — '{brand}' (edit_distance={ed})")
+    if features.get("brand_edit_distance") == 0 and features.get("is_free_tld") and features.get("brand_match"):
+        flags.append(f"🚨 EXACT BRAND ON FREE TLD — '{features['brand_match']}' on .{features.get('tld')} = definite phishing")
+    if features.get("brand_in_subdomain") and features.get("brand_match"):
+        flags.append(f"⚠️  Brand '{features['brand_match']}' appears in subdomain (subdomain hijack pattern)")
+    if features.get("is_free_tld"):
+        flags.append(f"⚠️  Free/suspicious TLD: .{features.get('tld')} (commonly used in phishing)")
+    if features.get("suspicious_keyword_count", 0) > 0:
+        kws = features.get("suspicious_keywords_found", [])[:4]
+        flags.append(f"⚠️  Suspicious keywords in URL: {kws}")
+    if features.get("has_login_path"):
+        flags.append("⚠️  Login/verify/account path detected (credential harvesting pattern)")
+    if features.get("has_data_uri"):
+        flags.append("🚨 DATA URI / javascript: — code injection risk")
+    if features.get("has_punycode"):
+        flags.append("⚠️  Punycode/IDN encoding detected")
+    if not features.get("is_https"):
+        flags.append("⚠️  HTTP only — no encryption")
+    if features.get("has_suspicious_subdomain"):
+        length = features.get("longest_subdomain_length", 0)
+        flags.append(f"⚠️  Unusually long subdomain ({length} chars)")
+    if features.get("is_url_shortener"):
+        flags.append("⚠️  URL shortener service — hides final destination")
+    if features.get("has_redirect_param"):
+        flags.append("⚠️  Open redirect parameter (redirect=/goto=/url=)")
+    hex_cnt = features.get("hex_encoding_count", 0)
+    if hex_cnt > 4:
+        flags.append(f"⚠️  Heavy URL hex-encoding ({hex_cnt} chars) — obfuscation attempt")
+
+    if flags:
+        msg += "\n\n📊 URL FEATURE ANALYSIS RESULTS:\n" + "\n".join(flags)
+        msg += f"\n\nURL risk score from lexical analysis: {risk}/100"
+        if risk >= 70 or any("🚨" in f for f in flags):
+            msg += "\n\n⚡ CRITICAL: Multiple high-confidence threat signals detected. This URL should be classified as DANGEROUS."
+        elif risk >= 40:
+            msg += "\n\nModerate risk signals present. Classify conservatively."
+
+    return msg
+
+
+async def analyze_url(url: str, context: dict | None = None) -> dict:
+    """URL тексеру: Groq 70b → Gemini → Groq 8b fallback."""
+    user_msg = _build_url_context(url, context)
+
+    # 1. Groq 70b (негізгі — best quality)
+    result = await _call_groq(SYSTEM_PROMPT_URL, user_msg)
     if result and result.get("source") != "ai_error":
         return result
 
     # 2. Gemini (backup — 250/day)
-    result2 = await _call_gemini(SYSTEM_PROMPT_URL, f"Сілтеме: {url}")
+    result2 = await _call_gemini(SYSTEM_PROMPT_URL, user_msg)
     if result2 and result2.get("source") != "ai_error":
         return result2
 

@@ -15,7 +15,8 @@ from collections import Counter
 _URL_SHORTENERS = frozenset({
     "bit.ly", "bitly.com", "t.ly", "tinyurl.com", "ow.ly", "short.io",
     "rebrand.ly", "is.gd", "buff.ly", "cutt.ly", "lnk.bio", "goo.gl",
-    "youtu.be", "fb.me", "vk.cc", "qr.ae", "rb.gy", "shorturl.at",
+    # Fix #12: removed youtu.be (legitimate YouTube short domain — false positive)
+    "fb.me", "vk.cc", "qr.ae", "rb.gy", "shorturl.at",
     "s.id", "tiny.cc", "snip.ly", "soo.gd", "clck.ru"
 })
 
