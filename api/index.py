@@ -28,6 +28,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
+from .utils.supabase import log_report, log_appeal, log_check, check_health as supabase_health
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
@@ -544,6 +545,17 @@ async def check_site(request: CheckRequest, req: Request):
     if result.get("verdict") == "DANGEROUS":
         asyncio.create_task(notify_block(url, result["verdict"], result["threat_score"], result.get("source", "")))
 
+    # Supabase: async log (fire-and-forget, never blocks response)
+    asyncio.create_task(log_check(
+        domain=domain,
+        verdict=result["verdict"],
+        score=result["threat_score"],
+        top_source=result.get("source", "unknown"),
+        ai_used=not ai_failed,
+        ai_skipped=ai_failed,
+        latency_ms=result["metadata"]["processing_time_ms"],
+    ))
+
     return result
 
 
@@ -687,7 +699,17 @@ async def appeal(request: AppealRequest, req: Request):
     client_ip = req.client.host if req.client else "unknown"
     if not _check_rate_limit(f"appeal:{client_ip}", RATE_LIMIT_APPEAL):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
-    return await send_appeal(request.url, request.reason)
+    result = await send_appeal(request.url, request.reason)
+
+    # Supabase: persist appeal (fire-and-forget)
+    domain = extract_domain(request.url)
+    asyncio.create_task(log_appeal(
+        domain=domain,
+        verdict_received=getattr(request, "verdict", None),
+        reason=request.reason,
+    ))
+
+    return result
 
 
 # --- ШАҒЫМ (crowd-sourced) ---
@@ -744,6 +766,17 @@ async def report_site(request: ReportRequest, req: Request):
     result = await send_report(request.url, request.threat_type, request.note)
     result["reports_count"] = reports[domain]["count"]
     result["auto_blocked"] = auto_blocked
+
+    # Supabase: persist report (fire-and-forget)
+    asyncio.create_task(log_report(
+        domain=domain,
+        url=request.url,
+        category=request.threat_type,
+        comment=request.note,
+        lang=getattr(request, "lang", "ru"),
+        reporter_ip=client_ip,
+    ))
+
     return result
 
 
@@ -824,6 +857,7 @@ async def health():
                         "blacklist.json", "kz_phishing_patterns.json"]
         if os.path.exists(os.path.join(_data_dir, fname))
     )
+    sb_health = await supabase_health()
     return {
         "status": "ok",
         "version": "5.1.0",
@@ -831,6 +865,7 @@ async def health():
         "api_keys_configured": f"{configured_count}/{len(key_names)}",
         "data_files_ok": f"{data_files_ok}/5",
         "whitelist_domains": len(_whitelist),
+        "supabase": sb_health,
     }
 
 
