@@ -446,7 +446,7 @@ async def check_site(request: CheckRequest, req: Request):
         }
 
     # --- Tier 0.5: Cache ---
-    cached = get_cached(key)
+    cached = await get_cached(key)
     if cached:
         return cached
 
@@ -460,14 +460,14 @@ async def check_site(request: CheckRequest, req: Request):
         result = calculate_final_verdict([], None, pyramid_hit, lang=lang)
         result["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, result["threat_score"])
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "pyramid_list"}
-        set_cached(key, result)
+        await set_cached(key, result)
         return result
 
     blacklist_hit = check_local_blacklist(url)
     if blacklist_hit:
         result = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "blacklist"}
-        set_cached(key, result)
+        await set_cached(key, result)
         return result
 
     # --- Tier 1.7: KZ Brand Impersonation (fast, offline, very high precision) ---
@@ -476,7 +476,7 @@ async def check_site(request: CheckRequest, req: Request):
         result = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
         result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"])
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "kz_impersonation"}
-        set_cached(key, result)
+        await set_cached(key, result)
         return result
 
     # --- Tier 1.8: Gambling / unlicensed bookmaker (KZ banned sites) ---
@@ -484,7 +484,7 @@ async def check_site(request: CheckRequest, req: Request):
     if gambling_hit:
         result = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "gambling_list"}
-        set_cached(key, result)
+        await set_cached(key, result)
         return result
 
     # --- Tier 1.9: Госзакупки fraud detection (goszakup.gov.kz URLs) ---
@@ -494,7 +494,7 @@ async def check_site(request: CheckRequest, req: Request):
             result = calculate_final_verdict([goszakup_hit], None, None, url_features=url_feats, lang=lang)
             result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "goszakup_fraud"}
             result["red_flags"] = goszakup_hit.get("red_flags", [])
-            set_cached(key, result)
+            await set_cached(key, result)
             return result
 
     # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
@@ -513,7 +513,7 @@ async def check_site(request: CheckRequest, req: Request):
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "databases"}
         if domain_info and domain_info.get("domain_details"):
             result["domain_details"] = domain_info["domain_details"]
-        set_cached(key, result)
+        await set_cached(key, result)
         return result
 
     # --- Tier 3: AI analysis (with URL feature context for better accuracy) ---
@@ -538,7 +538,7 @@ async def check_site(request: CheckRequest, req: Request):
         logger.warning(f"AI_SKIPPED for {domain} — scoring by heuristics only")
     if domain_info and domain_info.get("domain_details"):
         result["domain_details"] = domain_info["domain_details"]
-    set_cached(key, result)
+    await set_cached(key, result)
     logger.info(f"CHECK {domain} → {result['verdict']} ({result['threat_score']}) via {result['source']} [{result['metadata']['processing_time_ms']}ms]")
 
     # Telegram notification for dangerous sites
@@ -632,7 +632,7 @@ async def check_batch(request: BatchRequest, req: Request):
                 return {"url": url, "verdict": "SAFE", "threat_score": 0, "source": "whitelist", "indicators": []}
 
             key = url_hash(url)
-            cached = get_cached(key)
+            cached = await get_cached(key)
             if cached:
                 return {**cached, "url": url}
 
@@ -642,25 +642,25 @@ async def check_batch(request: BatchRequest, req: Request):
             if pyramid_hit:
                 r = calculate_final_verdict([], None, pyramid_hit, lang=lang)
                 r["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, r["threat_score"])
-                set_cached(key, r)
+                await set_cached(key, r)
                 return {**r, "url": url}
 
             blacklist_hit = check_local_blacklist(url)
             if blacklist_hit:
                 r = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
-                set_cached(key, r)
+                await set_cached(key, r)
                 return {**r, "url": url}
 
             kz_impersonation_hit = check_kz_impersonation_url(domain)
             if kz_impersonation_hit:
                 r = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
-                set_cached(key, r)
+                await set_cached(key, r)
                 return {**r, "url": url}
 
             gambling_hit = check_gambling_domain(domain)
             if gambling_hit:
                 r = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
-                set_cached(key, r)
+                await set_cached(key, r)
                 return {**r, "url": url}
 
             db_results, domain_info = await asyncio.gather(
@@ -671,7 +671,7 @@ async def check_batch(request: BatchRequest, req: Request):
             r = calculate_final_verdict(db_results, ai_result, None,
                                         domain_info=domain_info, url_features=url_feats, lang=lang)
             r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"])
-            set_cached(key, r)
+            await set_cached(key, r)
             return {**r, "url": url}
         except Exception as e:
             logger.error(f"Batch check error for {url}: {e}")

@@ -1,50 +1,130 @@
-# Qalqan AI v4.0
-# LRU кэш: max 10,000 записей, TTL: SAFE=1h, DANGEROUS=24h
-
+import os
 import hashlib
 import time
+import json
+import logging
 from collections import OrderedDict
+import httpx
 
-MAX_CACHE_SIZE = 10_000
-TTL_SAFE = 3600      # 1 hour — safe sites rarely change
-TTL_DANGEROUS = 86400  # 24 hours — dangerous sites persist
-TTL_UNKNOWN = 1800   # 30 minutes — suspicious sites: balance freshness vs load
+logger = logging.getLogger("qalqan")
 
-_cache: OrderedDict[str, tuple[dict, float]] = OrderedDict()
+# TTL seconds per verdict type
+TTL_SAFE      = 21600   # 6h  — safe sites rarely change
+TTL_SUSPICIOUS = 7200   # 2h  — re-check sooner
+TTL_DANGEROUS  = 86400  # 24h — dangerous sites persist
+
+# In-memory fallback (used when Redis not configured or down)
+_mem: OrderedDict[str, tuple[dict, float]] = OrderedDict()
+MAX_MEM = 500  # smaller limit since it's just a fallback
 
 
 def url_hash(url: str) -> str:
     return hashlib.sha256(url.lower().strip().encode()).hexdigest()
 
 
-def get_cached(key: str) -> dict | None:
-    if key in _cache:
-        data, expires = _cache[key]
+def _redis_url() -> str:
+    return os.getenv("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+
+def _redis_token() -> str:
+    return os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+
+def _redis_available() -> bool:
+    return bool(_redis_url() and _redis_token())
+
+def _redis_headers() -> dict:
+    return {"Authorization": f"Bearer {_redis_token()}"}
+
+def _ttl_for(verdict: str) -> int:
+    v = verdict.upper()
+    if "DANGEROUS" in v or "ҚАУІПТІ" in v:
+        return TTL_DANGEROUS
+    if "SAFE" in v or "СЕНІМДІ" in v or "ТАЗА" in v:
+        return TTL_SAFE
+    return TTL_SUSPICIOUS
+
+def _redis_key(key: str) -> str:
+    return f"verdict:{key[:16]}"
+
+
+# ── Redis ops ─────────────────────────────────────────────────────────────────
+
+async def _redis_get(key: str) -> dict | None:
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(
+                f"{_redis_url()}/get/{_redis_key(key)}",
+                headers=_redis_headers(),
+            )
+            data = r.json()
+            if data.get("result"):
+                return json.loads(data["result"])
+    except Exception as e:
+        logger.warning(f"Redis GET failed: {e}")
+    return None
+
+async def _redis_set(key: str, value: dict, ttl: int) -> None:
+    try:
+        payload = json.dumps(value, ensure_ascii=False)
+        async with httpx.AsyncClient(timeout=3) as client:
+            await client.get(
+                f"{_redis_url()}/set/{_redis_key(key)}/{httpx.URL(payload)}/ex/{ttl}",
+                headers=_redis_headers(),
+            )
+    except Exception as e:
+        logger.warning(f"Redis SET failed: {e}")
+
+
+async def _redis_set_proper(key: str, value: dict, ttl: int) -> None:
+    """POST-based SET with EX — handles large payloads and special chars safely."""
+    try:
+        payload = json.dumps(value, ensure_ascii=False)
+        async with httpx.AsyncClient(timeout=3) as client:
+            await client.post(
+                f"{_redis_url()}/set/{_redis_key(key)}",
+                headers={**_redis_headers(), "Content-Type": "application/json"},
+                json=["SET", _redis_key(key), payload, "EX", str(ttl)],
+            )
+    except Exception as e:
+        logger.warning(f"Redis SET failed: {e}")
+
+
+# ── Mem fallback ──────────────────────────────────────────────────────────────
+
+def _mem_get(key: str) -> dict | None:
+    if key in _mem:
+        data, expires = _mem[key]
         if time.time() < expires:
-            _cache.move_to_end(key)  # LRU: жаңадан қолданылған
+            _mem.move_to_end(key)
             result = data.copy()
             result["cached"] = True
             return result
-        del _cache[key]
+        del _mem[key]
     return None
 
-
-def set_cached(key: str, result: dict):
-    verdict = result.get("verdict", "").upper()
-    if "DANGEROUS" in verdict or "ҚАУІПТІ" in verdict:
-        ttl = TTL_DANGEROUS
-    elif "SAFE" in verdict or "СЕНІМДІ" in verdict or "ТАЗА" in verdict:
-        ttl = TTL_SAFE
-    else:
-        ttl = TTL_UNKNOWN
-
-    # LRU eviction: ескілерді жою
-    while len(_cache) >= MAX_CACHE_SIZE:
-        _cache.popitem(last=False)
-
-    _cache[key] = (result, time.time() + ttl)
+def _mem_set(key: str, result: dict, ttl: int) -> None:
+    while len(_mem) >= MAX_MEM:
+        _mem.popitem(last=False)
+    _mem[key] = (result, time.time() + ttl)
 
 
-def clear_cache():
-    """Clear all cache entries (for benchmarking)."""
-    _cache.clear()
+# ── Public API ────────────────────────────────────────────────────────────────
+
+async def get_cached(key: str) -> dict | None:
+    if _redis_available():
+        result = await _redis_get(key)
+        if result:
+            result["cached"] = True
+            return result
+        return None
+    return _mem_get(key)
+
+
+async def set_cached(key: str, result: dict) -> None:
+    ttl = _ttl_for(result.get("verdict", ""))
+    if _redis_available():
+        await _redis_set_proper(key, result, ttl)
+    _mem_set(key, result, ttl)  # always write mem as local L1
+
+
+def clear_cache() -> None:
+    _mem.clear()
