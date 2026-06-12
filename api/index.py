@@ -403,7 +403,7 @@ async def root():
     return {
         "status": "online",
         "name": "Qalqan AI",
-        "version": "5.0.0",
+        "version": "5.1.0",
         "pipeline": "6-tier: cache → ML_features → pyramid/kz/gambling → databases → domain_intel → AI + XAI",
         "databases": ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish", "RDAP", "SSL", "KZ_Gambling"],
         "ml_features": "30+ URL lexical features, homoglyph detection, brand similarity",
@@ -809,7 +809,7 @@ async def get_trends():
 # --- Keep-warm (Vercel cron hits every 10 min) ---
 @app.get("/ping")
 async def ping():
-    return {"status": "ok", "version": "5.0.0", "demo_mode": DEMO_MODE}
+    return {"status": "ok", "version": "5.1.0", "demo_mode": DEMO_MODE}
 
 
 # --- Detailed health check (Fix #5: no longer reveals which keys are configured) ---
@@ -826,7 +826,7 @@ async def health():
     )
     return {
         "status": "ok",
-        "version": "5.0.0",
+        "version": "5.1.0",
         "demo_mode": DEMO_MODE,
         "api_keys_configured": f"{configured_count}/{len(key_names)}",
         "data_files_ok": f"{data_files_ok}/5",
@@ -934,7 +934,7 @@ async def check_research(request: CheckRequest, req: Request):
             "domain": domain,
             "ai_provider": ai_result.get("source", "none") if ai_result else "none",
             "timestamp": time.time(),
-            "version": "5.0.0"
+            "version": "5.1.0"
         }
     }
 
