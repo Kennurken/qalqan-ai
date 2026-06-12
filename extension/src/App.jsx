@@ -169,12 +169,12 @@ function Header({ t, lang, onStats, onHistory, onScanner, onTrends, onSettings, 
         </div>
       </div>
       <div style={{ display: "flex", gap: "4px" }}>
-        <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>+</button>
-        <button onClick={() => onHistory && onHistory()} title={t("history")} style={iconBtnStyle}>H</button>
-        <button onClick={onScanner} title={t("linkScanner")} style={iconBtnStyle}>L</button>
-        <button onClick={onGoszakup} title="Госзакупки fraud check" style={{...iconBtnStyle, color: "#10b981"}}>G</button>
-        <button onClick={onTrends} title={t("trends")} style={iconBtnStyle}>T</button>
-        <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>S</button>
+        <button onClick={onStats} title={t("stats")} style={iconBtnStyle}>📊</button>
+        <button onClick={() => onHistory && onHistory()} title={t("history")} style={iconBtnStyle}>🕐</button>
+        <button onClick={onScanner} title={t("linkScanner")} style={iconBtnStyle}>🔗</button>
+        <button onClick={onGoszakup} title="Госзакупки fraud check" style={{...iconBtnStyle, color: "#10b981"}}>🏛️</button>
+        <button onClick={onTrends} title={t("trends")} style={iconBtnStyle}>📈</button>
+        <button onClick={onSettings} title={t("settings")} style={iconBtnStyle}>⚙️</button>
       </div>
     </div>
   );
@@ -183,5 +183,5 @@ function Header({ t, lang, onStats, onHistory, onScanner, onTrends, onSettings, 
 const iconBtnStyle = {
   background: "rgba(30,41,59,0.6)", border: "1px solid #334155",
   borderRadius: "8px", padding: "6px 8px", cursor: "pointer",
-  fontSize: "14px", color: "#94a3b8"
+  fontSize: "16px", color: "#94a3b8"
 };
