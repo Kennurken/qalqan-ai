@@ -27,7 +27,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, check_health as supabase_health
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
@@ -786,37 +786,23 @@ async def get_stats():
 # --- ТРЕНДЫ (crowd-sourced) ---
 @app.get("/trends")
 async def get_trends():
-    """Top reported threat domains and types — crowd intelligence."""
-    reports = _load_reports()
-    if not reports:
-        return {"top_domains": [], "threat_type_counts": {}, "total_reports": 0}
-
-    # Top 10 most reported domains
-    sorted_domains = sorted(reports.items(), key=lambda x: x[1]["count"], reverse=True)
-    top_domains = [
-        {
-            "domain": domain,
-            "reports": data["count"],
-            "types": list(set(data.get("types", []))),
-            "auto_blocked": data["count"] >= 5
+    """Threat trends from Supabase check_logs + reports — real crowd intelligence."""
+    data = await supabase_trends()
+    if data is None:
+        # Supabase not configured — return empty structure (not an error)
+        return {
+            "total_checks": 0,
+            "top_domains_checked": [],
+            "verdict_distribution": {},
+            "top_detection_sources": [],
+            "ai_stats": {"ai_used": 0, "ai_skipped": 0, "heuristics_only": 0},
+            "avg_latency_ms": None,
+            "total_reports": 0,
+            "top_reported_domains": [],
+            "report_categories": {},
+            "note": "Supabase not configured",
         }
-        for domain, data in sorted_domains[:10]
-    ]
-
-    # Threat type distribution
-    type_counts: dict[str, int] = {}
-    for data in reports.values():
-        for t_type in data.get("types", []):
-            type_counts[t_type] = type_counts.get(t_type, 0) + 1
-
-    total_reports = sum(d["count"] for d in reports.values())
-
-    return {
-        "top_domains": top_domains,
-        "threat_type_counts": dict(sorted(type_counts.items(), key=lambda x: x[1], reverse=True)),
-        "total_reports": total_reports,
-        "unique_domains_reported": len(reports)
-    }
+    return data
 
 
 # --- Keep-warm (Vercel cron hits every 10 min) ---
