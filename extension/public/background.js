@@ -98,10 +98,6 @@ chrome.runtime.onInstalled.addListener((details) => {
   chrome.alarms.create("qalqan_db_update", { periodInMinutes: 1440 });
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "qalqan_db_update") fetchAndUpdateOfflineDb();
-});
-
 // On SW startup: load cached DB into memory
 loadCachedOfflineDb();
 
@@ -111,13 +107,22 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   chrome.storage.local.remove(`result_${tabId}`);
 });
 
-// --- Periodic cleanup: сағат сайын ескі жазбалар ---
-setInterval(() => {
-  const now = Date.now();
-  for (const [tabId, data] of recentChecks.entries()) {
-    if (now - data.timestamp > 3600000) recentChecks.delete(tabId);
+// --- Periodic cleanup via alarm (survives SW restart, unlike setInterval) ---
+chrome.alarms.create("qalqan_cleanup", { periodInMinutes: 60 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "qalqan_db_update") fetchAndUpdateOfflineDb();
+  if (alarm.name === "qalqan_cleanup") {
+    const now = Date.now();
+    for (const [key, data] of recentChecks.entries()) {
+      if (now - data.timestamp > 3600000) recentChecks.delete(key);
+    }
+    if (_domainCache.size > 300) {
+      const cutoff = Date.now() - DOMAIN_CACHE_TTL;
+      for (const [k, v] of _domainCache.entries()) { if (v.ts < cutoff) _domainCache.delete(k); }
+    }
   }
-}, 3600000);
+});
 
 // --- Fast pattern check (no API) — blocks known threats before page renders ---
 // Pattern-only quick check — domain lists are already in offlineCheck() via offline-db.js.
@@ -381,6 +386,57 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get(key, (result) => sendResponse(result[key] || null));
     return true;
   }
+  if (message.action === "DOM_SUSPICIOUS") {
+    const tabId = sender.tab?.id;
+    if (!tabId) return;
+    const stored = await new Promise(res => chrome.storage.local.get(`result_${tabId}`, r => res(r)));
+    const existing = stored[`result_${tabId}`];
+    const reason = message.reason;
+
+    if (reason === "credential_form_kz_brand") {
+      if (!existing || existing.verdict === "SAFE" || existing.verdict === "SUSPICIOUS") {
+        // Elevate to SUSPICIOUS — let user know there's a credential form with KZ brand
+        const elevated = {
+          verdict: "SUSPICIOUS",
+          threat_score: Math.max(existing?.threat_score || 0, 55),
+          threat_type: "phishing",
+          source: "dom_analysis",
+          detail_kk: `Беттe ${message.brand} атауы бар кіру форма анықталды`,
+          detail_ru: `На странице обнаружена форма входа с именем ${message.brand}`,
+          detail_en: `Login form with ${message.brand} brand detected on page`,
+          indicators: ["dom_credential_form", `brand_${message.brand}`],
+        };
+        if (existing?.verdict === "SUSPICIOUS" && existing?.threat_score >= 60) {
+          // Was already suspicious with moderate score — escalate
+          elevated.verdict = "DANGEROUS";
+          elevated.threat_score = Math.min((existing.threat_score || 60) + 20, 92);
+        }
+        chrome.storage.local.set({ [`result_${tabId}`]: elevated });
+        updateBadge(tabId, elevated);
+        if (elevated.verdict === "DANGEROUS") await sendBlockCommand(tabId, elevated);
+      }
+    }
+
+    if (reason === "prize_scam_text") {
+      if (!existing || existing.verdict === "SAFE") {
+        const flagged = {
+          verdict: "SUSPICIOUS",
+          threat_score: Math.max(existing?.threat_score || 0, 45),
+          threat_type: "scam",
+          source: "dom_analysis",
+          detail_kk: "Беттe жалған ұтыс мәтіні анықталды",
+          detail_ru: "На странице обнаружен текст ложного розыгрыша",
+          detail_en: "Fake prize/lottery text detected on page",
+          indicators: ["dom_prize_text"],
+        };
+        chrome.storage.local.set({ [`result_${tabId}`]: flagged });
+        updateBadge(tabId, flagged);
+      }
+    }
+    sendResponse({ status: "noted" });
+    return true;
+  }
+
   if (message.action === "FINGERPRINT_DETECTED") {
     chrome.notifications.create(`fp_${Date.now()}`, {
       type: "basic",
@@ -426,17 +482,17 @@ async function saveHistory(url, data) {
     if (history.length > 200) history.splice(0, history.length - 200);
     chrome.storage.local.set({ qalqan_history: history });
 
-    // Auto-whitelist: domain checked SAFE 3+ times → add to user whitelist
-    if (data.verdict === "SAFE" && data.source !== "user_whitelist" && data.source !== "offline_whitelist") {
+    // Auto-whitelist: HTTPS-only domains checked SAFE 5+ times → suggest (not silently add)
+    if (data.verdict === "SAFE" && url.startsWith("https://")
+        && data.source !== "user_whitelist" && data.source !== "offline_whitelist") {
       const safeCount = history.filter(h => h.domain === domain && h.verdict === "SAFE").length;
-      if (safeCount >= 3) {
-        const wlData = await chrome.storage.local.get("qalqan_user_whitelist");
-        const wl = wlData.qalqan_user_whitelist || [];
-        if (!wl.includes(domain)) {
-          wl.push(domain);
-          chrome.storage.local.set({ qalqan_user_whitelist: wl });
-          console.log(`Qalqan: auto-whitelisted ${domain} (${safeCount}x safe)`);
-        }
+      if (safeCount === 5) {
+        chrome.notifications.create(`autowl_${domain}`, {
+          type: "basic", iconUrl: "icons/icon48.png",
+          title: "Qalqan AI: Сенімді сайт",
+          message: `${domain} 5 рет SAFE деп танылды. Ақ тізімге қосу үшін Параметрлерге өтіңіз.`,
+          priority: 0
+        });
       }
     }
   } catch {}

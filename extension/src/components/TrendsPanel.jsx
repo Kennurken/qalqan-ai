@@ -32,14 +32,17 @@ export default function TrendsPanel({ t, onBack }) {
 
       {loading && (
         <div style={{ textAlign: "center", padding: "32px 0", color: "#64748b" }}>
-          <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="2" strokeLinecap="round" style={{ animation: "spin 1s linear infinite", display: "block", margin: "0 auto 10px" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
           <div style={{ fontSize: 12 }}>{t("checking")}</div>
         </div>
       )}
 
       {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", borderRadius: 10, padding: 12, border: "1px solid #ef444444" }}>
-          <p style={{ color: "#f87171", fontSize: 12, margin: 0 }}>⚠️ {error}</p>
+        <div style={{ background: "rgba(239,68,68,0.1)", borderRadius: 10, padding: 12, border: "1px solid rgba(239,68,68,0.27)" }}>
+          <p style={{ color: "#f87171", fontSize: 12, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {error}
+          </p>
         </div>
       )}
 
@@ -63,8 +66,9 @@ export default function TrendsPanel({ t, onBack }) {
 
           {/* Top domains */}
           <div style={{ background: "rgba(30,41,59,0.4)", borderRadius: 12, padding: 12, marginBottom: 12, border: "1px solid #334155" }}>
-            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, letterSpacing: 1 }}>
-              🔥 {t("topThreats")}
+            <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#f97316" stroke="none"><path d="M12 2C12 2 7 8 7 13a5 5 0 0 0 10 0c0-5-5-11-5-11zm0 15a3 3 0 0 1-3-3c0-2.5 3-6 3-6s3 3.5 3 6a3 3 0 0 1-3 3z"/></svg>
+              {t("topThreats")}
             </div>
             {(!data.top_domains || data.top_domains.length === 0) ? (
               <div style={{ fontSize: 12, color: "#64748b", textAlign: "center", padding: "12px 0" }}>
@@ -108,8 +112,9 @@ export default function TrendsPanel({ t, onBack }) {
           {/* Threat type breakdown */}
           {data.threat_type_counts && Object.keys(data.threat_type_counts).length > 0 && (
             <div style={{ background: "rgba(30,41,59,0.4)", borderRadius: 12, padding: 12, border: "1px solid #334155" }}>
-              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, letterSpacing: 1 }}>
-                🎯 {t("threatType")}
+              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 10, letterSpacing: 1, display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                {t("threatType")}
               </div>
               {Object.entries(data.threat_type_counts)
                 .sort((a, b) => b[1] - a[1])

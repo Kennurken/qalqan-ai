@@ -96,7 +96,10 @@ export default function LinkScannerPanel({ t, onBack }) {
           fontWeight: 700, fontSize: "14px"
         }}
       >
-        {status === "scanning" ? `⏳ ${t("scanningLinks")}` : `🔍 ${t("scanLinks")}`}
+        {status === "scanning"
+          ? <span style={{display:"flex",alignItems:"center",gap:"6px"}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation:"spin 1s linear infinite"}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>{t("scanningLinks")}</span>
+          : <span style={{display:"flex",alignItems:"center",gap:"6px"}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>{t("scanLinks")}</span>
+        }
       </button>
 
       {status === "done" && results.length === 0 && (
@@ -107,7 +110,7 @@ export default function LinkScannerPanel({ t, onBack }) {
 
       {status === "error" && (
         <p style={{ textAlign: "center", color: "#f87171", fontSize: "13px" }}>
-          ⚠️ {t("scanError")}
+          {t("scanError")}
         </p>
       )}
 
@@ -116,18 +119,21 @@ export default function LinkScannerPanel({ t, onBack }) {
           {/* Summary bar */}
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
             {stats.DANGEROUS > 0 && (
-              <span style={{ fontSize: "11px", background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                🛑 {stats.DANGEROUS} {t("dangerousLinks")}
+              <span style={{ fontSize: "11px", background: "rgba(239,68,68,0.15)", color: "#f87171", padding: "3px 8px", borderRadius: "6px", fontWeight: 700, display:"inline-flex", alignItems:"center", gap:"4px" }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3l8.66 15H3.34L12 5zm-1 5v5h2v-5h-2zm0 7v2h2v-2h-2z"/></svg>
+                {stats.DANGEROUS} {t("dangerousLinks")}
               </span>
             )}
             {stats.SUSPICIOUS > 0 && (
-              <span style={{ fontSize: "11px", background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                ⚠️ {stats.SUSPICIOUS} {t("suspiciousLinks")}
+              <span style={{ fontSize: "11px", background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "3px 8px", borderRadius: "6px", fontWeight: 700, display:"inline-flex", alignItems:"center", gap:"4px" }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {stats.SUSPICIOUS} {t("suspiciousLinks")}
               </span>
             )}
             {stats.SAFE > 0 && (
-              <span style={{ fontSize: "11px", background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "3px 8px", borderRadius: "6px", fontWeight: 700 }}>
-                ✅ {stats.SAFE} {t("safeLinks")}
+              <span style={{ fontSize: "11px", background: "rgba(16,185,129,0.15)", color: "#34d399", padding: "3px 8px", borderRadius: "6px", fontWeight: 700, display:"inline-flex", alignItems:"center", gap:"4px" }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {stats.SAFE} {t("safeLinks")}
               </span>
             )}
           </div>
@@ -176,7 +182,8 @@ export default function LinkScannerPanel({ t, onBack }) {
                 padding: "3px 8px", cursor: "pointer"
               }}
             >
-              ⬇ {t("exportReport")}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:"inline",verticalAlign:"middle",marginRight:"3px"}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              {t("exportReport")}
             </button>
           </div>
         </>

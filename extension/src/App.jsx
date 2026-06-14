@@ -56,12 +56,57 @@ const GLOBAL_CSS = `
     0%,19%,21%,23%,25%,54%,56%,100% { opacity: 1; }
     20%,24%,55% { opacity: 0.6; }
   }
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
   * { box-sizing: border-box; }
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(51,65,85,0.6); border-radius: 4px; }
   body { margin: 0; }
+  .skeleton {
+    background: linear-gradient(90deg, rgba(30,41,59,0.6) 25%, rgba(51,65,85,0.4) 50%, rgba(30,41,59,0.6) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 6px;
+  }
 `;
+
+function SkeletonLoader() {
+  return (
+    <div style={{ animation: "fadeUp 0.2s ease", padding: "4px 0" }}>
+      {/* Score card skeleton */}
+      <div style={{ background: "rgba(13,20,38,0.8)", border: "1px solid rgba(51,65,85,0.4)", borderRadius: "12px", padding: "16px", marginBottom: "8px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <div className="skeleton" style={{ width: "80px", height: "14px" }} />
+          <div className="skeleton" style={{ width: "50px", height: "22px", borderRadius: "20px" }} />
+        </div>
+        <div className="skeleton" style={{ width: "100%", height: "42px", marginBottom: "10px" }} />
+        <div className="skeleton" style={{ width: "70%", height: "12px", marginBottom: "6px" }} />
+        <div className="skeleton" style={{ width: "55%", height: "12px" }} />
+      </div>
+      {/* Factors skeleton */}
+      <div style={{ background: "rgba(13,20,38,0.6)", border: "1px solid rgba(51,65,85,0.3)", borderRadius: "10px", padding: "12px", marginBottom: "8px" }}>
+        {[85, 60, 45].map((w, i) => (
+          <div key={i} style={{ marginBottom: i < 2 ? "8px" : 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+              <div className="skeleton" style={{ width: `${w}%`, height: "10px" }} />
+              <div className="skeleton" style={{ width: "28px", height: "10px" }} />
+            </div>
+            <div className="skeleton" style={{ width: "100%", height: "4px", borderRadius: "2px" }} />
+          </div>
+        ))}
+      </div>
+      {/* Status text */}
+      <div style={{ textAlign: "center", padding: "6px 0" }}>
+        <div style={{ fontSize: "11px", color: "rgba(0,212,255,0.5)", fontFamily: "'SF Mono',monospace", letterSpacing: "1px" }}>
+          SCANNING...
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── SVG icon library ───────────────────────────────────────────────────────
 const Icon = {
@@ -115,11 +160,14 @@ const Icon = {
 export default function App() {
   const [view, setView] = useState("main");
   const [lang, setLang] = useState("kk");
+  const [onboarded, setOnboarded] = useState(true);
   const { result, loading, error, checkCurrentTab, checkText, checkScreen, sendAppeal, reset, setResult } = useCheckUrl();
 
   useEffect(() => {
-    chrome.storage.local.get("qalqan_lang", (r) => {
+    chrome.storage.local.get(["qalqan_lang", "qalqan_onboarded"], (r) => {
       if (r.qalqan_lang) setLang(r.qalqan_lang);
+      if (!r.qalqan_onboarded) setOnboarded(false);
+      else setOnboarded(true);
     });
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs?.length || !tabs[0]?.id) return;
@@ -166,13 +214,18 @@ export default function App() {
         }} />
 
         <div style={{ position: "relative", zIndex: 1, padding: "16px" }}>
-          {view === "main" && (
+          {!onboarded && (
+            <OnboardingScreen lang={lang} onLangChange={(l) => { setLang(l); chrome.storage.local.set({ qalqan_lang: l }); }} t={(k) => strings[lang]?.[k] || strings.en[k] || k} onDone={() => { chrome.storage.local.set({ qalqan_onboarded: true }); setOnboarded(true); }} />
+          )}
+          {onboarded && view === "main" && (
             <>
               <Header t={t} onStats={() => setView("stats")} onHistory={() => setView("history")}
                 onScanner={() => setView("scanner")} onTrends={() => setView("trends")}
                 onSettings={() => setView("settings")} onGoszakup={() => setView("goszakup")} />
 
-              {!result && !error && (
+              {loading && !result && <SkeletonLoader />}
+
+              {!result && !error && !loading && (
                 <div style={{ animation: "fadeUp 0.2s ease" }}>
                   <CheckButton loading={loading} onClick={() => checkCurrentTab(lang)} t={t} />
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
@@ -323,5 +376,99 @@ function NavBtn({ icon, onClick, title, color }) {
     >
       {icon}
     </button>
+  );
+}
+
+// ── Onboarding ─────────────────────────────────────────────────────────────
+function OnboardingScreen({ lang, onLangChange, t, onDone }) {
+  const features = [
+    {
+      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+      title: t("onboardFeature1Title") || "Авто-тексеру",
+      desc: t("onboardFeature1Desc") || "Сайтты ашқанда автоматты фишинг анализі",
+    },
+    {
+      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+      title: t("onboardFeature2Title") || "ҚЗ брендтер",
+      desc: t("onboardFeature2Desc") || "Kaspi, Halyk, eGov жалған сайттарын анықтайды",
+    },
+    {
+      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+      title: t("onboardFeature3Title") || "Офлайн база",
+      desc: t("onboardFeature3Desc") || "4500+ скам домен интернетсіз тексеріледі",
+    },
+  ];
+  const langs = [
+    { code: "kk", label: "ҚАЗ" },
+    { code: "ru", label: "РУС" },
+    { code: "en", label: "ENG" },
+  ];
+  return (
+    <div style={{ animation: "fadeUp 0.3s ease", textAlign: "center" }}>
+      {/* Shield hero */}
+      <div style={{
+        width: 56, height: 56, borderRadius: 14, margin: "0 auto 12px",
+        background: "linear-gradient(135deg, rgba(0,212,255,0.18), rgba(0,212,255,0.05))",
+        border: "1px solid rgba(0,212,255,0.4)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 0 24px rgba(0,212,255,0.2)",
+        color: "#00d4ff",
+      }}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+
+      <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "2px", fontFamily: "'SF Mono','Fira Code',monospace", color: "#f1f5f9", marginBottom: 4 }}>
+        QALQAN<span style={{ color: "#00d4ff" }}>.AI</span>
+      </div>
+      <div style={{ fontSize: 11, color: C.muted, letterSpacing: "1px", marginBottom: 20 }}>
+        {t("onboardSubtitle") || "Сіздің киберқорғаныс қалқаныңыз"}
+      </div>
+
+      {/* Features */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20, textAlign: "left" }}>
+        {features.map((f, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "flex-start", gap: 10,
+            background: "rgba(13,20,38,0.7)", borderRadius: 10,
+            padding: "10px 12px", border: "1px solid rgba(51,65,85,0.5)",
+          }}>
+            <div style={{ flexShrink: 0, marginTop: 1 }}>{f.icon}</div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", marginBottom: 2 }}>{f.title}</div>
+              <div style={{ fontSize: 10, color: C.muted, lineHeight: 1.4 }}>{f.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Lang selector */}
+      <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 16 }}>
+        {langs.map(l => (
+          <button key={l.code} onClick={() => onLangChange(l.code)} style={{
+            padding: "5px 14px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontWeight: 700,
+            background: lang === l.code ? "rgba(0,212,255,0.15)" : "rgba(13,20,38,0.7)",
+            border: lang === l.code ? "1px solid rgba(0,212,255,0.5)" : "1px solid rgba(51,65,85,0.5)",
+            color: lang === l.code ? "#00d4ff" : C.muted,
+            transition: "all 0.15s",
+          }}>{l.label}</button>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <button onClick={onDone} style={{
+        width: "100%", padding: "12px", borderRadius: 10, cursor: "pointer",
+        background: "linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,212,255,0.1))",
+        border: "1px solid rgba(0,212,255,0.5)", color: "#00d4ff",
+        fontSize: 13, fontWeight: 700, letterSpacing: "1px",
+        fontFamily: "'SF Mono','Fira Code',monospace",
+        boxShadow: "0 0 16px rgba(0,212,255,0.15)",
+        transition: "all 0.2s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,212,255,0.3)"; e.currentTarget.style.boxShadow = "0 0 24px rgba(0,212,255,0.3)"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,212,255,0.1))"; e.currentTarget.style.boxShadow = "0 0 16px rgba(0,212,255,0.15)"; }}
+      >
+        {t("onboardStart") || "БАСТАУ →"}
+      </button>
+    </div>
   );
 }

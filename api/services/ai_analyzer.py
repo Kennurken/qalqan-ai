@@ -407,11 +407,12 @@ async def analyze_url(url: str, context: dict | None = None) -> dict:
 
 async def analyze_text(text: str) -> dict:
     """Мәтін тексеру: Groq → Gemini → fallback."""
-    result = await _call_groq(SYSTEM_PROMPT_TEXT, f"Analyze this text: {text}")
+    safe_text = _sanitize_for_prompt(text, max_len=1000)
+    result = await _call_groq(SYSTEM_PROMPT_TEXT, f"Analyze this text: {safe_text}")
     if result and result.get("source") != "ai_error":
         return result
 
-    result2 = await _call_gemini(SYSTEM_PROMPT_TEXT, f"Мәтін: {text}")
+    result2 = await _call_gemini(SYSTEM_PROMPT_TEXT, f"Мәтін: {safe_text}")
     if result2 and result2.get("source") != "ai_error":
         return result2
 

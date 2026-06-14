@@ -426,3 +426,51 @@ function _render(data, lang) {
     }
   });
 }
+
+// ═══════════════ Passive DOM Security Scan ═══════════════
+// Runs after page load — detects suspicious page patterns without API calls
+const _KZ_BRANDS_DOM = ['kaspi', 'halyk', 'egov', 'salyk', 'kcell', 'beeline',
+                         'jysan', 'bereke', 'kolesa', 'tengri', 'homebank'];
+const _PRIZE_KW_DOM  = ['вы выиграли', 'сіз ұтып', 'you won', 'ұтып алдыңыз',
+                         'получите приз', 'бонус активирован', 'ваш приз'];
+
+function _passiveDomScan() {
+  if (isBlocked) return; // already blocked — no need
+  try {
+    const title = (document.title || '').toLowerCase();
+    const bodyText = (document.body?.innerText || '').slice(0, 3000).toLowerCase();
+
+    const hasPasswordInput = !!document.querySelector('input[type="password"]');
+    const matchedBrand = _KZ_BRANDS_DOM.find(b => title.includes(b) || bodyText.includes(b));
+
+    // Credential harvesting: password form + KZ brand on non-official domain
+    if (hasPasswordInput && matchedBrand) {
+      try {
+        chrome.runtime.sendMessage({
+          action: 'DOM_SUSPICIOUS',
+          reason: 'credential_form_kz_brand',
+          brand: matchedBrand,
+          title: document.title.slice(0, 80),
+        });
+      } catch {}
+    }
+
+    // Fake prize / lottery scam text
+    const hasPrize = _PRIZE_KW_DOM.some(k => bodyText.includes(k));
+    if (hasPrize) {
+      try {
+        chrome.runtime.sendMessage({
+          action: 'DOM_SUSPICIOUS',
+          reason: 'prize_scam_text',
+        });
+      } catch {}
+    }
+  } catch {}
+}
+
+// Run after DOM ready
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(_passiveDomScan, 1500); // slight delay for dynamic content
+} else {
+  window.addEventListener('load', () => setTimeout(_passiveDomScan, 1500), { once: true });
+}

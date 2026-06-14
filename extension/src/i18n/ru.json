@@ -82,5 +82,13 @@
   "topThreats": "Топ угроз",
   "noTrends": "Нет трендов",
   "autoReported": "Авто-заблокировано",
-  "reports": "жалоб"
+  "reports": "жалоб",
+  "onboardSubtitle": "Ваш киберщит",
+  "onboardFeature1Title": "Авто-проверка",
+  "onboardFeature1Desc": "Анализ фишинга при открытии сайта",
+  "onboardFeature2Title": "КЗ бренды",
+  "onboardFeature2Desc": "Обнаружение подделок Kaspi, Halyk, eGov",
+  "onboardFeature3Title": "Офлайн база",
+  "onboardFeature3Desc": "4500+ скам-доменов без интернета",
+  "onboardStart": "НАЧАТЬ →"
 }

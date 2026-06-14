@@ -6,7 +6,12 @@ import { C } from "../App";
 import { PanelHeader } from "./StatsPanel";
 
 const VERDICT_COLORS = { DANGEROUS: "#f87171", SUSPICIOUS: "#fbbf24", SAFE: "#34d399" };
-const VERDICT_ICONS  = { DANGEROUS: "⛔", SUSPICIOUS: "⚠️", SAFE: "✅" };
+const VERDICT_ICONS  = { DANGEROUS: "■", SUSPICIOUS: "▲", SAFE: "●" };
+
+function domainOf(item) {
+  if (item.domain) return item.domain;
+  try { return new URL(item.url).hostname.replace(/^www\./, ""); } catch { return item.url || ""; }
+}
 
 function ScoreBar({ score, color }) {
   return (
@@ -80,14 +85,14 @@ export default function HistoryPanel({ t, onBack }) {
     a.download = `qalqan_history_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    setExportMsg("✅ CSV saved!");
+    setExportMsg("✓ CSV saved!");
     setTimeout(() => setExportMsg(""), 2000);
   };
 
   const recheck = (url) => {
     const fullUrl = url.startsWith("http") ? url : `https://${url}`;
     chrome.runtime.sendMessage({ action: "MANUAL_CHECK", url: fullUrl });
-    setExportMsg("🔄 Rechecking...");
+    setExportMsg("↻ Rechecking...");
     setTimeout(() => setExportMsg(""), 1500);
   };
 
@@ -212,7 +217,7 @@ export default function HistoryPanel({ t, onBack }) {
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       fontWeight: 600,
                     }}>
-                      {item.domain || item.url}
+                      {domainOf(item)}
                     </div>
                     <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "2px" }}>
                       <span style={{ fontSize: "9px", color: "#334155" }}>{item.time}</span>
@@ -245,7 +250,7 @@ export default function HistoryPanel({ t, onBack }) {
                       cursor: "pointer", fontSize: "12px", padding: "2px", flexShrink: 0,
                     }}
                   >
-                    🔄
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                   </button>
                 </div>
               );

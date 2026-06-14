@@ -48,9 +48,11 @@ export default function WhitelistPanel({ t, onBack }) {
       <button onClick={addCurrentSite} style={{
         width: "100%", padding: "10px", marginBottom: "10px",
         background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)",
-        borderRadius: "8px", color: "#34d399", cursor: "pointer", fontSize: "13px", fontWeight: 600
+        borderRadius: "8px", color: "#34d399", cursor: "pointer", fontSize: "13px", fontWeight: 600,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: "6px"
       }}>
-        ✅ {t("addCurrentSite")}
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {t("addCurrentSite")}
       </button>
 
       {/* Manual add */}
@@ -84,7 +86,10 @@ export default function WhitelistPanel({ t, onBack }) {
             padding: "8px 10px", marginBottom: "4px",
             background: "rgba(30,41,59,0.4)", borderRadius: "6px"
           }}>
-            <span style={{ fontSize: "13px", color: "#e2e8f0" }}>🌐 {d}</span>
+            <span style={{ fontSize: "13px", color: "#e2e8f0", display: "flex", alignItems: "center", gap: "5px" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              {d}
+            </span>
             <button onClick={() => removeDomain(d)} style={{
               background: "transparent", border: "none", color: "#ef4444",
               cursor: "pointer", fontSize: "16px", padding: "0 4px"

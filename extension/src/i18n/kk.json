@@ -82,5 +82,13 @@
   "topThreats": "Жиі табылған қауіптер",
   "noTrends": "Трендтер жоқ",
   "autoReported": "Автоматты бұғатталған",
-  "reports": "шағым"
+  "reports": "шағым",
+  "onboardSubtitle": "Сіздің киберқорғаныс қалқаныңыз",
+  "onboardFeature1Title": "Авто-тексеру",
+  "onboardFeature1Desc": "Сайтты ашқанда автоматты фишинг анализі",
+  "onboardFeature2Title": "ҚЗ брендтер",
+  "onboardFeature2Desc": "Kaspi, Halyk, eGov жалған сайттарын анықтайды",
+  "onboardFeature3Title": "Офлайн база",
+  "onboardFeature3Desc": "4500+ скам домен интернетсіз тексеріледі",
+  "onboardStart": "БАСТАУ →"
 }

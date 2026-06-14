@@ -17,6 +17,7 @@ const C = {
   white:   "#f8fafc",
   gray:    "#94a3b8",
   lgray:   "#cbd5e1",
+  cyan:    "#00d4ff",
 };
 
 const VERDICT_COLOR = { DANGEROUS: C.red, SUSPICIOUS: C.amber, SAFE: C.green, UNKNOWN: C.gray };

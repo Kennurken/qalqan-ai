@@ -82,5 +82,13 @@
   "topThreats": "Top Detected Threats",
   "noTrends": "No trends yet",
   "autoReported": "Auto-blocked",
-  "reports": "reports"
+  "reports": "reports",
+  "onboardSubtitle": "Your cyber defense shield",
+  "onboardFeature1Title": "Auto-scan",
+  "onboardFeature1Desc": "Phishing analysis on every page visit",
+  "onboardFeature2Title": "KZ brands",
+  "onboardFeature2Desc": "Detects fake Kaspi, Halyk, eGov sites",
+  "onboardFeature3Title": "Offline DB",
+  "onboardFeature3Desc": "4500+ scam domains checked without internet",
+  "onboardStart": "GET STARTED →"
 }

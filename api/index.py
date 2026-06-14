@@ -10,7 +10,6 @@ import logging
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator, Field
 
@@ -33,6 +32,18 @@ _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
     re.IGNORECASE
 )
+
+_VALID_IP_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$|^[0-9a-fA-F:]+$")
+
+
+def _get_client_ip(req: Request) -> str:
+    """Real client IP — prefers X-Forwarded-For (Vercel proxies real IP there)."""
+    xff = req.headers.get("x-forwarded-for", "")
+    if xff:
+        ip = xff.split(",")[0].strip()
+        if _VALID_IP_RE.match(ip):
+            return ip
+    return req.client.host if req.client else "unknown"
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -73,12 +84,9 @@ def _cors_origin_allowed(origin: str) -> bool:
         return True
     return origin in _ALLOWED_ORIGINS
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],            # FastAPI CORS doesn't support prefix match —
-    allow_methods=["GET", "POST", "OPTIONS"],   # we enforce origin in middleware below
-    allow_headers=["Content-Type"],
-)
+_CORS_ALLOW_HEADERS = {"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                       "Access-Control-Allow-Headers": "Content-Type",
+                       "Access-Control-Max-Age": "86400"}
 
 # --- Rate Limits (per IP, per endpoint, 60s window via Redis) ---
 RATE_LIMIT_CHECK = 30    # /check: 30 req/min
@@ -87,15 +95,30 @@ RATE_LIMIT_APPEAL = 5    # /appeal: 5 req/min
 RATE_LIMIT_REPORT = 3    # /report: 3 req/min
 
 
-# --- Origin enforcement middleware (CORS fix #1) ---
+# --- CORS + origin enforcement (replaces CORSMiddleware — handles chrome-extension:// prefix) ---
 @app.middleware("http")
 async def enforce_origin(request: Request, call_next):
-    """Block browser requests from non-extension origins. CLI/curl (no Origin) always allowed."""
+    """Full CORS handler + origin gate. No CORSMiddleware needed."""
     origin = request.headers.get("origin", "")
-    if origin and not _cors_origin_allowed(origin):
+    allowed = not origin or _cors_origin_allowed(origin)
+
+    # OPTIONS preflight — block disallowed origins before they probe the API
+    if request.method == "OPTIONS":
+        if allowed and origin:
+            return JSONResponse(status_code=200, content={},
+                                headers={**_CORS_ALLOW_HEADERS, "Access-Control-Allow-Origin": origin})
+        return JSONResponse(status_code=403, content={"error": "Origin not allowed"})
+
+    if not allowed:
         logger.warning(f"Blocked request from disallowed origin: {origin}")
         return JSONResponse(status_code=403, content={"error": "Origin not allowed"})
-    return await call_next(request)
+
+    response = await call_next(request)
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
 
 
 # --- Request Logging Middleware ---
@@ -399,7 +422,7 @@ async def root():
 @app.post("/check")
 async def check_site(request: CheckRequest, req: Request):
     # Rate limit
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={
             "error": "Rate limit exceeded", "detail": "Max 30 requests per minute"
@@ -542,8 +565,8 @@ async def check_site(request: CheckRequest, req: Request):
 # --- МӘТІН ТЕКСЕРУ ---
 @app.post("/check-text")
 async def check_text(request: TextCheckRequest, req: Request):
-    client_ip = req.client.host if req.client else "unknown"
-    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check_text"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
     text = request.text
@@ -586,7 +609,7 @@ async def check_text(request: TextCheckRequest, req: Request):
 @app.post("/batch")
 async def check_batch(request: BatchRequest, req: Request):
     """Check up to 15 URLs in parallel. Returns list of verdicts."""
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
@@ -664,7 +687,7 @@ async def check_batch(request: BatchRequest, req: Request):
 # --- СКРИНШОТ ТЕКСЕРУ ---
 @app.post("/analyze-screen")
 async def check_screen(request: ScreenRequest, req: Request):
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     # Fix #3: separate rate limit key + lower limit (5/min, not shared with /check)
     if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="screen"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 5 screenshot analyses per minute."})
@@ -676,7 +699,7 @@ async def check_screen(request: ScreenRequest, req: Request):
 # --- АПЕЛЛЯЦИЯ ---
 @app.post("/appeal")
 async def appeal(request: AppealRequest, req: Request):
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_APPEAL, endpoint="appeal"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     result = await send_appeal(request.url, request.reason)
@@ -717,7 +740,7 @@ def _save_reports(reports: dict):
 
 @app.post("/report")
 async def report_site(request: ReportRequest, req: Request):
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     # Fix #4: separate rate limit key (was "appeal:", now "report:")
     if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 3 reports per minute."})
@@ -729,11 +752,12 @@ async def report_site(request: ReportRequest, req: Request):
 
     reports[domain]["count"] += 1
     reports[domain]["types"].append(request.threat_type)
-    # Fix #9: track unique IPs — require reports from 10 unique IPs before auto-block
-    # This prevents a single attacker from mass-reporting a legitimate domain
+    # Hash IP before storing (privacy — GDPR / KZ ЗоПД compliance)
+    from hashlib import md5 as _md5
+    ip_hash = _md5(client_ip.encode()).hexdigest()[:16]
     unique_ips: list = reports[domain].setdefault("unique_ips", [])
-    if client_ip not in unique_ips:
-        unique_ips.append(client_ip)
+    if ip_hash not in unique_ips:
+        unique_ips.append(ip_hash)
 
     # Fix #9: threshold raised to 10 AND requires 3+ unique IPs
     auto_blocked = reports[domain]["count"] >= 10 and len(unique_ips) >= 3
@@ -844,7 +868,7 @@ async def health():
 async def get_features(request: FeatureRequest, req: Request):
     """Extract 30+ ML features from URL (no HTTP request, pure lexical analysis).
     Use for: ML model training, feature importance analysis, dataset building."""
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     return extract_features(request.url)
@@ -854,7 +878,7 @@ async def get_features(request: FeatureRequest, req: Request):
 async def check_research(request: CheckRequest, req: Request):
     """Full research output: all features, all scores, explanation, metadata.
     Use for: paper benchmarks, ablation studies, system evaluation."""
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
@@ -948,7 +972,7 @@ async def check_research(request: CheckRequest, req: Request):
 @app.post("/evaluate")
 async def evaluate(req: Request):
     """Run benchmark on built-in test dataset. Returns accuracy, F1, MCC, per-URL results."""
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, 5, endpoint="eval"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
@@ -965,11 +989,13 @@ async def telegram_webhook(req: Request):
     """
     # Verify secret token (set when registering webhook via setWebhook)
     secret = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
-    if secret:
-        incoming = req.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-        if incoming != secret:
-            logger.warning("Telegram webhook: invalid secret token")
-            return JSONResponse(status_code=403, content={"error": "Forbidden"})
+    if not secret:
+        logger.warning("Telegram webhook called but TELEGRAM_WEBHOOK_SECRET not configured")
+        return JSONResponse(status_code=403, content={"error": "Webhook not configured"})
+    incoming = req.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if incoming != secret:
+        logger.warning("Telegram webhook: invalid secret token")
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
 
     try:
         update = await req.json()
@@ -1049,7 +1075,7 @@ async def goszakup_analyse(request: GoszakupRequest, req: Request):
     Accepts raw tender/supplier data JSON and returns fraud verdict + red flags.
     10 detection rules: monopoly, inflated pricing, shell company, tailored specs, etc.
     """
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
@@ -1062,7 +1088,9 @@ async def goszakup_analyse(request: GoszakupRequest, req: Request):
 @app.get("/goszakup/check/{tender_number}")
 async def goszakup_check_tender(tender_number: str, req: Request):
     """Fetch tender from goszakup.gov.kz by number and run fraud analysis."""
-    client_ip = req.client.host if req.client else "unknown"
+    if not re.match(r"^\d{6,20}$", tender_number):
+        return JSONResponse(status_code=422, content={"error": "Invalid tender number — digits only, 6-20 chars"})
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
@@ -1082,7 +1110,7 @@ async def generate_threat_report(req: Request, month: str | None = None):
     Returns: application/pdf
     """
     from fastapi.responses import Response
-    client_ip = req.client.host if req.client else "unknown"
+    client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, 3, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
