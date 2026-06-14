@@ -145,6 +145,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             "threat_score": 50,
             "threat_type": "unknown",
             "source": "error_handler",
+            "_debug_exc": f"{type(exc).__name__}: {str(exc)[:300]}",
+            "_debug_tb": tb[-600:],
             "detail": "Тексеру уақытша қолжетімсіз. Қайталап көріңіз.",
             "detail_kk": "Тексеру уақытша қолжетімсіз. Қайталап көріңіз.",
             "detail_ru": "Проверка временно недоступна. Повторите попытку.",
