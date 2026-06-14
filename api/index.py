@@ -9,7 +9,7 @@ import time
 import logging
 import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator, Field
 
@@ -420,7 +420,7 @@ async def root():
 
 # --- НЕГІЗГІ ТЕКСЕРУ: 6-деңгейлі pipeline ---
 @app.post("/check")
-async def check_site(request: CheckRequest, req: Request):
+async def check_site(request: CheckRequest, req: Request, background_tasks: BackgroundTasks):
     # Rate limit
     client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
@@ -546,10 +546,11 @@ async def check_site(request: CheckRequest, req: Request):
 
     # Telegram notification for dangerous sites
     if result.get("verdict") == "DANGEROUS":
-        asyncio.create_task(notify_block(url, result["verdict"], result["threat_score"], result.get("source", "")))
+        background_tasks.add_task(notify_block, url, result["verdict"], result["threat_score"], result.get("source", ""))
 
     # Supabase: async log (fire-and-forget, never blocks response)
-    asyncio.create_task(log_check(
+    background_tasks.add_task(
+        log_check,
         domain=domain,
         verdict=result["verdict"],
         score=result["threat_score"],
@@ -557,7 +558,7 @@ async def check_site(request: CheckRequest, req: Request):
         ai_used=not ai_failed,
         ai_skipped=ai_failed,
         latency_ms=result["metadata"]["processing_time_ms"],
-    ))
+    )
 
     return result
 
@@ -698,7 +699,7 @@ async def check_screen(request: ScreenRequest, req: Request):
 
 # --- АПЕЛЛЯЦИЯ ---
 @app.post("/appeal")
-async def appeal(request: AppealRequest, req: Request):
+async def appeal(request: AppealRequest, req: Request, background_tasks: BackgroundTasks):
     client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_APPEAL, endpoint="appeal"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
@@ -706,11 +707,12 @@ async def appeal(request: AppealRequest, req: Request):
 
     # Supabase: persist appeal (fire-and-forget)
     domain = extract_domain(request.url)
-    asyncio.create_task(log_appeal(
+    background_tasks.add_task(
+        log_appeal,
         domain=domain,
         verdict_received=getattr(request, "verdict", None),
         reason=request.reason,
-    ))
+    )
 
     return result
 
@@ -739,7 +741,7 @@ def _save_reports(reports: dict):
         pass
 
 @app.post("/report")
-async def report_site(request: ReportRequest, req: Request):
+async def report_site(request: ReportRequest, req: Request, background_tasks: BackgroundTasks):
     client_ip = _get_client_ip(req)
     # Fix #4: separate rate limit key (was "appeal:", now "report:")
     if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="report"):
@@ -772,14 +774,15 @@ async def report_site(request: ReportRequest, req: Request):
     result["auto_blocked"] = auto_blocked
 
     # Supabase: persist report (fire-and-forget)
-    asyncio.create_task(log_report(
+    background_tasks.add_task(
+        log_report,
         domain=domain,
         url=request.url,
         category=request.threat_type,
         comment=request.note,
         lang=getattr(request, "lang", "ru"),
         reporter_ip=client_ip,
-    ))
+    )
 
     return result
 
@@ -983,7 +986,7 @@ async def evaluate(req: Request):
 # ── Telegram Bot Webhook ──────────────────────────────────────────────────────
 
 @app.post("/telegram/webhook")
-async def telegram_webhook(req: Request):
+async def telegram_webhook(req: Request, background_tasks: BackgroundTasks):
     """Receive Telegram Bot API updates via webhook.
     Security: verified by TELEGRAM_WEBHOOK_SECRET header token.
     """
@@ -1003,7 +1006,7 @@ async def telegram_webhook(req: Request):
         return JSONResponse(status_code=400, content={"error": "Invalid JSON"})
 
     # Fire-and-forget dispatch (don't await — respond 200 to Telegram immediately)
-    asyncio.create_task(_dispatch_update(update))
+    background_tasks.add_task(_dispatch_update, update)
     return JSONResponse(status_code=200, content={"ok": True})
 
 
