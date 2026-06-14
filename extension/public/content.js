@@ -130,10 +130,14 @@ function _render(data, lang) {
   if (dd.domain_age_days !== undefined) {
     const age = dd.domain_age_days;
     const ac = age < 30 ? "#f87171" : age < 90 ? "#fbbf24" : "#64748b";
-    extraLines.push(`<span style="color:${ac}">📅 ${esc(t.domainAge)}: ${age} ${esc(t.days)}</span>`);
+    extraLines.push(`<span style="color:${ac};display:inline-flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${esc(t.domainAge)}: ${age} ${esc(t.days)}</span>`);
   }
   if (dd.ssl && t.ssl[dd.ssl.status]) {
-    extraLines.push(`<span style="color:#64748b">${t.ssl[dd.ssl.status]}</span>`);
+    const sslOk = dd.ssl.status === "valid";
+    const sslIcon = sslOk
+      ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+      : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
+    extraLines.push(`<span style="color:${sslOk ? "#22c55e" : "#f87171"};display:inline-flex;align-items:center;gap:4px;">${sslIcon} ${t.ssl[dd.ssl.status]}</span>`);
   }
 
   // CSS
@@ -210,16 +214,18 @@ function _render(data, lang) {
       background:rgba(${scoreRgb},0.1);
       border:1px solid rgba(${scoreRgb},0.3);
       display:flex;align-items:center;justify-content:center;
-      font-size:38px;position:relative;z-index:1;
+      color:${scoreHex};
+      position:relative;z-index:1;
       animation:qPulse 2.5s ease-in-out infinite;
     }
 
     #qbrand{font-size:10px;font-weight:700;letter-spacing:3px;color:${scoreHex};opacity:0.7;margin-bottom:8px;text-transform:uppercase;}
     #qtitle{font-size:clamp(20px,4vw,26px);font-weight:900;color:#f1f5f9;letter-spacing:-0.3px;line-height:1.1;}
     #qsubtitle{font-size:13px;color:#475569;margin-top:6px;line-height:1.4;}
-    #qdomain{font-size:12px;font-family:'Courier New',monospace;color:rgba(${scoreRgb},0.75);
+    #qdomain{font-size:12px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:rgba(${scoreRgb},0.75);
       background:rgba(${scoreRgb},0.07);border:1px solid rgba(${scoreRgb},0.15);
-      border-radius:6px;padding:4px 10px;margin-top:8px;word-break:break-all;max-width:100%;}
+      border-radius:6px;padding:5px 12px;margin-top:8px;word-break:break-all;max-width:100%;
+      display:inline-flex;align-items:center;gap:6px;}
 
     /* ── Metrics row ── */
     #qmetrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
@@ -228,10 +234,10 @@ function _render(data, lang) {
       border:1px solid rgba(${scoreRgb},0.12);
       border-radius:14px;padding:14px 16px;
     }
-    .qm-label{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#334155;margin-bottom:6px;}
+    .qm-label{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#475569;margin-bottom:6px;font-family:'SF Mono','Fira Code',monospace;}
     .qm-score{display:flex;align-items:baseline;gap:4px;}
     .qm-num{font-size:32px;font-weight:900;color:${scoreHex};line-height:1;}
-    .qm-denom{font-size:16px;font-weight:600;color:#334155;}
+    .qm-denom{font-size:16px;font-weight:600;color:#475569;}
     .qm-type{font-size:14px;font-weight:700;color:#f87171;line-height:1.3;margin-top:4px;}
 
     /* Score arc */
@@ -246,7 +252,7 @@ function _render(data, lang) {
       border:1px solid rgba(255,255,255,0.05);
       border-radius:14px;padding:16px;margin-bottom:14px;
     }
-    .qr-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#334155;margin-bottom:8px;}
+    .qr-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;margin-bottom:8px;font-family:'SF Mono','Fira Code',monospace;display:flex;align-items:center;gap:6px;}
     .qr-text{font-size:13px;color:#94a3b8;line-height:1.65;}
     .qr-extras{font-size:12px;color:#475569;margin-top:8px;display:flex;flex-direction:column;gap:3px;}
     .qtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
@@ -256,37 +262,41 @@ function _render(data, lang) {
     }
 
     /* ── Source line ── */
-    #qsource{font-size:11px;color:#1e293b;text-align:center;margin-bottom:20px;
-      background:rgba(0,0,0,0.15);border-radius:8px;padding:7px 12px;}
+    #qsource{font-size:11px;color:#475569;text-align:center;margin-bottom:16px;
+      background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.04);
+      border-radius:8px;padding:7px 12px;font-family:'SF Mono','Fira Code',monospace;
+      display:flex;align-items:center;justify-content:center;gap:6px;}
 
     /* ── Back button — only action ── */
     #qback{
       width:100%;
-      background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);
-      color:#fff;border:none;
-      padding:16px 28px;
-      border-radius:14px;
-      cursor:pointer;font-weight:700;font-size:15px;
-      font-family:inherit;letter-spacing:0.2px;
-      box-shadow:0 4px 20px rgba(59,130,246,0.35);
-      transition:transform 0.18s,box-shadow 0.18s,background 0.18s;
+      background:rgba(0,212,255,0.08);
+      color:#00d4ff;
+      border:1.5px solid rgba(0,212,255,0.5);
+      padding:15px 28px;
+      border-radius:12px;
+      cursor:pointer;font-weight:700;font-size:14px;
+      font-family:'SF Mono','Fira Code','Consolas',monospace;
+      letter-spacing:1.5px;text-transform:uppercase;
+      box-shadow:0 0 20px rgba(0,212,255,0.12);
+      transition:all 0.2s;
       position:relative;overflow:hidden;
     }
     #qback::before{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(135deg,rgba(255,255,255,0.12),transparent);
-      opacity:0;transition:opacity 0.18s;
+      content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(0,212,255,0.1),transparent);
+      transition:left 0.4s;
     }
     #qback:hover{
-      transform:translateY(-2px);
-      box-shadow:0 8px 36px rgba(59,130,246,0.55);
-      background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);
+      background:rgba(0,212,255,0.14);
+      box-shadow:0 0 32px rgba(0,212,255,0.25),inset 0 0 20px rgba(0,212,255,0.04);
+      border-color:#00d4ff;
     }
-    #qback:hover::before{opacity:1;}
-    #qback:active{transform:translateY(0);box-shadow:0 4px 16px rgba(59,130,246,0.35);}
+    #qback:hover::before{left:200%;}
+    #qback:active{transform:scale(0.98);}
 
     /* ── Appeal ── */
-    #qappeal{font-size:11px;color:#1e293b;text-align:center;margin-top:16px;line-height:1.55;}
+    #qappeal{font-size:11px;color:#334155;text-align:center;margin-top:14px;line-height:1.55;}
 
     /* ── Animations ── */
     @keyframes qSlideIn{
@@ -332,12 +342,22 @@ function _render(data, lang) {
         <div id="qheader">
           <div id="qshield-wrap">
             <div id="qshield-ring"></div>
-            <div id="qshield-icon">🛡️</div>
+            <div id="qshield-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/><line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/>
+              </svg>
+            </div>
           </div>
           <div id="qbrand">${esc(t.brand)}</div>
-          <div id="qtitle">⛔ ${esc(t.blocked)}</div>
+          <div id="qtitle">${esc(t.blocked)}</div>
           <div id="qsubtitle">${esc(t.subtitle)}</div>
-          ${domainDisplay ? `<div id="qdomain">🌐 ${domainDisplay}</div>` : ""}
+          ${domainDisplay ? `<div id="qdomain">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            ${domainDisplay}
+          </div>` : ""}
         </div>
 
         <div id="qmetrics">
@@ -360,23 +380,32 @@ function _render(data, lang) {
         </div>
 
         <div id="qreason">
-          <div class="qr-label">🔍 ${esc(t.detectedThreat)}</div>
+          <div class="qr-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            ${esc(t.detectedThreat)}
+          </div>
           <div class="qr-text">${reason}</div>
           ${extraHTML ? `<div class="qr-extras">${extraHTML}</div>` : ""}
           ${tagHTML ? `<div class="qtags">${tagHTML}</div>` : ""}
         </div>
 
-        <div id="qsource">🔬 ${esc(t.dataSource)}: ${srcName}</div>
+        <div id="qsource">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          ${esc(t.dataSource)}: ${srcName}
+        </div>
 
         <button id="qback">${esc(t.back)}</button>
 
         ${ttKey === "gambling" ? `<div style="margin-top:14px;padding:10px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;text-align:center;">
-          <div style="font-size:11px;color:#34d399;font-weight:600;margin-bottom:4px;">${lang === "kk" ? "🆘 Лудомания — емделетін ауру" : lang === "ru" ? "🆘 Лудомания — это болезнь, которую лечат" : "🆘 Gambling addiction is treatable"}</div>
+          <div style="font-size:11px;color:#22c55e;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:5px;justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.88-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            ${lang === "kk" ? "Лудомания — емделетін ауру" : lang === "ru" ? "Лудомания — это болезнь, которую лечат" : "Gambling addiction is treatable"}
+          </div>
           <div style="font-size:11px;color:#94a3b8;">${lang === "kk" ? "Тегін психологиялық көмек:" : lang === "ru" ? "Бесплатная психологическая помощь:" : "Free helpline (Kazakhstan):"} <strong style="color:#f8fafc;">8-800-080-88-87</strong></div>
         </div>` : ""}
 
         <p id="qappeal">${esc(t.appeal)}</p>
-        <p style="font-size:10px;color:#1e293b;text-align:center;margin-top:8px;">⌨️ ESC — ${esc(t.back)}</p>
+        <p style="font-size:10px;color:#334155;text-align:center;margin-top:8px;font-family:'SF Mono','Fira Code',monospace;letter-spacing:0.5px;">ESC → ${esc(t.back)}</p>
       </div>
     </div>
   `;
