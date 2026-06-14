@@ -75,14 +75,14 @@ async def _redis_set(key: str, value: dict, ttl: int) -> None:
 
 
 async def _redis_set_proper(key: str, value: dict, ttl: int) -> None:
-    """POST-based SET with EX — handles large payloads and special chars safely."""
+    """Pipeline SET with EX — stores only the JSON payload, not the command array."""
     try:
         payload = json.dumps(value, ensure_ascii=False)
         async with httpx.AsyncClient(timeout=3) as client:
             await client.post(
-                f"{_redis_url()}/set/{_redis_key(key)}",
+                f"{_redis_url()}/pipeline",
                 headers={**_redis_headers(), "Content-Type": "application/json"},
-                json=["SET", _redis_key(key), payload, "EX", str(ttl)],
+                json=[["SET", _redis_key(key), payload, "EX", str(ttl)]],
             )
     except Exception as e:
         logger.warning(f"Redis SET failed: {e}")
@@ -112,7 +112,7 @@ def _mem_set(key: str, result: dict, ttl: int) -> None:
 async def get_cached(key: str) -> dict | None:
     if _redis_available():
         result = await _redis_get(key)
-        if result:
+        if result and isinstance(result, dict):
             result["cached"] = True
             return result
         return None
