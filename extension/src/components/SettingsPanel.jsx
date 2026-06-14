@@ -1,6 +1,8 @@
 // Qalqan AI v5.0
 
 import { useState, useEffect } from "react";
+import { C } from "../App";
+import { PanelHeader } from "./StatsPanel";
 
 export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhitelist }) {
   const [theme, setTheme] = useState("dark");
@@ -54,18 +56,7 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <button onClick={onBack} style={{
-          background: "transparent", color: "#94a3b8", border: "none",
-          cursor: "pointer", fontSize: "14px"
-        }}>
-          ← {t("back")}
-        </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>
-          ⚙️ {t("settings")}
-        </span>
-        <div style={{ width: 40 }} />
-      </div>
+      <PanelHeader onBack={onBack} title={t("settings")} t={t} />
 
       <div style={{
         background: "rgba(30,41,59,0.6)", borderRadius: "12px",

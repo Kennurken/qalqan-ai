@@ -3,6 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { API_URL } from "../config";
+import { C } from "../App";
+import { PanelHeader } from "./StatsPanel";
 
 export default function TrendsPanel({ t, onBack }) {
   const [data, setData] = useState(null);
@@ -26,16 +28,7 @@ export default function TrendsPanel({ t, onBack }) {
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: 14 }}>
-          ← {t("back")}
-        </button>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>
-          📈 {t("trends")}
-        </span>
-        <div style={{ width: 40 }} />
-      </div>
+      <PanelHeader onBack={onBack} title={t("trends")} t={t} />
 
       {loading && (
         <div style={{ textAlign: "center", padding: "32px 0", color: "#64748b" }}>

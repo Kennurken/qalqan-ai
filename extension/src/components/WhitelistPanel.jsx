@@ -2,6 +2,8 @@
 // User whitelist manager — add/remove trusted domains
 
 import { useState, useEffect } from "react";
+import { C } from "../App";
+import { PanelHeader } from "./StatsPanel";
 
 export default function WhitelistPanel({ t, onBack }) {
   const [domains, setDomains] = useState([]);
@@ -40,16 +42,7 @@ export default function WhitelistPanel({ t, onBack }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-        <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "14px" }}>
-          ← {t("back")}
-        </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>
-          ✅ {t("whitelist")}
-          {domains.length > 0 && <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 400 }}> ({domains.length})</span>}
-        </span>
-        <div style={{ width: 40 }} />
-      </div>
+      <PanelHeader onBack={onBack} title={`${t("whitelist")}${domains.length > 0 ? ` (${domains.length})` : ""}`} t={t} />
 
       {/* Add current site */}
       <button onClick={addCurrentSite} style={{

@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { API_URL } from "../config";
+import { PanelHeader } from "./StatsPanel";
 
 const C = {
   bg:      "#020617",
@@ -60,17 +61,7 @@ export default function GoszakupPanel({ t, onBack }) {
 
   return (
     <div style={{ padding: "10px 0" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-        <button
-          onClick={onBack}
-          style={{ background: "none", border: `1px solid ${C.border}`, color: C.gray,
-                   borderRadius: "4px", cursor: "pointer", padding: "2px 8px", fontSize: "12px" }}
-        >← {t("back") || "Back"}</button>
-        <span style={{ color: C.green, fontWeight: "bold", fontSize: "14px" }}>
-          ■ ГОСЗАКУПКИ FRAUD CHECK
-        </span>
-      </div>
+      <PanelHeader onBack={onBack} title="ГОСЗАКУПКИ FRAUD CHECK" />
 
       {/* Description */}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "6px",

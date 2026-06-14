@@ -2,6 +2,8 @@
 // History Panel — search, filter, CSV export, re-check
 
 import { useState, useEffect, useMemo } from "react";
+import { C } from "../App";
+import { PanelHeader } from "./StatsPanel";
 
 const VERDICT_COLORS = { DANGEROUS: "#f87171", SUSPICIOUS: "#fbbf24", SAFE: "#34d399" };
 const VERDICT_ICONS  = { DANGEROUS: "⛔", SUSPICIOUS: "⚠️", SAFE: "✅" };
@@ -92,31 +94,30 @@ export default function HistoryPanel({ t, onBack }) {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-        <button onClick={onBack} style={{
-          background: "transparent", color: "#64748b", border: "none",
-          cursor: "pointer", fontSize: "14px", padding: "4px 0",
-        }}>
-          ← {t("back")}
-        </button>
-        <span style={{ fontSize: "15px", fontWeight: 700, color: "#f1f5f9" }}>
-          📜 {t("history")}
-        </span>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+        <PanelHeader onBack={onBack} title={t("history")} t={t} />
+        <div style={{ display: "flex", gap: 5, alignItems: "center", marginLeft: "auto" }}>
           {filtered.length > 0 && (
             <button onClick={exportCSV} title="Export CSV" style={{
-              background: "rgba(99,102,241,0.12)", color: "#818cf8",
-              border: "1px solid rgba(99,102,241,0.2)", cursor: "pointer",
-              fontSize: "9px", padding: "3px 7px", borderRadius: "5px", fontWeight: 700,
+              background: "rgba(0,212,255,0.08)", color: "#00d4ff",
+              border: "1px solid rgba(0,212,255,0.2)", cursor: "pointer",
+              fontSize: "9px", padding: "3px 8px", borderRadius: "5px", fontWeight: 700,
+              letterSpacing: "0.5px",
             }}>
               CSV
             </button>
           )}
           <button onClick={clearHistory} title={t("clearHistory")} style={{
             background: "transparent", color: "#475569", border: "none",
-            cursor: "pointer", fontSize: "13px", padding: "2px",
-          }}>
-            🗑
+            cursor: "pointer", fontSize: "12px", padding: "2px",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = "#ff8096"}
+          onMouseLeave={e => e.currentTarget.style.color = "#475569"}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
           </button>
         </div>
       </div>

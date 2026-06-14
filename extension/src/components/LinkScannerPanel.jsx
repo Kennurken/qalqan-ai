@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { API_URL } from "../config";
+import { C } from "../App";
+import { PanelHeader } from "./StatsPanel";
 
 export default function LinkScannerPanel({ t, onBack }) {
   const [status, setStatus] = useState("idle"); // idle | scanning | done | error
@@ -81,13 +83,7 @@ export default function LinkScannerPanel({ t, onBack }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-        <button onClick={onBack} style={{ background: "transparent", color: "#94a3b8", border: "none", cursor: "pointer", fontSize: "14px" }}>
-          ← {t("back")}
-        </button>
-        <span style={{ fontSize: "16px", fontWeight: 700, color: "#f1f5f9" }}>🔗 {t("linkScanner")}</span>
-        <div style={{ width: 40 }} />
-      </div>
+      <PanelHeader onBack={onBack} title={t("linkScanner")} t={t} />
 
       <button
         onClick={scan}
