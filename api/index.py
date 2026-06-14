@@ -8,6 +8,7 @@ import re
 import time
 import logging
 import asyncio
+import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -135,7 +136,8 @@ async def log_requests(request: Request, call_next):
 # --- Global Exception Handler ---
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception on {request.url.path}: {type(exc).__name__}: {str(exc)[:200]}")
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error(f"UNHANDLED {type(exc).__name__} on {request.url.path}: {str(exc)[:300]}\nTRACEBACK:\n{tb[-800:]}")
     return JSONResponse(
         status_code=500,
         content={
