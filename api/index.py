@@ -763,13 +763,13 @@ async def report_site(request: ReportRequest, req: Request):
 # --- СТАТИСТИКА ---
 @app.get("/stats")
 async def get_stats():
-    from .utils.cache import _cache
+    from .utils.cache import _mem
     reports = _load_reports()
     return {
         "total_reported_domains": len(reports),
         "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 10 and len(r.get("unique_ips", [])) >= 3),
         "whitelist_size": len(_whitelist),
-        "cache_entries": len(_cache),
+        "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
         "version": "5.1.0",
         "features": [
