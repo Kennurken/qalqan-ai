@@ -503,10 +503,21 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
             return result
 
     # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
-    db_results, domain_info = await asyncio.gather(
-        check_all_databases(url),
-        check_domain_intelligence(domain, url)
-    )
+    try:
+        _t2 = await asyncio.gather(
+            check_all_databases(url),
+            check_domain_intelligence(domain, url),
+            return_exceptions=True,
+        )
+        db_results = _t2[0] if isinstance(_t2[0], list) else []
+        domain_info = _t2[1] if isinstance(_t2[1], dict) else None
+        if isinstance(_t2[0], BaseException):
+            logger.error(f"check_all_databases raised: {type(_t2[0]).__name__}: {_t2[0]}")
+        if isinstance(_t2[1], BaseException):
+            logger.error(f"check_domain_intelligence raised: {type(_t2[1]).__name__}: {_t2[1]}")
+    except BaseException as e:
+        logger.error(f"Tier2 gather failed: {type(e).__name__}: {e}")
+        db_results, domain_info = [], None
 
     # Combine DB results
     all_db = db_results + ([domain_info] if domain_info else [])
@@ -669,10 +680,13 @@ async def check_batch(request: BatchRequest, req: Request):
                 await set_cached(key, r)
                 return {**r, "url": url}
 
-            db_results, domain_info = await asyncio.gather(
+            _t2b = await asyncio.gather(
                 check_all_databases(url),
-                check_domain_intelligence(domain, url)
+                check_domain_intelligence(domain, url),
+                return_exceptions=True,
             )
+            db_results = _t2b[0] if isinstance(_t2b[0], list) else []
+            domain_info = _t2b[1] if isinstance(_t2b[1], dict) else None
             ai_result = await analyze_url(url, context=url_feats)
             r = calculate_final_verdict(db_results, ai_result, None,
                                         domain_info=domain_info, url_features=url_feats, lang=lang)
@@ -899,11 +913,15 @@ async def check_research(request: CheckRequest, req: Request):
     kz_hit = check_kz_impersonation_url(domain)
     gambling_hit = check_gambling_domain(domain)
     # Fix #8: pass url_feats context to AI for better accuracy (same as /check endpoint)
-    db_results, domain_info, ai_result = await asyncio.gather(
+    _t2r = await asyncio.gather(
         check_all_databases(url),
         check_domain_intelligence(domain, url),
-        analyze_url(url, context=url_feats)
+        analyze_url(url, context=url_feats),
+        return_exceptions=True,
     )
+    db_results = _t2r[0] if isinstance(_t2r[0], list) else []
+    domain_info = _t2r[1] if isinstance(_t2r[1], dict) else None
+    ai_result = _t2r[2] if isinstance(_t2r[2], dict) else {"source": "ai_error"}
 
     # Calculate final verdict (pyramid > kz_impersonation > gambling > blacklist > DB > AI)
     effective_hit = pyramid_hit or kz_hit or gambling_hit
