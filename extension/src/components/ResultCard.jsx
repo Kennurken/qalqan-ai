@@ -283,14 +283,14 @@ export default function ResultCard({ result, t }) {
           }}>
             {/* Risk factors */}
             {explanation.top_factors?.map((f, i) => (
-              <FactorBar key={i} label={f.factor.replace(/_/g," ")} value={f.impact} type="risk" />
+              <FactorBar key={i} label={t("factor_" + f.factor) || f.factor.replace(/_/g," ")} value={f.impact} type="risk" />
             ))}
 
             {/* Safe factors */}
             {explanation.safe_factors?.length > 0 && (
               <div style={{ marginTop: "6px", borderTop: `1px solid ${C.border}`, paddingTop: "6px" }}>
                 {explanation.safe_factors.map((f, i) => (
-                  <FactorBar key={`s${i}`} label={f.factor.replace(/_/g," ")} value={Math.abs(f.impact)} type="safe" />
+                  <FactorBar key={`s${i}`} label={t("factor_" + f.factor) || f.factor.replace(/_/g," ")} value={Math.abs(f.impact)} type="safe" />
                 ))}
               </div>
             )}

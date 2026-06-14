@@ -461,7 +461,7 @@ async def check_site(request: CheckRequest, req: Request):
     pyramid_hit = check_pyramid_domain(url)
     if pyramid_hit:
         result = calculate_final_verdict([], None, pyramid_hit, lang=lang)
-        result["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, result["threat_score"])
+        result["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, result["threat_score"], lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "pyramid_list"}
         await set_cached(key, result)
         return result
@@ -477,7 +477,7 @@ async def check_site(request: CheckRequest, req: Request):
     kz_impersonation_hit = check_kz_impersonation_url(domain)
     if kz_impersonation_hit:
         result = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
-        result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"])
+        result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"], lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "kz_impersonation"}
         await set_cached(key, result)
         return result
@@ -512,7 +512,7 @@ async def check_site(request: CheckRequest, req: Request):
     if any(r.get("verdict") == "DANGEROUS" for r in all_db):
         result = calculate_final_verdict(all_db, None, None,
                                          domain_info=domain_info, url_features=url_feats, lang=lang)
-        result["explanation"] = generate_explanation(url_feats, domain_info, db_results, None, None, result["threat_score"])
+        result["explanation"] = generate_explanation(url_feats, domain_info, db_results, None, None, result["threat_score"], lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "databases"}
         if domain_info and domain_info.get("domain_details"):
             result["domain_details"] = domain_info["domain_details"]
@@ -529,7 +529,7 @@ async def check_site(request: CheckRequest, req: Request):
         None, domain_info=domain_info, url_features=url_feats, lang=lang
     )
     result["explanation"] = generate_explanation(url_feats, domain_info, db_results,
-                                                  None if ai_failed else ai_result, None, result["threat_score"])
+                                                  None if ai_failed else ai_result, None, result["threat_score"], lang=lang)
     result["metadata"] = {
         "processing_time_ms": int((time.time() - start_time) * 1000),
         "tier_hit": "heuristics_only" if ai_failed else "ai",
@@ -644,7 +644,7 @@ async def check_batch(request: BatchRequest, req: Request):
             pyramid_hit = check_pyramid_domain(url)
             if pyramid_hit:
                 r = calculate_final_verdict([], None, pyramid_hit, lang=lang)
-                r["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, r["threat_score"])
+                r["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, r["threat_score"], lang=lang)
                 await set_cached(key, r)
                 return {**r, "url": url}
 
@@ -673,7 +673,7 @@ async def check_batch(request: BatchRequest, req: Request):
             ai_result = await analyze_url(url, context=url_feats)
             r = calculate_final_verdict(db_results, ai_result, None,
                                         domain_info=domain_info, url_features=url_feats, lang=lang)
-            r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"])
+            r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"], lang=lang)
             await set_cached(key, r)
             return {**r, "url": url}
         except Exception as e:
@@ -911,7 +911,7 @@ async def check_research(request: CheckRequest, req: Request):
 
     # Generate explanation
     explanation = generate_explanation(
-        url_feats, domain_info, db_results, ai_result, pyramid_hit, result["threat_score"]
+        url_feats, domain_info, db_results, ai_result, pyramid_hit, result["threat_score"], lang=lang
     )
 
     processing_time = int((time.time() - start_time) * 1000)

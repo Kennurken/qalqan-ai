@@ -8,7 +8,8 @@ def generate_explanation(
     db_results: list[dict],
     ai_result: dict | None,
     pyramid_hit: dict | None,
-    final_score: int
+    final_score: int,
+    lang: str = "kk"
 ) -> dict:
     """Generate human-readable explanation with factor breakdown."""
     risk_factors = []
@@ -155,7 +156,7 @@ def generate_explanation(
     safe_factors.sort(key=lambda x: abs(x["impact"]), reverse=True)
 
     # --- Counterfactual ---
-    counterfactual = _generate_counterfactual(risk_factors, final_score)
+    counterfactual = _generate_counterfactual(risk_factors, final_score, lang)
 
     # --- Confidence ---
     num_sources = len(set(evidence_sources))
@@ -174,21 +175,74 @@ def generate_explanation(
     }
 
 
-def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
-    """Counterfactual: 'Site would be SAFE if...'"""
-    if current_score < 40:
-        return "This site is considered safe based on current evidence."
-
-    # Find factors to remove to get below 40
-    removable = []
-    remaining_score = current_score
-    for f in risk_factors:
-        removable.append(f["factor"])
-        remaining_score -= f["impact"]
-        if remaining_score < 40:
-            break
-
-    factor_names = {
+_FACTOR_NAMES = {
+    "kk": {
+        "domain_age": "домен жасы > 365 күн",
+        "no_ssl": "жарамды SSL сертификаты",
+        "ssl_expired": "жарамды SSL сертификаты",
+        "ssl_self_signed": "сенімді SSL сертификаты",
+        "free_tld": "стандартты домен (.com/.kz/.org)",
+        "homoglyph_attack": "кирилл/латын аралас таңбалар жоқ",
+        "brand_impersonation": "брендке ұқсастық жоқ",
+        "brand_in_subdomain": "субдоменде бренд жоқ",
+        "ip_address_url": "тіркелген домен аты",
+        "no_https": "HTTPS қосылған",
+        "url_shortener": "URL қысқартқыш сервис емес",
+        "non_standard_port": "стандартты порт (80/443)",
+        "suspicious_keywords": "URL-де күмәнді сөздер жоқ",
+        "ai_analysis": "AI анализі SAFE қайтарды",
+        "known_pyramid_scheme": "пирамида базасында жоқ",
+        "redirect_parameter": "redirect/goto параметрлер жоқ",
+        "heavy_hex_encoding": "URL шифрлауы жоқ",
+        "hex_encoding": "минималды URL кодтауы",
+        "exact_brand_free_tld": "брендке сәйкес домен",
+        "many_query_params": "аз query параметрлер",
+        "ssl_expiring_soon": "ұзақ мерзімді SSL",
+        "free_ca_ssl": "сенімді CA сертификаты",
+        "gambling_blacklist": "белгілі құмар сайт емес",
+        "data_uri": "data:/javascript: URI жоқ",
+        "credential_harvest_path": "login/verify жолы жоқ",
+        "suspicious_subdomain": "қысқа субдомен",
+        "database_hit_phishtank": "PhishTank базасында жоқ",
+        "database_hit_urlhaus": "URLhaus базасында жоқ",
+        "not_in_threat_databases": "қауіп базаларында жоқ",
+        "trusted_domain": "сенімді домен",
+        "gambling_blacklist": "құмар сайттар базасында жоқ",
+    },
+    "ru": {
+        "domain_age": "возраст домена > 365 дней",
+        "no_ssl": "действующий SSL сертификат",
+        "ssl_expired": "действующий SSL сертификат",
+        "ssl_self_signed": "доверенный SSL сертификат",
+        "free_tld": "стандартный домен (.com/.kz/.org)",
+        "homoglyph_attack": "нет смешения кирилл/латиница",
+        "brand_impersonation": "нет сходства с брендом",
+        "brand_in_subdomain": "нет бренда в поддомене",
+        "ip_address_url": "зарегистрированное доменное имя",
+        "no_https": "HTTPS включён",
+        "url_shortener": "не сервис сокращения URL",
+        "non_standard_port": "стандартный порт (80/443)",
+        "suspicious_keywords": "нет подозрительных слов в URL",
+        "ai_analysis": "AI анализ вернул SAFE",
+        "known_pyramid_scheme": "не в базе пирамид",
+        "redirect_parameter": "нет параметров redirect/goto",
+        "heavy_hex_encoding": "нет обфускации URL",
+        "hex_encoding": "минимальное кодирование URL",
+        "exact_brand_free_tld": "правильный домен для бренда",
+        "many_query_params": "меньше query параметров",
+        "ssl_expiring_soon": "долгосрочный SSL",
+        "free_ca_ssl": "сертификат от надёжного CA",
+        "gambling_blacklist": "не известный игровой сайт",
+        "data_uri": "нет data:/javascript: URI",
+        "credential_harvest_path": "нет пути login/verify",
+        "suspicious_subdomain": "короткий поддомен",
+        "database_hit_phishtank": "нет в базе PhishTank",
+        "database_hit_urlhaus": "нет в базе URLhaus",
+        "not_in_threat_databases": "нет в базах угроз",
+        "trusted_domain": "доверенный домен",
+        "gambling_blacklist": "нет в базе азартных сайтов",
+    },
+    "en": {
         "domain_age": "domain age > 365 days",
         "no_ssl": "valid SSL certificate",
         "ssl_expired": "valid SSL certificate",
@@ -215,7 +269,47 @@ def _generate_counterfactual(risk_factors: list, current_score: int) -> str:
         "data_uri": "no data:/javascript: URI",
         "credential_harvest_path": "no login/verify/account path",
         "suspicious_subdomain": "shorter subdomain names",
-    }
+        "database_hit_phishtank": "not in PhishTank database",
+        "database_hit_urlhaus": "not in URLhaus database",
+        "not_in_threat_databases": "not in threat databases",
+        "trusted_domain": "trusted domain",
+    },
+}
 
-    conditions = [factor_names.get(f, f) for f in removable[:3]]
-    return f"This site would score <40 (SAFE) if: {' AND '.join(conditions)}"
+_SAFE_TEMPLATE = {
+    "kk": "Ағымдағы деректер бойынша сайт қауіпсіз деп саналады.",
+    "ru": "Сайт считается безопасным по текущим данным.",
+    "en": "This site is considered safe based on current evidence.",
+}
+
+_CF_TEMPLATE = {
+    "kk": "Сайт <40 (ҚАУІПСІЗ) болар еді, егер: {}",
+    "ru": "Сайт получил бы <40 (БЕЗОПАСНО), если бы: {}",
+    "en": "This site would score <40 (SAFE) if: {}",
+}
+
+_CF_AND = {
+    "kk": " ЖӘНЕ ",
+    "ru": " И ",
+    "en": " AND ",
+}
+
+
+def _generate_counterfactual(risk_factors: list, current_score: int, lang: str = "kk") -> str:
+    """Counterfactual: 'Site would be SAFE if...'"""
+    if current_score < 40:
+        return _SAFE_TEMPLATE.get(lang, _SAFE_TEMPLATE["en"])
+
+    removable = []
+    remaining_score = current_score
+    for f in risk_factors:
+        removable.append(f["factor"])
+        remaining_score -= f["impact"]
+        if remaining_score < 40:
+            break
+
+    names = _FACTOR_NAMES.get(lang, _FACTOR_NAMES["en"])
+    conditions = [names.get(f, f.replace("_", " ")) for f in removable[:3]]
+    return _CF_TEMPLATE.get(lang, _CF_TEMPLATE["en"]).format(
+        _CF_AND.get(lang, " AND ").join(conditions)
+    )
