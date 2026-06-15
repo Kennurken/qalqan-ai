@@ -197,7 +197,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       // Domain cache hit
       const cached = getDomainCache(domain);
       if (cached && cached.verdict === "DANGEROUS") {
-        await sendBlockCommand(tabId, cached);
+        await sendBlockCommand(tabId, cached, url);
         return;
       }
       if (cached) return;  // Safe/suspicious — let phase 2 handle
@@ -211,7 +211,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       updateStats(offResult.verdict);
       saveHistory(url, offResult);
       try { const d = new URL(url).hostname.replace("www.","").toLowerCase(); setDomainCache(d, offResult); } catch {}
-      await sendBlockCommand(tabId, offResult);
+      await sendBlockCommand(tabId, offResult, url);
       return;
     }
 
@@ -223,7 +223,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       updateStats(quick.verdict);
       saveHistory(url, quick);
       try { const d = new URL(url).hostname.replace("www.","").toLowerCase(); setDomainCache(d, quick); } catch {}
-      await sendBlockCommand(tabId, quick);
+      await sendBlockCommand(tabId, quick, url);
       // Don't return — phase 2 will still run full API to get proper result & update
     }
     return;
@@ -295,7 +295,7 @@ async function checkUrl(url, tabId) {
             priority: 2
           });
         }
-        await sendBlockCommand(tabId, offResult);
+        await sendBlockCommand(tabId, offResult, url);
         return;  // Offline DB is conclusive for DANGEROUS
       }
       // SUSPICIOUS offline: still make API call for richer analysis
@@ -356,25 +356,44 @@ async function checkUrl(url, tabId) {
           priority: 2
         });
       }
-      await sendBlockCommand(tabId, data);
+      await sendBlockCommand(tabId, data, url);
     }
   } catch (error) {
     console.error("Qalqan check error:", error.message);
   }
 }
 
-// --- Block command (with retry) ---
-async function sendBlockCommand(tabId, data) {
+// --- Block command ---
+// Primary: redirect tab to local blocked.html — pre-render safe, immune to site JS.
+// Fallback: content-script DOM replacement (for edge cases where tab update fails).
+async function sendBlockCommand(tabId, data, blockedUrl = "") {
+  try {
+    const payload = encodeURIComponent(JSON.stringify({
+      url:        blockedUrl,
+      score:      data.threat_score  || 0,
+      type:       data.threat_type   || "unknown",
+      source:     data.source        || "unknown",
+      detail_kk:  data.detail_kk || data.detail || "",
+      detail_ru:  data.detail_ru || data.detail || "",
+      detail_en:  data.detail_en || data.detail || "",
+      indicators: data.indicators    || [],
+    }));
+    await chrome.tabs.update(tabId, {
+      url: chrome.runtime.getURL("blocked.html") + "#" + payload,
+    });
+    return;
+  } catch (e) {
+    console.warn("Qalqan: tab redirect failed, falling back:", e?.message);
+  }
+
+  // Fallback: inject content script and send BLOCK_PAGE message
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 600;
-
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       await chrome.tabs.sendMessage(tabId, { action: "BLOCK_PAGE", data });
-      console.log(`Qalqan: block command sent to tab ${tabId} (attempt ${attempt + 1})`);
       return;
     } catch {
-      // Content script not ready — inject it and retry
       if (attempt === 0) {
         try {
           await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
@@ -386,7 +405,7 @@ async function sendBlockCommand(tabId, data) {
       await new Promise(r => setTimeout(r, RETRY_DELAY));
     }
   }
-  console.error(`Qalqan: failed to send block command to tab ${tabId} after ${MAX_RETRIES} attempts`);
+  console.error(`Qalqan: failed to block tab ${tabId}`);
 }
 
 // --- Message listener ---
@@ -423,7 +442,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         chrome.storage.local.set({ [`result_${tabId}`]: elevated });
         updateBadge(tabId, elevated);
-        if (elevated.verdict === "DANGEROUS") await sendBlockCommand(tabId, elevated);
+        if (elevated.verdict === "DANGEROUS") await sendBlockCommand(tabId, elevated, sender.tab?.url || "");
       }
     }
 
