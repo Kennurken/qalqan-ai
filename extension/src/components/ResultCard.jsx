@@ -70,11 +70,13 @@ const THREAT_TYPE_LABELS = {
   suspicious_infrastructure: "Suspicious Infra",
 };
 
-export default function ResultCard({ result, t }) {
+export default function ResultCard({ result, t, lang = "kk" }) {
   const [showXAI, setShowXAI] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!result) return null;
+
+  const detail = result[`detail_${lang}`] || result.detail_kk || result.detail || "—";
 
   const isDangerous = result.verdict === "DANGEROUS" || result.verdict === "ҚАУІПТІ";
   const isSuspicious = result.verdict === "SUSPICIOUS" || (!isDangerous && result.threat_score >= 40);
@@ -93,7 +95,7 @@ export default function ResultCard({ result, t }) {
       `QALQAN AI`,
       `${result.verdict} — ${result.threat_score}/100`,
       result.threat_type && result.threat_type !== "safe" ? `Type: ${result.threat_type}` : "",
-      result.detail || result.detail_kk || "",
+      detail,
       `Source: ${SOURCE_NAMES[result.source] || result.source}`,
       explanation?.counterfactual ? `\n${explanation.counterfactual}` : "",
     ].filter(Boolean).join("\n");
@@ -189,7 +191,7 @@ export default function ResultCard({ result, t }) {
           fontSize: "12.5px", color: "#cbd5e1", lineHeight: 1.55,
           margin: "0 0 10px", fontFamily: C.sans,
         }}>
-          {result.detail || result.detail_kk || "—"}
+          {detail}
         </p>
 
         {/* Meta chips row */}

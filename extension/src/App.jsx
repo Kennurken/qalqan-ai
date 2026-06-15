@@ -254,7 +254,7 @@ export default function App() {
 
               {result && (
                 <div style={{ animation: "fadeUp 0.25s ease" }}>
-                  <ResultCard result={result} t={t} />
+                  <ResultCard result={result} t={t} lang={lang} />
                   <AppealForm result={result} onSendAppeal={sendAppeal} t={t} />
                   <ReportButton t={t} />
                   <button onClick={reset} style={{
