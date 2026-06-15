@@ -409,7 +409,7 @@ async function sendBlockCommand(tabId, data, blockedUrl = "") {
 }
 
 // --- Message listener ---
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === "GET_RESULT") {
     const key = `result_${sender.tab?.id}`;
     chrome.storage.local.get(key, (result) => sendResponse(result[key] || null));
