@@ -131,8 +131,18 @@ function quickRiskCheck(url) {
   try {
     const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
 
+    // Known gambling brands across ANY TLD — catches mirrors not in offline-db
+    // e.g. 1xbet.africa, melbet.ng, mostbet.eu — the brand name IS the signal
+    if (/(?:^|\.)(?:1xbet|1xstavka|melbet|linebet|betwinner|megapari|betandreas|22bet|4rabet|ggbet|betboom|winline|fonbet|olimpbet|mostbet|pin-?up)(?:\.|$)/i.test(host)) {
+      return { verdict: "DANGEROUS", threat_score: 90, threat_type: "gambling", source: "quick_check",
+               detail: "Known gambling operator", detail_kk: "Белгілі құмар ойын операторы",
+               detail_ru: "Известный оператор азартных игр", detail_en: "Known gambling operator",
+               indicators: ["gambling_brand"] };
+    }
+
     // Gambling keyword patterns — catches subdomain variants and unlisted TLDs
     // e.g. "bet365.ng", "casinoX.co", "slots-online.ru" not in offline-db exact list
+    // NOTE: does NOT match "1xbet" (x·bet — no word boundary before "bet") — covered above
     if (/(\b|[-.])(bet|casino|slots?|poker|gambling|букмекер|ставки)(\b|[-.])/i.test(host)) {
       return { verdict: "DANGEROUS", threat_score: 85, threat_type: "gambling", source: "quick_check",
                detail: "Gambling site pattern", detail_kk: "Құмар ойын сайты паттерні",
