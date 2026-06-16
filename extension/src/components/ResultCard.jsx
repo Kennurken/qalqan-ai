@@ -88,7 +88,8 @@ export default function ResultCard({ result, t, lang = "kk" }) {
   const verdictLabel = isDangerous ? t("dangerous") : isSuspicious ? t("suspicious") : t("safe");
 
   const explanation = result.explanation;
-  const hasXAI = explanation && (explanation.top_factors?.length > 0 || explanation.safe_factors?.length > 0);
+  const aiExplanation = explanation?.counterfactual || null;
+  const hasXAI = !!aiExplanation;
 
   const copyResult = () => {
     const text = [
@@ -274,48 +275,18 @@ export default function ResultCard({ result, t, lang = "kk" }) {
           </button>
         )}
 
-        {/* XAI Factors */}
-        {showXAI && explanation && (
+        {/* AI explanation */}
+        {showXAI && aiExplanation && (
           <div style={{
-            marginTop: "8px",
+            marginTop: "8px", padding: "10px 12px",
             background: "rgba(0,0,0,0.25)",
-            borderRadius: "8px", padding: "10px",
+            borderRadius: "8px",
             border: `1px solid ${C.border}`,
             animation: "fadeUp 0.15s ease",
           }}>
-            {/* Risk factors */}
-            {explanation.top_factors?.map((f, i) => (
-              <FactorBar key={i} label={t("factor_" + f.factor) || f.factor.replace(/_/g," ")} value={f.impact} type="risk" />
-            ))}
-
-            {/* Safe factors */}
-            {explanation.safe_factors?.length > 0 && (
-              <div style={{ marginTop: "6px", borderTop: `1px solid ${C.border}`, paddingTop: "6px" }}>
-                {explanation.safe_factors.map((f, i) => (
-                  <FactorBar key={`s${i}`} label={t("factor_" + f.factor) || f.factor.replace(/_/g," ")} value={Math.abs(f.impact)} type="safe" />
-                ))}
-              </div>
-            )}
-
-            {/* Counterfactual */}
-            {explanation.counterfactual && (
-              <div style={{
-                marginTop: "8px", padding: "7px 9px",
-                background: "rgba(0,212,255,0.06)", borderRadius: "6px",
-                border: "1px solid rgba(0,212,255,0.15)",
-              }}>
-                <span style={{ fontSize: "10px", color: "#7dd3fc", lineHeight: 1.5 }}>
-                  {explanation.counterfactual}
-                </span>
-              </div>
-            )}
-
-            {/* Confidence */}
-            {explanation.confidence && (
-              <div style={{ marginTop: "6px", fontSize: "9.5px", color: C.muted, textAlign: "right", fontFamily: C.mono }}>
-                confidence {Math.round(explanation.confidence * 100)}% · {explanation.evidence_sources?.length || 0} sources
-              </div>
-            )}
+            <span style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.65 }}>
+              {aiExplanation}
+            </span>
           </div>
         )}
       </div>
