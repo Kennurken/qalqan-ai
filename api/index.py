@@ -11,7 +11,7 @@ import asyncio
 import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel, field_validator, Field
 
 from .services.threat_db import check_all_databases, extract_domain
@@ -27,7 +27,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
@@ -877,6 +877,205 @@ async def health():
         "supabase": sb_health,
         "redis": rd_health,
     }
+
+
+# ============================================================
+# ADMIN DASHBOARD
+# ============================================================
+
+@app.get("/admin")
+async def admin_dashboard(key: str | None = None):
+    admin_secret = os.getenv("ADMIN_SECRET", "")
+    if not admin_secret or key != admin_secret:
+        return HTMLResponse(
+            '<html><body style="background:#0f172a;color:#ef4444;font-family:monospace;'
+            'display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">'
+            '<div style="text-align:center"><div style="font-size:48px">🛡️</div>'
+            '<h1>401 — Unauthorized</h1>'
+            '<p>Provide ?key=ADMIN_SECRET</p></div></body></html>',
+            status_code=401,
+        )
+
+    import json as _json
+    data = await get_admin_data(limit=100)
+    if not data:
+        data = {"reports": [], "appeals": [], "check_logs": []}
+
+    reports = data["reports"]
+    appeals = data["appeals"]
+    logs = data["check_logs"]
+
+    total_checks = len(logs)
+    total_reports = len(reports)
+    total_appeals = len(appeals)
+    dangerous = sum(1 for r in logs if r.get("verdict") == "DANGEROUS")
+    pct_dangerous = round(dangerous / total_checks * 100) if total_checks else 0
+
+    def _row_color(verdict):
+        return {"DANGEROUS": "#ef4444", "SUSPICIOUS": "#f59e0b", "SAFE": "#10b981"}.get(verdict, "#94a3b8")
+
+    def _fmt_time(ts):
+        return (ts or "")[:19].replace("T", " ")
+
+    def _build_rows_logs():
+        rows = ""
+        for r in logs[:50]:
+            c = _row_color(r.get("verdict", ""))
+            rows += (
+                f"<tr>"
+                f"<td>{_fmt_time(r.get('created_at'))}</td>"
+                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
+                f"<td><span style='color:{c};font-weight:bold'>{r.get('verdict','')}</span></td>"
+                f"<td>{r.get('score','')}</td>"
+                f"<td>{r.get('top_source','')}</td>"
+                f"<td>{'✓' if r.get('ai_used') else '—'}</td>"
+                f"<td>{r.get('latency_ms','')}</td>"
+                f"</tr>"
+            )
+        return rows
+
+    def _build_rows_reports():
+        rows = ""
+        for r in reports[:50]:
+            rows += (
+                f"<tr>"
+                f"<td>{_fmt_time(r.get('created_at'))}</td>"
+                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
+                f"<td><span style='background:#7c3aed;padding:2px 6px;border-radius:4px;font-size:11px'>{r.get('category','')}</span></td>"
+                f"<td>{r.get('lang','')}</td>"
+                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('comment','') or '—'}</td>"
+                f"</tr>"
+            )
+        return rows
+
+    def _build_rows_appeals():
+        rows = ""
+        for r in appeals[:50]:
+            rows += (
+                f"<tr>"
+                f"<td>{_fmt_time(r.get('created_at'))}</td>"
+                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
+                f"<td><span style='color:#ef4444'>{r.get('verdict_received','')}</span></td>"
+                f"<td style='max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('reason','') or '—'}</td>"
+                f"</tr>"
+            )
+        return rows
+
+    html = f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalqan AI — Admin</title>
+<style>
+  *{{box-sizing:border-box;margin:0;padding:0}}
+  body{{background:#0a0f1e;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}}
+  .topbar{{background:linear-gradient(135deg,#1e3a5f,#1e1b4b);padding:16px 32px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}}
+  .topbar h1{{font-size:20px;font-weight:700;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+  .topbar span{{font-size:12px;color:#64748b;margin-left:auto}}
+  .stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px 32px}}
+  .stat-card{{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:20px;text-align:center}}
+  .stat-card .num{{font-size:36px;font-weight:800;margin-bottom:4px}}
+  .stat-card .label{{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}}
+  .tabs{{display:flex;gap:0;padding:0 32px;border-bottom:1px solid #1e293b}}
+  .tab{{padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:#64748b;transition:all .2s;background:none;border-left:none;border-right:none;border-top:none}}
+  .tab.active{{color:#3b82f6;border-bottom-color:#3b82f6}}
+  .tab:hover{{color:#93c5fd}}
+  .panel{{display:none;padding:24px 32px}}
+  .panel.active{{display:block}}
+  .table-wrap{{overflow-x:auto;border-radius:8px;border:1px solid #1e293b}}
+  table{{width:100%;border-collapse:collapse;font-size:13px}}
+  th{{background:#0f172a;padding:10px 12px;text-align:left;font-weight:600;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #1e293b}}
+  td{{padding:10px 12px;border-bottom:1px solid #0f172a;vertical-align:top}}
+  tr:hover td{{background:rgba(59,130,246,.06)}}
+  tr:last-child td{{border-bottom:none}}
+  .badge{{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}}
+  .refresh-btn{{float:right;background:#1e40af;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px}}
+  .refresh-btn:hover{{background:#2563eb}}
+  .section-title{{font-size:15px;font-weight:700;margin-bottom:16px;color:#94a3b8;display:flex;align-items:center;gap:8px}}
+  .count{{font-size:12px;background:#1e293b;padding:2px 8px;border-radius:20px;color:#64748b}}
+  @media(max-width:768px){{.stats{{grid-template-columns:repeat(2,1fr)}}.topbar{{padding:12px 16px}}.panel,.tabs{{padding-left:16px;padding-right:16px}}}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="font-size:24px">🛡️</div>
+  <h1>Qalqan AI — Admin Dashboard</h1>
+  <span id="clock"></span>
+</div>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="num" style="color:#3b82f6">{total_checks}</div>
+    <div class="label">Тексерулер / Checks</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#ef4444">{pct_dangerous}%</div>
+    <div class="label">Қауіпті / Dangerous</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#f59e0b">{total_reports}</div>
+    <div class="label">Шағымдар / Reports</div>
+  </div>
+  <div class="stat-card">
+    <div class="num" style="color:#8b5cf6">{total_appeals}</div>
+    <div class="label">Апелляциялар / Appeals</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('logs')">Check Logs ({total_checks})</button>
+  <button class="tab" onclick="showTab('reports')">Reports ({total_reports})</button>
+  <button class="tab" onclick="showTab('appeals')">Appeals ({total_appeals})</button>
+  <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
+</div>
+
+<div id="logs" class="panel active">
+  <div class="section-title">Recent Check Logs <span class="count">last 50</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Domain</th><th>Verdict</th><th>Score</th><th>Source</th><th>AI</th><th>ms</th></tr></thead>
+      <tbody>{_build_rows_logs()}</tbody>
+    </table>
+  </div>
+</div>
+
+<div id="reports" class="panel">
+  <div class="section-title">User Reports <span class="count">last 50</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Domain</th><th>Category</th><th>Lang</th><th>Comment</th></tr></thead>
+      <tbody>{_build_rows_reports()}</tbody>
+    </table>
+  </div>
+</div>
+
+<div id="appeals" class="panel">
+  <div class="section-title">User Appeals <span class="count">last 50</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Domain</th><th>Verdict was</th><th>Reason</th></tr></thead>
+      <tbody>{_build_rows_appeals()}</tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function showTab(id) {{
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['logs','reports','appeals'][i]===id));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id===id));
+}}
+function tick() {{
+  document.getElementById('clock').textContent = new Date().toLocaleString('ru-KZ');
+}}
+tick(); setInterval(tick, 1000);
+// Auto-refresh every 60s
+setTimeout(() => location.reload(), 60000);
+</script>
+</body>
+</html>"""
+
+    return HTMLResponse(html)
 
 
 # ============================================================

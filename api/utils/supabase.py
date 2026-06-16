@@ -186,6 +186,42 @@ async def get_trends(days: int = 7) -> dict | None:
         return None
 
 
+async def get_admin_data(limit: int = 100) -> dict | None:
+    """Fetch recent reports, appeals, and check_logs for admin dashboard."""
+    if not _available():
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            reports_r, appeals_r, logs_r = await asyncio.gather(
+                client.get(
+                    f"{_url()}/rest/v1/reports"
+                    "?select=id,domain,category,comment,lang,created_at"
+                    f"&order=created_at.desc&limit={limit}",
+                    headers=_headers(),
+                ),
+                client.get(
+                    f"{_url()}/rest/v1/appeals"
+                    "?select=id,domain,verdict_received,reason,created_at"
+                    f"&order=created_at.desc&limit={limit}",
+                    headers=_headers(),
+                ),
+                client.get(
+                    f"{_url()}/rest/v1/check_logs"
+                    "?select=id,domain,verdict,score,top_source,ai_used,latency_ms,created_at"
+                    f"&order=created_at.desc&limit={limit}",
+                    headers=_headers(),
+                ),
+            )
+        return {
+            "reports": reports_r.json() if reports_r.status_code == 200 else [],
+            "appeals": appeals_r.json() if appeals_r.status_code == 200 else [],
+            "check_logs": logs_r.json() if logs_r.status_code == 200 else [],
+        }
+    except Exception as e:
+        logger.warning(f"get_admin_data failed: {e}")
+        return None
+
+
 async def check_health() -> dict:
     if not _available():
         return {"status": "disabled", "reason": "env vars not set"}
