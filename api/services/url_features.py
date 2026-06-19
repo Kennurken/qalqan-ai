@@ -153,6 +153,11 @@ def extract_features(url: str) -> dict:
     features["has_mixed_script"] = homoglyph_result["has_mixed"]
     features["homoglyph_chars"] = homoglyph_result["chars"]
 
+    # === 9.5. HOMOGLYPH/IDN BRAND IMPERSONATION (normalized domain == known brand) ===
+    hg_attack = _homoglyph_brand_attack(domain)
+    features["homoglyph_brand_target"] = hg_attack["target"] if hg_attack else None
+    features["homoglyph_brand_normalized"] = hg_attack["normalized"] if hg_attack else None
+
     # === 10. BRAND SIMILARITY ===
     brand_result = _check_brand_similarity(domain, full_url)
     features["brand_match"] = brand_result["brand"]
@@ -205,6 +210,46 @@ def _detect_homoglyphs(domain: str) -> dict:
     }
 
 
+def _normalize_homoglyphs(s: str) -> str:
+    """Map Cyrillic/visual-confusable chars to their Latin look-alike."""
+    return "".join(HOMOGLYPHS.get(ch, ch) for ch in s)
+
+
+def _homoglyph_brand_attack(domain: str) -> dict | None:
+    """High-confidence homoglyph/IDN impersonation: a domain that — once Cyrillic↔Latin
+    homoglyphs are normalized (and punycode decoded) — collapses onto a known KZ brand.
+    Example: kаspi.kz (Cyrillic 'а') → normalizes to 'kaspi' → impersonates Kaspi.
+    This is the real attack the plain mixed-script flag misses."""
+    if not domain:
+        return None
+    name_part = domain.split(".")[0]
+
+    # Decode punycode/IDN so xn-- look-alikes become visible unicode
+    decoded = name_part
+    if name_part.startswith("xn--"):
+        try:
+            decoded = name_part.encode("ascii").decode("idna")
+        except Exception:
+            decoded = name_part
+
+    normalized = _normalize_homoglyphs(decoded).lower()
+    # Only meaningful when normalization actually changed the string (real homoglyph/IDN present)
+    if normalized == name_part.lower():
+        return None
+
+    for brand in _load_brands().get("brands", []):
+        bname = brand["name"].lower()
+        if len(bname) < 4:
+            continue
+        if normalized == bname or _levenshtein(normalized, bname) <= 1:
+            return {
+                "target": brand["name"],
+                "normalized": normalized,
+                "category": brand.get("category", "unknown"),
+            }
+    return None
+
+
 def _check_brand_similarity(domain: str, full_url: str) -> dict:
     """Домен мен белгілі бренд атауларын салыстыру."""
     data = _load_brands()
@@ -216,15 +261,18 @@ def _check_brand_similarity(domain: str, full_url: str) -> dict:
 
     for brand in data.get("brands", []):
         name = brand["name"]
-        # Edit distance
-        dist = _levenshtein(domain_name, name)
-        if dist < best["distance"]:
-            best = {
-                "brand": name,
-                "distance": dist,
-                "in_subdomain": 0,
-                "category": brand.get("category", "unknown")
-            }
+        # Edit distance — skip fuzzy matches on short brands (≤4 chars) to avoid
+        # false typosquats (e.g. a 4-letter legit domain 1 edit from a 4-letter brand).
+        # Exact matches still count for any length (brand name == domain = impersonation).
+        if len(name) >= 5 or domain_name == name:
+            dist = _levenshtein(domain_name, name)
+            if dist < best["distance"]:
+                best = {
+                    "brand": name,
+                    "distance": dist,
+                    "in_subdomain": 0,
+                    "category": brand.get("category", "unknown")
+                }
 
         # Brand in subdomain (kaspi.evil.com)
         if len(domain_parts) > 2 and name in ".".join(domain_parts[:-2]):
@@ -301,6 +349,10 @@ def _calculate_risk_score(features: dict) -> int:
     # Homoglyphs (Cyrillic↔Latin mix)
     if features["has_mixed_script"]: score += 25
     score += min(features["homoglyph_count"] * 10, 30)
+
+    # Homoglyph/IDN brand impersonation — normalized domain collapses onto a real
+    # KZ brand (kаspi→kaspi). Confirmed attack, not a heuristic → heavy weight.
+    if features.get("homoglyph_brand_target"): score += 45
 
     # Brand similarity (low edit distance = typosquatting)
     dist = features["brand_edit_distance"]

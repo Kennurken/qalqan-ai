@@ -104,6 +104,8 @@ def calculate_final_verdict(
             if url_features.get("has_ip_address"): indicators.append("ip_address")
             if url_features.get("is_free_tld"): indicators.append(f"free_tld_{url_features.get('tld', '').lstrip('.')}")
             if url_features.get("has_mixed_script"): indicators.append("homoglyph_attack")
+            if url_features.get("homoglyph_brand_target"):
+                indicators.append(f"homoglyph_impersonation_{url_features['homoglyph_brand_target']}")
             if url_features.get("brand_edit_distance", 999) <= 2 and url_features.get("brand_match"):
                 indicators.append(f"brand_impersonation_{url_features['brand_match']}")
             if url_features.get("suspicious_keyword_count", 0) > 0:
