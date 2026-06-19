@@ -213,6 +213,16 @@ COMMUNITY_BLOCK_MIN_SIGNALS = 5   # reports + confirmations
 COMMUNITY_BLOCK_MIN_IPS = 3       # distinct reporters
 
 
+def community_auto_block(reports: int, confirms: int, disputes: int, unique_ips: int) -> bool:
+    """Pure crowd-block decision (Sybil-resistant): enough signals from enough
+    distinct reporters, and not contested (confirms must exceed disputes unless
+    there are no disputes). Extracted for unit testing."""
+    signals = reports + confirms
+    return (signals >= COMMUNITY_BLOCK_MIN_SIGNALS
+            and unique_ips >= COMMUNITY_BLOCK_MIN_IPS
+            and (disputes == 0 or confirms > disputes))
+
+
 async def get_community_stats(domain: str) -> dict:
     """Crowd intelligence for a domain: reports, confirm/dispute votes, auto-block status.
     Backed by the reports table (votes stored with category vote:confirm / vote:dispute)."""
@@ -244,9 +254,7 @@ async def get_community_stats(domain: str) -> dict:
             else:
                 reports += 1
         signals = reports + confirms
-        auto = (signals >= COMMUNITY_BLOCK_MIN_SIGNALS
-                and len(ips) >= COMMUNITY_BLOCK_MIN_IPS
-                and (disputes == 0 or confirms > disputes))
+        auto = community_auto_block(reports, confirms, disputes, len(ips))
         return {"domain": domain, "reports": reports, "confirms": confirms, "disputes": disputes,
                 "unique_voters": len(ips), "crowd_score": signals - disputes, "auto_blocked": auto}
     except Exception as e:

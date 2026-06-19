@@ -36,7 +36,12 @@ _RDAP_FALLBACK = "https://rdap.org/domain/"
 _FREE_CA_ORGS = {"let's encrypt", "zerossl", "buypass", "sectigo"}
 
 
+_CGNAT_NET = ipaddress.ip_network("100.64.0.0/10")  # RFC 6598 — not flagged is_private
+
+
 def _ip_blocked(ip) -> bool:
+    if ip.version == 4 and ip in _CGNAT_NET:
+        return True
     return (ip.is_private or ip.is_loopback or ip.is_link_local
             or ip.is_reserved or ip.is_multicast or ip.is_unspecified)
 
