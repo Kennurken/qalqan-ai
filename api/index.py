@@ -89,12 +89,21 @@ _ALLOWED_ORIGINS = [
     "https://qalqan-ai-nu.vercel.app",
 ]
 
+def _allowed_extension_ids() -> set[str]:
+    """Pinned extension IDs from env (comma-separated). Empty = dev mode (allow any)."""
+    raw = os.getenv("QALQAN_EXTENSION_IDS", "")
+    return {x.strip() for x in raw.split(",") if x.strip()}
+
+
 def _cors_origin_allowed(origin: str) -> bool:
     if not origin:
         return False
-    # Allow all chrome-extension:// origins (user's own extension)
     if origin.startswith("chrome-extension://"):
-        return True
+        pinned = _allowed_extension_ids()
+        if not pinned:
+            return True  # dev: no IDs pinned yet → allow any extension
+        ext_id = origin[len("chrome-extension://"):].strip("/")
+        return ext_id in pinned  # prod: only our published extension(s)
     return origin in _ALLOWED_ORIGINS
 
 _CORS_ALLOW_HEADERS = {"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -1916,17 +1925,29 @@ async def health():
 # ============================================================
 
 @app.get("/admin")
-async def admin_dashboard(key: str | None = None):
+async def admin_dashboard(req: Request, key: str | None = None):
     admin_secret = os.getenv("ADMIN_SECRET", "")
-    if not admin_secret or key != admin_secret:
+    header_key = req.headers.get("x-admin-key", "")
+    cookie_key = req.cookies.get("qadmin", "")
+    provided = header_key or cookie_key or (key or "")
+    if not admin_secret or provided != admin_secret:
         return HTMLResponse(
             '<html><body style="background:#0f172a;color:#ef4444;font-family:monospace;'
             'display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">'
             '<div style="text-align:center"><div style="font-size:48px">🛡️</div>'
             '<h1>401 — Unauthorized</h1>'
-            '<p>Provide ?key=ADMIN_SECRET</p></div></body></html>',
+            '<p>Use <code>X-Admin-Key</code> header (preferred) or <code>?key=</code> once</p></div></body></html>',
             status_code=401,
         )
+
+    # If authenticated via the URL query, move the secret into an httponly cookie and
+    # redirect to a clean URL so it never lingers in browser history / bookmarks (P0-4).
+    if key and key == admin_secret and not (header_key or cookie_key):
+        from fastapi.responses import RedirectResponse
+        resp = RedirectResponse(url="/admin", status_code=303)
+        resp.set_cookie("qadmin", admin_secret, httponly=True, secure=True,
+                        samesite="lax", max_age=86400)
+        return resp
 
     import json as _json
     data = await get_admin_data(limit=100)
