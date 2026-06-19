@@ -91,25 +91,37 @@ async def log_appeal(domain: str, verdict_received: str, reason: str) -> bool:
         return False
 
 
+# KZ oblast / city ISO 3166-2 subdivision codes → readable names (Vercel geo header)
+KZ_REGIONS = {
+    "10": "Абай", "11": "Ақмола", "15": "Ақтөбе", "19": "Алматы обл.",
+    "23": "Атырау", "27": "БҚО", "31": "Жамбыл", "33": "Жетісу",
+    "35": "Қарағанды", "39": "Қостанай", "43": "Қызылорда", "47": "Маңғыстау",
+    "55": "Павлодар", "59": "СҚО", "61": "Түркістан", "62": "Ұлытау",
+    "63": "ШҚО", "71": "Астана", "75": "Алматы қ.", "79": "Шымкент",
+}
+
+
 async def log_check(domain: str, verdict: str, score: int, top_source: str,
-                    ai_used: bool, ai_skipped: bool, latency_ms: int) -> None:
+                    ai_used: bool, ai_skipped: bool, latency_ms: int,
+                    country: str | None = None, region: str | None = None) -> None:
     if not _available():
         return
+    base = {
+        "domain": domain, "verdict": verdict, "score": score, "top_source": top_source,
+        "ai_used": ai_used, "ai_skipped": ai_skipped, "latency_ms": latency_ms,
+    }
+    geo = {}
+    if country:
+        geo["country"] = country
+    if region:
+        geo["region"] = region
     try:
         async with httpx.AsyncClient(timeout=3) as client:
-            await client.post(
-                f"{_url()}/rest/v1/check_logs",
-                headers=_headers(),
-                json={
-                    "domain": domain,
-                    "verdict": verdict,
-                    "score": score,
-                    "top_source": top_source,
-                    "ai_used": ai_used,
-                    "ai_skipped": ai_skipped,
-                    "latency_ms": latency_ms,
-                }
-            )
+            r = await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(),
+                                  json={**base, **geo})
+            # country/region columns may not exist yet — retry without geo so logging never breaks
+            if r.status_code >= 400 and geo:
+                await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(), json=base)
     except Exception as e:
         logger.warning(f"Supabase log_check failed: {e}")
 
@@ -298,21 +310,20 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
     if not _available():
         return None
     try:
+        base = f"{_url()}/rest/v1/check_logs?order=created_at.desc&limit={sample}"
         async with httpx.AsyncClient(timeout=8) as client:
-            logs_r, rep_r = await asyncio.gather(
-                client.get(
-                    f"{_url()}/rest/v1/check_logs"
-                    "?select=domain,verdict,score,top_source,created_at"
-                    f"&order=created_at.desc&limit={sample}",
-                    headers=_headers(),
-                ),
-                client.get(
-                    f"{_url()}/rest/v1/reports"
-                    "?select=domain,category,created_at"
-                    "&order=created_at.desc&limit=1000",
-                    headers=_headers(),
-                ),
-            )
+            logs_r = await client.get(
+                base + "&select=domain,verdict,score,top_source,created_at,region,country",
+                headers=_headers())
+            if logs_r.status_code != 200:
+                # region/country columns may not exist yet — fall back to base columns
+                logs_r = await client.get(
+                    base + "&select=domain,verdict,score,top_source,created_at",
+                    headers=_headers())
+            rep_r = await client.get(
+                f"{_url()}/rest/v1/reports"
+                "?select=domain,category,created_at&order=created_at.desc&limit=1000",
+                headers=_headers())
         if logs_r.status_code != 200:
             return None
         logs = logs_r.json()
@@ -345,6 +356,7 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
         threat_types: dict[str, int] = {}
         tier_counts: dict[str, int] = {}
         danger_domains: dict[str, int] = {}
+        regions: dict[str, dict] = {}
         scores: list[int] = []
 
         for row in logs:
@@ -352,6 +364,14 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
             v = (row.get("verdict") or "").upper()
             src = row.get("top_source", "")
             dom = row.get("domain", "")
+            # KZ regional aggregation (Vercel geo: country=KZ, region=ISO subdivision)
+            if (row.get("country") or "").upper() == "KZ" and row.get("region"):
+                rname = KZ_REGIONS.get(str(row["region"]))
+                if rname:
+                    rr = regions.setdefault(rname, {"total": 0, "threats": 0})
+                    rr["total"] += 1
+                    if v in ("DANGEROUS", "SUSPICIOUS"):
+                        rr["threats"] += 1
             if day:
                 d = daily.setdefault(day, {"total": 0, "threats": 0})
                 d["total"] += 1
@@ -399,6 +419,7 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
                 for d, c in sorted(danger_domains.items(), key=lambda x: -x[1])[:12]
             ],
             "report_categories": dict(sorted(rep_cats.items(), key=lambda x: -x[1])),
+            "regions": dict(sorted(regions.items(), key=lambda x: -x[1]["threats"])),
         }
     except Exception as e:
         logger.warning(f"get_dashboard_data failed: {e}")

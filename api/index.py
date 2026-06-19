@@ -50,6 +50,14 @@ def _get_client_ip(req: Request) -> str:
             return ip
     return req.client.host if req.client else "unknown"
 
+
+def _get_geo(req: Request) -> tuple[str | None, str | None]:
+    """(country, region) from Vercel edge geo headers. None when not behind Vercel."""
+    h = req.headers
+    country = h.get("x-vercel-ip-country")
+    region = h.get("x-vercel-ip-country-region")
+    return (country or None, region or None)
+
 # --- Logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("qalqan")
@@ -942,6 +950,7 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
         background_tasks.add_task(notify_block, url, result["verdict"], result["threat_score"], result.get("source", ""))
 
     # Supabase: async log (fire-and-forget, never blocks response)
+    _country, _region = _get_geo(req)
     background_tasks.add_task(
         log_check,
         domain=domain,
@@ -951,6 +960,8 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
         ai_used=not ai_failed,
         ai_skipped=ai_failed,
         latency_ms=result["metadata"]["processing_time_ms"],
+        country=_country,
+        region=_region,
     )
 
     return result
@@ -1429,7 +1440,13 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:8px}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .foot{color:var(--mut);font-size:12px;margin-top:24px;text-align:center}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.kzmap{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(5,46px);gap:6px;margin-top:6px}
+.kzt{border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--bd);overflow:hidden;padding:2px;line-height:1.1}
+.kzt b{font-size:13px;font-variant-numeric:tabular-nums}
+.kzt .rn{font-size:9px;white-space:nowrap;opacity:.85}
+.maplegend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:10px}
+.maplegend .grad{height:10px;width:120px;border-radius:5px;background:linear-gradient(90deg,#0d1424,#ff3b5c)}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.kzmap{grid-template-rows:repeat(5,40px)}}
 </style>
 </head>
 <body>
@@ -1442,6 +1459,12 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 </div>
 
 <div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <h3>🗺️ Қауіп картасы — облыстар бойынша (KZ regional threat map)</h3>
+  <div class="kzmap" id="kzmap"></div>
+  <div class="maplegend"><span>аз қауіп</span><div class="grad"></div><span>көп қауіп</span><span style="margin-left:auto">Vercel geo · санақ бойынша</span></div>
+</div>
 
 <div class="grid">
   <div>
@@ -1518,7 +1541,33 @@ function renderDonut(vd){
   $('donut').innerHTML=svg; $('donut-leg').innerHTML=leg;
 }
 
-fetch('/dashboard/data').then(r=>r.json()).then(d=>{
+// Approximate geographic placement of KZ regions on a 7x5 grid
+const KZ_LAYOUT={
+  "Қостанай":{c:2,r:1},"СҚО":{c:3,r:1},"Павлодар":{c:5,r:1},
+  "БҚО":{c:1,r:2},"Ақмола":{c:3,r:2},"Астана":{c:4,r:2},"Абай":{c:5,r:2},"ШҚО":{c:6,r:2},
+  "Атырау":{c:1,r:3},"Ақтөбе":{c:2,r:3},"Ұлытау":{c:3,r:3},"Қарағанды":{c:4,r:3},
+  "Маңғыстау":{c:1,r:4},"Қызылорда":{c:2,r:4},"Жамбыл":{c:4,r:4},"Жетісу":{c:6,r:4},
+  "Түркістан":{c:3,r:5},"Шымкент":{c:4,r:5},"Алматы обл.":{c:5,r:5},"Алматы қ.":{c:6,r:5}
+};
+function heat(frac){
+  const a=[13,20,36], b=[255,59,92];
+  const c=a.map((v,i)=>Math.round(v+(b[i]-v)*frac));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function renderMap(regions){
+  regions=regions||{};
+  const mx=Math.max(1,...Object.values(regions).map(r=>r.threats||0));
+  let html='';
+  for(const [name,p] of Object.entries(KZ_LAYOUT)){
+    const r=regions[name]||{total:0,threats:0};
+    const frac=Math.min(1,(r.threats||0)/mx);
+    const col=frac>0.45?'#fff':'#e6edf6';
+    html+=`<div class="kzt" style="grid-column:${p.c};grid-row:${p.r};background:${heat(frac)};color:${col}" title="${name}: ${r.threats} қауіп / ${r.total} тексеру"><span class="rn">${name}</span><b>${r.threats||0}</b></div>`;
+  }
+  $('kzmap').innerHTML=html;
+}
+
+fetch('/dashboard/data'+location.search).then(r=>r.json()).then(d=>{
   const src=$('src'); const live=d._source==='live';
   src.textContent = live?'● LIVE':'● DEMO'; src.className='badge '+(live?'live':'demo');
   const k=d.kpis||{};
@@ -1530,6 +1579,7 @@ fetch('/dashboard/data').then(r=>r.json()).then(d=>{
     kpiCard(fmt(k.total_reports),'Жалоб граждан')+
     kpiCard(k.avg_score||0,'Средний риск-балл');
   renderLine(d.time_series);
+  renderMap(d.regions);
   renderDonut(d.verdict_distribution);
   renderBars('types', d.threat_types);
   renderBars('tiers', d.tier_effectiveness);
@@ -1581,20 +1631,35 @@ def _dashboard_demo() -> dict:
             {"domain": "kaspi-gold.site", "count": 18}, {"domain": "qazaqstan-lottery.com", "count": 15},
         ],
         "report_categories": {"phishing": 156, "pyramid": 89, "gambling": 61, "other": 36},
+        "regions": {
+            "Алматы қ.": {"total": 1840, "threats": 612}, "Астана": {"total": 1320, "threats": 430},
+            "Шымкент": {"total": 760, "threats": 295}, "Қарағанды": {"total": 540, "threats": 178},
+            "Алматы обл.": {"total": 510, "threats": 165}, "Түркістан": {"total": 470, "threats": 188},
+            "Атырау": {"total": 360, "threats": 121}, "Маңғыстау": {"total": 330, "threats": 110},
+            "Ақтөбе": {"total": 310, "threats": 96}, "Павлодар": {"total": 280, "threats": 84},
+            "Қостанай": {"total": 260, "threats": 72}, "ШҚО": {"total": 250, "threats": 79},
+            "Қызылорда": {"total": 230, "threats": 88}, "Жамбыл": {"total": 220, "threats": 81},
+            "БҚО": {"total": 190, "threats": 55}, "Ақмола": {"total": 180, "threats": 49},
+            "СҚО": {"total": 150, "threats": 41}, "Абай": {"total": 130, "threats": 44},
+            "Жетісу": {"total": 120, "threats": 38}, "Ұлытау": {"total": 90, "threats": 27},
+        },
     }
 
 
 @app.get("/dashboard/data")
-async def dashboard_data():
+async def dashboard_data(req: Request):
     """JSON feed for the regulator dashboard. Falls back to demo data when
-    Supabase is empty/unavailable so the page never looks broken."""
-    data = await get_dashboard_data()
-    if not data or data.get("kpis", {}).get("total_checks", 0) < 10:
-        demo = _dashboard_demo()
-        demo["_source"] = "demo"
-        return demo
-    data["_source"] = "live"
-    return data
+    Supabase is empty/unavailable so the page never looks broken.
+    ?demo=1 forces the full demo dataset (for presentations/screenshots)."""
+    force_demo = req.query_params.get("demo", "").lower() in ("1", "true", "yes")
+    if not force_demo:
+        data = await get_dashboard_data()
+        if data and data.get("kpis", {}).get("total_checks", 0) >= 10:
+            data["_source"] = "live"
+            return data
+    demo = _dashboard_demo()
+    demo["_source"] = "demo"
+    return demo
 
 
 @app.get("/dashboard")
