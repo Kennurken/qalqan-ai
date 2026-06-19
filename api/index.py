@@ -15,7 +15,7 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel, field_validator, Field
 
-from .services.threat_db import check_all_databases, extract_domain
+from .services.threat_db import check_all_databases, extract_domain, feed_stats
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
 from .services.pyramid_registry import check_pyramid_name, registry_size
@@ -2391,6 +2391,68 @@ async def generate_threat_report(req: Request, month: str | None = None):
 
 
 # ── Offline DB update feed ────────────────────────────────────────────────────
+
+# ── Published KZ Threat Feed (open data moat, CC-BY) ──────────────────────────
+_kz_feed_cache: dict | None = None
+
+
+def _build_kz_feed() -> dict:
+    """Assemble the Kazakhstan threat feed from bundled KZ-curated data."""
+    global _kz_feed_cache
+    if _kz_feed_cache is not None:
+        return _kz_feed_cache
+    entries: list[dict] = []
+    seen: set[str] = set()
+    try:
+        with open(os.path.join(_data_dir, "pyramid_schemes.json"), encoding="utf-8") as f:
+            schemes = json.load(f).get("known_schemes", [])
+        for s in schemes:
+            for d in s.get("domains", []):
+                d = (d or "").lower().strip()
+                if d and d not in seen:
+                    seen.add(d)
+                    entries.append({"domain": d, "type": s.get("type", "pyramid"),
+                                    "name": s.get("name", "")})
+    except Exception as e:
+        logger.warning(f"KZ feed build failed: {e}")
+    entries.sort(key=lambda e: e["domain"])
+    _kz_feed_cache = {
+        "name": "Qalqan AI — Kazakhstan Threat Feed",
+        "description": "Curated Kazakhstan-specific scam / phishing / pyramid / gambling domains",
+        "license": "CC-BY-4.0",
+        "attribution": "Qalqan AI — github.com/Kennurken/qalqan-ai",
+        "homepage": "https://qalqan-ai-nu.vercel.app",
+        "count": len(entries),
+        "entries": entries,
+    }
+    return _kz_feed_cache
+
+
+@app.get("/feed")
+async def feed_index():
+    """Feed index — published KZ feed + live ingested threat-feed stats."""
+    kz = _build_kz_feed()
+    return {
+        "kz_feed": {"count": kz["count"], "url": "/feed/kz", "txt": "/feed/kz?format=txt",
+                    "license": kz["license"]},
+        "live_threat_feeds": feed_stats(),
+    }
+
+
+@app.get("/feed/kz")
+async def kz_threat_feed(format: str | None = None):
+    """Published Kazakhstan threat feed (CC-BY-4.0) — the open data-moat artifact.
+    ?format=txt → newline-separated domains for feed consumers."""
+    feed = _build_kz_feed()
+    if format == "txt":
+        from fastapi.responses import PlainTextResponse
+        body = ("# Qalqan AI — Kazakhstan Threat Feed (CC-BY-4.0)\n"
+                "# github.com/Kennurken/qalqan-ai\n")
+        body += "\n".join(e["domain"] for e in feed["entries"])
+        return PlainTextResponse(body)
+    from datetime import datetime, timezone
+    return {**feed, "generated_at": datetime.now(timezone.utc).isoformat()}
+
 
 @app.get("/offline-db")
 async def offline_db_feed():

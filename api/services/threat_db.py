@@ -14,11 +14,14 @@ def _phishtank_key() -> str:
 def _safebrowsing_key() -> str:
     return os.getenv("GOOGLE_SAFE_BROWSING_KEY", "")
 
-# OpenPhish feed — жадта сақталады, 12 сағат сайын жаңартылады
-_openphish_urls: set[str] = set()
+# Threat feeds — жадта сақталады, 12 сағат сайын жаңартылады
+_openphish_urls: set[str] = set()          # exact-URL set (OpenPhish)
+_feed_domains: set[str] = set()            # domain set across feeds → O(1) lookup
+_feed_counts: dict[str, int] = {}          # per-feed domain counts (for /feed stats)
 _openphish_loaded_at: float = 0.0
 _OPENPHISH_TTL = 12 * 3600  # 12 hours
 _openphish_lock = asyncio.Lock()
+_URLHAUS_FEED_CAP = 80000   # bound memory / cold-start cost on serverless
 
 
 def extract_domain(url: str) -> str:
@@ -145,52 +148,88 @@ async def check_urlhaus(url: str) -> dict | None:
 
 
 async def load_openphish_feed():
-    """OpenPhish community feed жүктеу (12 сағат сайын жаңарту)."""
-    global _openphish_urls, _openphish_loaded_at
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            res = await client.get("https://openphish.com/feed.txt")
-            if res.status_code == 200:
-                _openphish_urls = set(line.strip() for line in res.text.splitlines() if line.strip())
-                _openphish_loaded_at = time.time()
-    except Exception:
-        pass
+    """OpenPhish + URLhaus community feeds жүктеу (12 сағат сайын жаңарту).
+    Kept under the old name so the lifespan preload import keeps working."""
+    await load_threat_feeds()
+
+
+async def _fetch_feed(client: httpx.AsyncClient, url: str, cap: int | None = None) -> list[str]:
+    res = await client.get(url, headers={"User-Agent": "QalqanAI/1.0"})
+    if res.status_code != 200:
+        return []
+    lines = [ln.strip() for ln in res.text.splitlines()
+             if ln.strip() and not ln.startswith("#")]
+    return lines[:cap] if cap else lines
+
+
+async def load_threat_feeds():
+    """Load OpenPhish + URLhaus bulk feeds into in-memory sets.
+    Builds a domain set for O(1) lookups (avoids per-request O(n) scans)."""
+    global _openphish_urls, _feed_domains, _feed_counts, _openphish_loaded_at
+    op_urls: set[str] = set()
+    domains: set[str] = set()
+    counts: dict[str, int] = {}
+    async with httpx.AsyncClient(timeout=15) as client:
+        # OpenPhish (exact URLs, small)
+        try:
+            op = await _fetch_feed(client, "https://openphish.com/feed.txt")
+            op_urls = set(op)
+            op_doms = {extract_domain(u) for u in op_urls if extract_domain(u)}
+            domains |= op_doms
+            counts["openphish"] = len(op_doms)
+        except Exception:
+            pass
+        # URLhaus online bulk feed (large → domain set only, bounded)
+        try:
+            uh = await _fetch_feed(client, "https://urlhaus.abuse.ch/downloads/text_online/",
+                                   cap=_URLHAUS_FEED_CAP)
+            uh_doms = {extract_domain(u) for u in uh if extract_domain(u)}
+            domains |= uh_doms
+            counts["urlhaus"] = len(uh_doms)
+        except Exception:
+            pass
+    if op_urls or domains:
+        _openphish_urls = op_urls
+        _feed_domains = domains
+        _feed_counts = counts
+        _openphish_loaded_at = time.time()
+
+
+def feed_stats() -> dict:
+    """Loaded-feed stats for /feed and /health."""
+    return {"domains": len(_feed_domains), "openphish_urls": len(_openphish_urls),
+            "sources": dict(_feed_counts),
+            "age_sec": int(time.time() - _openphish_loaded_at) if _openphish_loaded_at else None}
 
 
 async def check_openphish(url: str) -> dict | None:
-    """OpenPhish — тегін фишинг feed (жадтағы set арқылы тексеру)."""
+    """Threat-feed check — exact OpenPhish URL, then O(1) domain match across feeds."""
     now = time.time()
     if now - _openphish_loaded_at > _OPENPHISH_TTL:
         async with _openphish_lock:
             if now - _openphish_loaded_at > _OPENPHISH_TTL:
-                await load_openphish_feed()
+                await load_threat_feeds()
 
     if url in _openphish_urls:
         return {
-            "verdict": "DANGEROUS",
-            "threat_score": 88,
-            "threat_type": "phishing",
+            "verdict": "DANGEROUS", "threat_score": 88, "threat_type": "phishing",
             "source": "openphish",
             "reason_kk": "OpenPhish фишинг тізімінде тіркелген",
             "reason_ru": "Найден в списке фишинговых сайтов OpenPhish",
             "reason_en": "Listed in OpenPhish phishing feed",
-            "indicators": ["openphish_exact"]
+            "indicators": ["openphish_exact"],
         }
 
-    # Домен бойынша да тексеру
     domain = extract_domain(url)
-    for phish_url in _openphish_urls:
-        if domain in phish_url:
-            return {
-                "verdict": "DANGEROUS",
-                "threat_score": 82,
-                "threat_type": "phishing",
-                "source": "openphish",
-                "reason_kk": f"OpenPhish тізімінде осы доменнен фишинг табылды",
-                "reason_ru": f"В OpenPhish найден фишинг с этого домена",
-                "reason_en": f"OpenPhish has phishing records from this domain",
-                "indicators": ["openphish_domain"]
-            }
+    if domain and domain in _feed_domains:
+        return {
+            "verdict": "DANGEROUS", "threat_score": 84, "threat_type": "phishing",
+            "source": "threat_feed",
+            "reason_kk": "Қауіп feed-терінде (OpenPhish/URLhaus) тіркелген домен",
+            "reason_ru": "Домен в threat-feed (OpenPhish/URLhaus)",
+            "reason_en": "Domain listed in threat feeds (OpenPhish/URLhaus)",
+            "indicators": ["threat_feed_domain"],
+        }
     return None
 
 
