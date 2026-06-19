@@ -153,6 +153,7 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"  /check &lt;url&gt; — URL тексеру\n"
         f"  /phone &lt;номер&gt; — телефон нөмірін тексеру\n"
         f"  /sms &lt;мәтін&gt; — SMS алаяқтығын тексеру\n"
+        f"  /pyramid &lt;атау&gt; — қаржы пирамидасын тексеру (АФМ)\n"
         f"  /tender &lt;нөмір&gt; — тендер алаяқтығын тексеру\n"
         f"  /report &lt;url&gt; — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі статистика\n"
@@ -170,6 +171,7 @@ async def handle_help(chat_id: int):
         f"  /check kaspi-support.kz — URL тексеру\n"
         f"  /phone +77771234567 — телефон нөмірін тексеру\n"
         f"  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
+        f"  /pyramid Финико — қаржы пирамидасын атау бойынша тексеру (АФМ/АРРФР)\n"
         f"  /tender 12345678 — тендер алаяқтығын тексеру\n"
         f"  /report scam-site.kz — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі қорғаныс статистикасы\n\n"
@@ -403,6 +405,46 @@ async def handle_tender_check(chat_id: int, tender_number: str, message_id: int 
         await send_message(chat_id, "❌ Тендер тексеру қатесі.", reply_to=message_id)
 
 
+async def handle_pyramid_check(chat_id: int, name: str, message_id: int | None = None):
+    """Check a company/brand name against the AFM/ARDFM pyramid registry."""
+    await send_message(chat_id,
+        f"🔺 Пирамида тізімінен тексерілуде: <b>{_esc(name)}</b>...",
+        reply_to=message_id)
+    try:
+        import os
+        base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        async with httpx.AsyncClient(timeout=15) as client:
+            res = await client.post(f"{base_url}/pyramid/check", json={"name": name, "lang": "kk"})
+            result = res.json()
+        verdict = result.get("verdict", "UNKNOWN")
+        score   = result.get("threat_score", 0)
+        emoji   = _VERDICT_EMOJI.get(verdict, "❓")
+        match   = result.get("match")
+        if match:
+            lines = [
+                f"{emoji} <b>«{_esc(str(match))}»</b>",
+                "",
+                f"📊 Қауіп деңгейі: <b>{score}/100</b> {_score_bar(score)}",
+                f"🎯 Сәйкестік: {int(float(result.get('confidence', 0)) * 100)}%",
+                "",
+                _esc(result.get("detail") or result.get("detail_kk", "")),
+            ]
+            link = result.get("official_link")
+            if link:
+                lines.append(f"\n🔗 <a href='{link}'>АРРФР ресми тізімі</a>")
+        else:
+            lines = [
+                f"✅ <b>«{_esc(name)}»</b> реестрде табылмады.",
+                "",
+                _esc(result.get("detail") or result.get("detail_kk", "")),
+            ]
+        lines.append("\n<i>Qalqan AI · АФМ/АРРФР пирамида тізімі</i>")
+        await send_message(chat_id, "\n".join(lines), reply_to=message_id)
+    except Exception as e:
+        logger.error(f"Pyramid check error {name}: {e}")
+        await send_message(chat_id, "❌ Пирамида тексеру қатесі.", reply_to=message_id)
+
+
 async def handle_inline(inline_query_id: str, query: str):
     """Inline query: @QalqanAI_bot <url>"""
     query = query.strip()
@@ -590,6 +632,17 @@ async def dispatch(update: dict) -> None:
                 reply_to=message_id)
         else:
             await handle_sms_check(chat_id, sms_text, message_id)
+
+    elif text.startswith("/pyramid"):
+        parts = text.split(maxsplit=1)
+        name = parts[1].strip() if len(parts) > 1 else ""
+        if not name:
+            await send_message(chat_id,
+                "ℹ️ Пайдаланылуы: /pyramid &lt;компания атауы&gt;\n"
+                "Мысал: /pyramid Финико",
+                reply_to=message_id)
+        else:
+            await handle_pyramid_check(chat_id, name, message_id)
 
     # ── Auto-check: plain URL ──
     elif _URL_RE.search(text) and not text.startswith("/"):

@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "description": "Реестр финансовых пирамид и подозрительных инвест-схем (Казахстан). Имя-ориентированный поиск, дополняет domain-based pyramid_schemes.json.",
+    "official_sources": [
+      "https://www.gov.kz/memleket/entities/ardfm (АРРФР — список финансовых пирамид и нелегальных участников)",
+      "https://afm.gov.kz (АФМ — расследования финпирамид)",
+      "https://nationalbank.kz (предупреждения о нелегальных участниках финрынка)"
+    ],
+    "sync_note": "В продакшене этот список должен синхронизироваться скрейпером с официального реестра АРРФР/АФМ. Текущие записи — публично задокументированные схемы (пресса/официальные предупреждения). Вердикт даёт сигнал 'совпадение с реестром', не юридическое обвинение — ссылка на офиц. источник прилагается.",
+    "synced_at": null,
+    "version": 1
+  },
+  "entities": [
+    { "names": ["Finiko", "Финико", "Финiko"], "aliases": ["finiko", "fininvest"], "status": "collapsed", "year": 2021, "note": "Крупная крипто-пирамида (РФ/СНГ), обещала 30% в месяц. Коллапс 2021." },
+    { "names": ["МММ", "MMM", "MMM Global", "МММ-2011", "МММ-2012"], "aliases": ["mmm global", "mavrodi"], "status": "collapsed", "year": 2012, "note": "Классическая пирамида Мавроди, многократно перезапускалась." },
+    { "names": ["Questra World", "Questra", "Atlantic Global Asset Management", "AGAM"], "aliases": ["questra", "agam"], "status": "collapsed", "year": 2017, "note": "Международная инвест-пирамида, активно продвигалась в РК." },
+    { "names": ["Wais Group", "Вайс", "Wais"], "aliases": ["wais", "вайс групп"], "status": "investigated", "year": 2021, "note": "Инвест-схема с признаками пирамиды, фигурировала в предупреждениях." },
+    { "names": ["mPensia", "МПензия", "M-Pensia"], "aliases": ["mpensia"], "status": "investigated", "year": 2022, "note": "Псевдо-пенсионная инвест-схема." },
+    { "names": ["Smart Capital", "Смарт Капитал"], "aliases": ["smartcapital"], "status": "suspected", "year": 2020, "note": "Инвест-предложения с признаками пирамиды." },
+    { "names": ["Кешелі", "Keshели", "Keshli"], "aliases": ["keshli"], "status": "suspected", "year": 2021, "note": "Локальная схема (KZ)." },
+    { "names": ["Coffee Express", "Кофе Экспресс"], "aliases": ["coffeeexpress"], "status": "suspected", "year": 2019, "note": "Франшиза/инвест-схема с пирамидальными признаками." },
+    { "names": ["WeWe", "VLOM", "WeWe Global"], "aliases": ["wewe", "vlom"], "status": "collapsed", "year": 2022, "note": "Крипто-MLM пирамида." },
+    { "names": ["Forex Optimum", "Форекс Оптимум"], "aliases": ["forexoptimum"], "status": "suspected", "year": 2018, "note": "Нелицензированный форекс-дилер." },
+    { "names": ["TeleTrade", "ТелеТрейд", "Teletrade"], "aliases": ["teletrade"], "status": "investigated", "year": 2019, "note": "Форекс-схема, лицензия отозвана в ряде стран." },
+    { "names": ["Esfira", "Эсфира"], "aliases": ["esfira"], "status": "suspected", "year": 2020, "note": "Инвест-схема с признаками пирамиды." },
+    { "names": ["Garant 24", "Гарант 24", "Garant-24"], "aliases": ["garant24"], "status": "suspected", "year": 2019, "note": "Схема под видом ломбарда/инвестиций." },
+    { "names": ["Bitconnect", "БитКоннект"], "aliases": ["bitconnect"], "status": "collapsed", "year": 2018, "note": "Крипто-пирамида, мировой коллапс 2018." },
+    { "names": ["OneCoin", "ВанКоин"], "aliases": ["onecoin"], "status": "collapsed", "year": 2019, "note": "Псевдо-криптовалюта, признана пирамидой/мошенничеством." },
+    { "names": ["Forsage", "Форсаж"], "aliases": ["forsage"], "status": "investigated", "year": 2020, "note": "Смарт-контракт MLM, иск SEC как пирамида." },
+    { "names": ["Cashbery", "Кэшбери"], "aliases": ["cashbery"], "status": "collapsed", "year": 2018, "note": "Пирамида, публичное предупреждение ЦБ." },
+    { "names": ["Antares", "Антарес", "Antares Trade"], "aliases": ["antares"], "status": "collapsed", "year": 2020, "note": "Инвест-пирамида (СНГ)." },
+    { "names": ["Pro100Business", "Про100Бизнес"], "aliases": ["pro100business"], "status": "suspected", "year": 2019, "note": "MLM-инвест-схема." },
+    { "names": ["Finbesto", "Финбесто"], "aliases": ["finesto", "finbesto"], "status": "suspected", "year": 2023, "note": "Онлайн инвест-схема с признаками пирамиды." },
+    { "names": ["Lyoness", "Лайонесс", "myWorld", "Cashback World"], "aliases": ["lyoness", "myworld"], "status": "investigated", "year": 2019, "note": "Кэшбэк-MLM, в ряде стран признан пирамидой." },
+    { "names": ["Telf AG", "Телф"], "aliases": ["telfag"], "status": "suspected", "year": 2022, "note": "Инвест-схема с признаками пирамиды." },
+    { "names": ["Solar Group", "Солар Групп"], "aliases": ["solargroup"], "status": "suspected", "year": 2021, "note": "Инвест-проект с пирамидальными признаками." },
+    { "names": ["Финансовый Менеджмент", "FM Group invest"], "aliases": ["fmgroupinvest"], "status": "suspected", "year": 2020, "note": "Схема под видом управления капиталом." },
+    { "names": ["B2B Jewelry", "Б2Б Джевелри"], "aliases": ["b2bjewelry"], "status": "collapsed", "year": 2020, "note": "Ювелирная пирамида (СНГ)." }
+  ],
+  "indicators_ru": [
+    "гарантированный доход", "пассивный доход 30%", "приведи друга", "реферальный бонус",
+    "удвоим вложения", "беспроигрышные инвестиции", "доход без риска", "вложи и получай",
+    "вернём вложения с процентами", "только сегодня", "ограниченное предложение", "успей вложить"
+  ],
+  "indicators_kk": [
+    "кепілдендірілген табыс", "тәуекелсіз инвестиция", "досыңды әкел", "реферал бонус",
+    "ақшаңды екі есе", "тек бүгін", "шектеулі ұсыныс", "сал да тап"
+  ]
+}

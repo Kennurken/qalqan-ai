@@ -18,6 +18,7 @@ from pydantic import BaseModel, field_validator, Field
 from .services.threat_db import check_all_databases, extract_domain
 from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
+from .services.pyramid_registry import check_pyramid_name, registry_size
 from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url, check_gambling_domain
 from .services.domain_intel import check_domain_intelligence
 from .services.goszakup import check_goszakup_url, analyse_procurement_data, is_goszakup_url
@@ -965,6 +966,47 @@ async def check_text(request: TextCheckRequest, req: Request):
             ai_result.setdefault("indicators", []).append(f"pyramid_conf_{int(pyramid_conf * 100)}pct")
 
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
+
+
+# --- АФМ/АРРФР ПИРАМИДА ТІЗІМІ: атау бойынша тексеру ---
+class PyramidNameRequest(BaseModel):
+    name: str = Field(..., max_length=200)
+    lang: str = Field(default="ru", max_length=5)
+
+
+@app.post("/pyramid/check")
+async def pyramid_name_check(request: PyramidNameRequest, req: Request):
+    """Check a company/brand NAME against the AFM/ARDFM pyramid registry.
+    POST {"name": "Финико", "lang": "ru"} → verdict (DANGEROUS if listed) or clean."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="pyramid_name"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
+    hit = check_pyramid_name(request.name, lang=request.lang)
+    if hit:
+        result = calculate_final_verdict([], None, None, lang=request.lang, deterministic_hit=hit)
+        result["match"] = hit.get("match")
+        result["confidence"] = hit.get("confidence")
+        result["status"] = hit.get("status")
+        result["official_link"] = hit.get("official_link")
+        result["registry_size"] = registry_size()
+        return result
+
+    # No match → not a guarantee; advise verifying with the official registry
+    not_found = {
+        "kk": "Реестрде табылмады. Бұл 100% кепілдік емес — АРРФР ресми тізімін тексеріңіз.",
+        "ru": "В реестре не найдено. Это не 100% гарантия — сверьтесь с офиц. списком АРРФР.",
+        "en": "Not found in the registry. Not a guarantee — verify with the official ARDFM list.",
+    }
+    return {
+        "verdict": "SAFE", "threat_score": 0, "risk_level": "low",
+        "threat_type": "not_listed", "source": "pyramid_registry",
+        "match": None, "registry_size": registry_size(),
+        "official_link": "https://www.gov.kz/memleket/entities/ardfm",
+        "detail": not_found.get(request.lang, not_found["ru"]),
+        "detail_kk": not_found["kk"], "detail_ru": not_found["ru"], "detail_en": not_found["en"],
+        "indicators": [],
+    }
 
 
 # --- BATCH ТЕКСЕРУ (max 15 URL) ---
