@@ -49,7 +49,8 @@ def extract_features(url: str) -> dict:
     try:
         parsed = urlparse(url)
     except Exception:
-        return {"error": "invalid_url", "risk_score": 50}
+        # Parse failure carries no threat signal — return 0, not a biasing 50
+        return {"error": "invalid_url", "risk_score": 0}
 
     domain = (parsed.netloc or "").lower().replace("www.", "")
     path = parsed.path or ""

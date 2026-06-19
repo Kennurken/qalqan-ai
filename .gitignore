@@ -11,3 +11,13 @@ __pycache__/
 *.rar
 
 .vercel
+
+# Office lock/temp files
+~$*
+
+# Accidentally-cloned tool repos (were committed as broken submodule gitlinks)
+awesome-claude-code/
+claude-code-sub-agents/
+everything-claude-code/
+wshobson-agents/
+translate-book/

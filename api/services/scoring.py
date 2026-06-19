@@ -11,7 +11,8 @@ def calculate_final_verdict(
     pyramid_domain_hit: dict | None,
     domain_info: dict | None = None,
     url_features: dict | None = None,
-    lang: str = "kk"
+    lang: str = "kk",
+    deterministic_hit: dict | None = None
 ) -> dict:
     """
     Барлық деректерді біріктіріп, соңғы вердикт беру.
@@ -27,6 +28,11 @@ def calculate_final_verdict(
     # Пирамида тізімі — ең жоғары приоритет
     if pyramid_domain_hit:
         return _format_verdict(pyramid_domain_hit, lang)
+
+    # Детерминді офлайн-хиттер (бренд импер., ставка/казино) — детектордың вердикті/баллын
+    # бұзбай сақтаймыз (AI-ветка score-ды * 0.7-ге кесіп жіберетін болатын — bug fix)
+    if deterministic_hit:
+        return _format_verdict(deterministic_hit, lang)
 
     # DB нәтижелері
     if db_results:

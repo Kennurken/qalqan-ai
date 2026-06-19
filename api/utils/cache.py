@@ -62,18 +62,6 @@ async def _redis_get(key: str) -> dict | None:
         logger.warning(f"Redis GET failed: {e}")
     return None
 
-async def _redis_set(key: str, value: dict, ttl: int) -> None:
-    try:
-        payload = json.dumps(value, ensure_ascii=False)
-        async with httpx.AsyncClient(timeout=3) as client:
-            await client.get(
-                f"{_redis_url()}/set/{_redis_key(key)}/{httpx.URL(payload)}/ex/{ttl}",
-                headers=_redis_headers(),
-            )
-    except Exception as e:
-        logger.warning(f"Redis SET failed: {e}")
-
-
 async def _redis_set_proper(key: str, value: dict, ttl: int) -> None:
     """Pipeline SET with EX — stores only the JSON payload, not the command array."""
     try:

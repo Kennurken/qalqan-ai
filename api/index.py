@@ -31,7 +31,9 @@ from .utils.i18n import t
 from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data
 
 _PRIVATE_IP_RE = re.compile(
-    r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1)",
+    r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
+    r"100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.|0\.0\.0\.0|::1|::ffff:|"
+    r"fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:)",
     re.IGNORECASE
 )
 
@@ -335,7 +337,7 @@ class TextCheckRequest(BaseModel):
     lang: str = Field(default="kk", max_length=5)
 
 class ScreenRequest(BaseModel):
-    image_base64: str = Field(..., max_length=5_500_000)  # ~4MB base64 (was 7MB — tightened)
+    image_base64: str = Field(..., max_length=4_000_000)  # ~3MB image; body must stay under Vercel 4.5MB limit
     lang: str = Field(default="kk", max_length=5)
 
     @field_validator("image_base64")
@@ -825,7 +827,7 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
     # --- Tier 1.7: KZ Brand Impersonation (fast, offline, very high precision) ---
     kz_impersonation_hit = check_kz_impersonation_url(domain)
     if kz_impersonation_hit:
-        result = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
+        result = calculate_final_verdict([], None, None, url_features=url_feats, lang=lang, deterministic_hit=kz_impersonation_hit)
         result["explanation"] = generate_explanation(url_feats, None, [], None, None, result["threat_score"], lang=lang)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "kz_impersonation"}
         await set_cached(key, result)
@@ -834,7 +836,7 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
     # --- Tier 1.8: Gambling / unlicensed bookmaker (KZ banned sites) ---
     gambling_hit = check_gambling_domain(domain)
     if gambling_hit:
-        result = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
+        result = calculate_final_verdict([], None, None, url_features=url_feats, lang=lang, deterministic_hit=gambling_hit)
         result["metadata"] = {"processing_time_ms": int((time.time() - start_time) * 1000), "tier_hit": "gambling_list"}
         await set_cached(key, result)
         return result
@@ -1289,9 +1291,23 @@ async def get_trends():
 
 
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
+def _authorize_cron(req: Request) -> bool:
+    """Allow only Vercel cron (Authorization: Bearer CRON_SECRET) or explicit ?secret=.
+    If CRON_SECRET is unset, allow (set CRON_SECRET in env to lock cron-only endpoints down)."""
+    secret = os.getenv("CRON_SECRET", "")
+    if not secret:
+        return True
+    if req.headers.get("authorization", "") == f"Bearer {secret}":
+        return True
+    return req.query_params.get("secret", "") == secret
+
+
 @app.get("/telegram/weekly-report")
 async def telegram_weekly_report(req: Request):
-    """Send weekly threat summary to Telegram admin channel. Called by Vercel cron."""
+    """Send weekly threat summary to Telegram admin channel. Called by Vercel cron.
+    Protected by CRON_SECRET so outsiders can't trigger broadcasts."""
+    if not _authorize_cron(req):
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
     from .utils.telegram import send_message as _tg_send
     chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
     if not chat_id:

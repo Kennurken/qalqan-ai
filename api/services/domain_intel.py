@@ -6,6 +6,7 @@
 import ssl
 import socket
 import asyncio
+import ipaddress
 import httpx
 import logging
 from datetime import datetime, timezone
@@ -35,6 +36,49 @@ _RDAP_FALLBACK = "https://rdap.org/domain/"
 _FREE_CA_ORGS = {"let's encrypt", "zerossl", "buypass", "sectigo"}
 
 
+def _ip_blocked(ip) -> bool:
+    return (ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified)
+
+
+def _is_internal_host(host: str) -> bool:
+    """SSRF defense: block internal/reserved/cloud-metadata targets before any socket/RDAP call.
+    Resolves the host, so DNS-rebinding to a private IP (e.g. 169.254.169.254) is also caught."""
+    if not host:
+        return True
+    host = host.strip().lower().rstrip(".")
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+    if host == "localhost" or host.endswith(".local") or host.endswith(".internal"):
+        return True
+
+    # Literal IP, including int/hex-encoded IPv4 (http://2130706433/, http://0x7f000001/)
+    for parse in (
+        lambda h: ipaddress.ip_address(h),
+        lambda h: ipaddress.ip_address(int(h)) if h.isdigit() else None,
+        lambda h: ipaddress.ip_address(int(h, 16)) if h.startswith("0x") else None,
+    ):
+        try:
+            ip = parse(host)
+        except (ValueError, OverflowError):
+            continue
+        if ip is not None:
+            return _ip_blocked(ip)  # public literal IP → False; internal → True
+
+    # Hostname — resolve A/AAAA and block if ANY resolved address is internal
+    try:
+        for info in socket.getaddrinfo(host, None):
+            addr = info[4][0].split("%")[0]  # strip IPv6 scope id
+            try:
+                if _ip_blocked(ipaddress.ip_address(addr)):
+                    return True
+            except ValueError:
+                continue
+    except (socket.gaierror, UnicodeError, OSError):
+        return False  # unresolvable — downstream call fails on its own
+    return False
+
+
 async def check_domain_intelligence(domain: str, url: str) -> dict | None:
     """RDAP + SSL тексеру. Қосымша threat_score қайтарады."""
     score_adjust = 0
@@ -43,6 +87,11 @@ async def check_domain_intelligence(domain: str, url: str) -> dict | None:
 
     # Run RDAP and SSL concurrently
     loop = asyncio.get_running_loop()
+
+    # SSRF guard: never open sockets / RDAP to internal/reserved/metadata hosts
+    if await loop.run_in_executor(None, _is_internal_host, domain):
+        logger.warning(f"domain_intel blocked internal host: {domain}")
+        return None
     age_task = asyncio.create_task(_get_domain_age_rdap(domain))
     ssl_task = loop.run_in_executor(None, _check_ssl_cert, domain)
     age_days, ssl_info = await asyncio.gather(age_task, ssl_task, return_exceptions=True)
