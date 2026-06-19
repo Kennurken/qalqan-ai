@@ -414,7 +414,7 @@ async def root(request: Request):
     if "text/html" not in accept:
         return {
             "status": "online", "name": "Qalqan AI", "version": "5.1.0",
-            "pipeline": "7-tier threat detection",
+            "pipeline": "6-tier threat detection",
             "ai_providers": {
                 "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
                 "gemini": "configured" if os.getenv("GEMINI_API_KEY") else "missing"
@@ -431,12 +431,12 @@ _LANDING_HTML = """<!DOCTYPE html>
 <title>Qalqan AI — Қазақстандық киберқауіпсіздік</title>
 <meta name="description" content="Qalqan AI — AI-powered cybersecurity extension protecting Kazakhstani users from phishing, scams, gambling and pyramid schemes.">
 <meta property="og:title" content="Qalqan AI — Казахстанский ИИ-щит от фишинга">
-<meta property="og:description" content="Chrome расширение: блокирует фишинг, пирамиды, гемблинг до загрузки страницы. Офлайн-база 390+ доменов. 7-уровневый AI-анализ.">
+<meta property="og:description" content="Chrome расширение: блокирует фишинг, пирамиды, гемблинг до загрузки страницы. Офлайн-база 390+ доменов. 6-уровневый AI-анализ.">
 <meta property="og:url" content="https://qalqan-ai-nu.vercel.app">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
-<meta name="twitter:description" content="Blocks phishing, scams, gambling before page loads. 7-tier AI pipeline. Kazakh/Russian/English.">
+<meta name="twitter:description" content="Blocks phishing, scams, gambling before page loads. 6-tier AI pipeline. Kazakh/Russian/English.">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#00d4ff">
 <style>
@@ -586,7 +586,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
 <section class="section" id="features">
   <div class="section-label">Функционал</div>
   <div class="section-title">Не қорғайды?</div>
-  <p class="section-sub">7 деңгейлі pipeline — 1 мс кеш-тексеруден AI анализіне дейін</p>
+  <p class="section-sub">6 деңгейлі pipeline — 1 мс кеш-тексеруден AI анализіне дейін</p>
 
   <div class="features-grid">
     <div class="feat-card">
@@ -626,15 +626,14 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
 <section class="pipeline" id="pipeline">
   <div class="pipeline-inner">
     <div class="section-label">Архитектура</div>
-    <div class="section-title">7-деңгейлі анықтау</div>
+    <div class="section-title">6-деңгейлі анықтау</div>
     <div class="pipeline-steps">
       <div class="pipe-step"><div class="pipe-num">1</div><div class="pipe-name">Ақ тізім</div></div>
       <div class="pipe-step"><div class="pipe-num">2</div><div class="pipe-name">Redis кэш</div></div>
       <div class="pipe-step"><div class="pipe-num">3</div><div class="pipe-name">Офлайн DB</div></div>
       <div class="pipe-step"><div class="pipe-num">4</div><div class="pipe-name">KZ Intel</div></div>
-      <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-name">Сыртқы DB</div></div>
-      <div class="pipe-step"><div class="pipe-num">6</div><div class="pipe-name">ML модель</div></div>
-      <div class="pipe-step"><div class="pipe-num">7</div><div class="pipe-name">Groq / Gemini AI</div></div>
+      <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-name">Сыртқы DB + домен</div></div>
+      <div class="pipe-step"><div class="pipe-num">6</div><div class="pipe-name">Groq / Gemini AI</div></div>
     </div>
   </div>
 </section>
@@ -667,7 +666,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
     <span class="stack-tag">Chrome MV3</span>
     <span class="stack-tag">Groq llama-3.3-70b</span>
     <span class="stack-tag">Gemini 2.5-flash</span>
-    <span class="stack-tag">XLM-RoBERTa</span>
+    <span class="stack-tag">30+ URL lexical features</span>
     <span class="stack-tag">Upstash Redis</span>
     <span class="stack-tag">Supabase / PostgreSQL</span>
     <span class="stack-tag">Vercel Serverless</span>
@@ -1164,7 +1163,7 @@ async def get_stats(request: Request):
         "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
         "version": "5.1.0",
-        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "7tier_pipeline", "xai_explainer"],
+        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "6tier_pipeline", "xai_explainer"],
         "report_url": "/report/generate",
     }
     if "text/html" not in request.headers.get("accept", ""):

@@ -1,0 +1,17 @@
+# Qalqan AI — host crontab for the VPS.  Install:  crontab deploy/crontab.example
+# Replace DOMAIN and load secrets from the shell env or hardcode carefully.
+# NOTE: no /ping keep-alive needed — the process is always warm on a VPS.
+
+DOMAIN=api.qalqan.kz
+CRON_SECRET=replace-with-env-CRON_SECRET
+BACKUP_DIR=/opt/qalqan/backups
+
+# Weekly Telegram threat summary — Sundays 09:00
+0 9 * * 0 curl -fsS -H "Authorization: Bearer $CRON_SECRET" "https://$DOMAIN/telegram/weekly-report" >/dev/null 2>&1
+
+# Monthly PDF threat report regen — 1st of month 07:00 (optional, public endpoint)
+0 7 1 * * curl -fsS "https://$DOMAIN/report/generate" -o /dev/null 2>&1
+
+# Daily Supabase backup via pg_dump — needs SUPABASE_DB_URL exported for cron.
+# Keeps 14 days. Create $BACKUP_DIR first.
+0 3 * * * mkdir -p "$BACKUP_DIR" && pg_dump "$SUPABASE_DB_URL" 2>/dev/null | gzip > "$BACKUP_DIR/qalqan-$(date +\%F).sql.gz" && find "$BACKUP_DIR" -name 'qalqan-*.sql.gz' -mtime +14 -delete

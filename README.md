@@ -21,7 +21,7 @@ AI-powered Chrome extension protecting Kazakhstani users from phishing, financia
 
 ---
 
-## How it works — 7-tier pipeline
+## How it works — 6-tier pipeline
 
 ```
 Every site visit → background.js (Service Worker)
@@ -121,7 +121,7 @@ Set `DEMO_MODE=true` in Vercel env vars for presentations — returns determinis
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/check` | POST | Main 7-tier URL check |
+| `/check` | POST | Main 6-tier URL check |
 | `/check-text` | POST | Analyze SMS/message text for scams |
 | `/batch` | POST | Check up to 10 URLs at once |
 | `/analyze-screen` | POST | Vision AI screenshot analysis |

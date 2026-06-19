@@ -1,0 +1,18 @@
+# Automatic HTTPS via Let's Encrypt. {$DOMAIN} comes from ../.env.
+{$DOMAIN} {
+	encode gzip zstd
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy app:8000 {
+		health_uri /health
+		health_interval 30s
+	}
+}

@@ -183,7 +183,7 @@ async def handle_help(chat_id: int):
         f"  🟡 Gambling / ойын автоматтары\n"
         f"  🟡 Күдікті SMS хабарламалар\n"
         f"  🟡 Алаяқтық телефон нөмірлері\n\n"
-        f"<i>7-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
+        f"<i>6-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
     )
     await send_message(chat_id, text)
 

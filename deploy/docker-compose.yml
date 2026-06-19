@@ -1,0 +1,35 @@
+# Qalqan AI — VPS stack: FastAPI backend + Caddy (automatic HTTPS).
+# Supabase + Upstash stay managed (don't self-host state).
+#
+#   cd deploy && docker compose up -d --build
+#
+# Requires ../.env (copy from ../.env.example) with DOMAIN set.
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: qalqan-ai:latest
+    restart: unless-stopped
+    env_file: ../.env
+    expose:
+      - "8000"
+    # No published ports — only Caddy talks to it over the internal network.
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file: ../.env          # provides $DOMAIN for the Caddyfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # persists TLS certs across restarts
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

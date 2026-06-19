@@ -1,4 +1,10 @@
-# Qalqan AI — ML Model (XLM-RoBERTa)
+# Qalqan AI — ML Model (XLM-RoBERTa) — EXPERIMENTAL / OFFLINE R&D
+
+> ⚠️ **Not deployed in production.** The live service (`api/`) runs a 6-tier
+> pipeline of heuristics + threat DBs + Groq/Gemini AI. This folder is offline
+> research toward an optional ML tier; the trained weights are **not** served by
+> the Vercel/VPS backend. `training_metrics.json` reflects local experiments, not
+> a production benchmark. See repo root README for the deployed architecture.
 
 ## Quick Start
 

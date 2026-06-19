@@ -28,7 +28,7 @@ const STACKS = [
     items: [
       { name: "Groq Llama 3.3", desc: "70B — URL + content NLP", icon: "🤖" },
       { name: "Gemini Vision", desc: "Screenshot fraud detection", icon: "👁️" },
-      { name: "XLM-RoBERTa", desc: "Fine-tuned KZ phishing classifier", icon: "🧠" },
+      { name: "URL ML Features", desc: "30+ lexical & homoglyph signals", icon: "🧠" },
       { name: "XAI / SHAP", desc: "Explainable risk factors", icon: "📊" },
     ],
   },
