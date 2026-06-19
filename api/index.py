@@ -428,6 +428,13 @@ _LANDING_HTML = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Қазақстандық киберқауіпсіздік</title>
 <meta name="description" content="Qalqan AI — AI-powered cybersecurity extension protecting Kazakhstani users from phishing, scams, gambling and pyramid schemes.">
+<meta property="og:title" content="Qalqan AI — Казахстанский ИИ-щит от фишинга">
+<meta property="og:description" content="Chrome расширение: блокирует фишинг, пирамиды, гемблинг до загрузки страницы. Офлайн-база 390+ доменов. 7-уровневый AI-анализ.">
+<meta property="og:url" content="https://qalqan-ai-nu.vercel.app">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
+<meta name="twitter:description" content="Blocks phishing, scams, gambling before page loads. 7-tier AI pipeline. Kazakh/Russian/English.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--cyan:#00d4ff;--cyan2:#00b8d9;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--bg:#0a0e1a;--bg2:#0f1629;--card:#131d35;--border:#1e2d4a;--text:#e2e8f0;--muted:#64748b}
@@ -537,7 +544,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
     <a href="#telegram">Telegram</a>
     <a href="#tech">Технологии</a>
   </div>
-  <a class="nav-cta" href="https://github.com/Kennurken/qalqan-ai" target="_blank">GitHub</a>
+  <a class="nav-cta" href="/install">Орнату</a>
 </nav>
 
 <!-- HERO -->
@@ -1315,6 +1322,134 @@ async def telegram_weekly_report(req: Request):
     except Exception as e:
         logger.error(f"Weekly report failed: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)[:100]})
+
+
+# --- Installation guide page ---
+@app.get("/install")
+async def install_page():
+    return HTMLResponse(content="""<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalqan AI — Орнату / Установка</title>
+<meta property="og:title" content="Qalqan AI — Установить расширение">
+<meta property="og:description" content="Пошаговая инструкция установки Qalqan AI в Chrome и Firefox">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0e1a;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.navbar{background:rgba(10,14,26,.95);border-bottom:1px solid #1e2d4a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.logo{color:#00d4ff;font-weight:700;font-size:18px;text-decoration:none}
+a{color:#00d4ff}
+.page{max-width:800px;margin:0 auto;padding:48px 24px}
+h1{font-size:32px;font-weight:800;margin-bottom:8px}
+.subtitle{color:#64748b;margin-bottom:48px}
+.tab-bar{display:flex;gap:4px;margin-bottom:32px;background:#0f1629;border-radius:10px;padding:4px}
+.tab{flex:1;text-align:center;padding:10px;border-radius:7px;cursor:pointer;font-size:14px;font-weight:600;color:#64748b;transition:all .2s}
+.tab.active{background:#131d35;color:#00d4ff}
+.panel{display:none}
+.panel.active{display:block}
+.step{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start}
+.step-num{width:36px;height:36px;border-radius:50%;background:rgba(0,212,255,.1);border:2px solid rgba(0,212,255,.3);color:#00d4ff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.step-body p{font-size:14px;color:#94a3b8;line-height:1.6}
+code{background:#131d35;border:1px solid #1e2d4a;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:13px;color:#00d4ff}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;background:#00d4ff;color:#0a0e1a;padding:13px 28px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;margin:12px 0}
+.dl-btn:hover{opacity:.85}
+.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#f59e0b;margin:16px 0}
+.note{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8;margin:16px 0}
+</style></head>
+<body>
+<div class="navbar">
+  <a class="logo" href="/">🛡 Qalqan AI</a>
+  <a href="/" style="color:#64748b;font-size:14px">← Басты бет</a>
+</div>
+<div class="page">
+  <h1>Орнату нұсқаулығы</h1>
+  <p class="subtitle">Установка расширения Qalqan AI · Chrome &amp; Firefox</p>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="showTab('chrome',this)">Chrome</div>
+    <div class="tab" onclick="showTab('firefox',this)">Firefox</div>
+  </div>
+
+  <!-- CHROME -->
+  <div class="panel active" id="tab-chrome">
+    <div class="note">Chrome 88+ (Windows, macOS, Linux). Manifest V3.</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>ZIP файлды жүктеу</h3>
+        <p>GitHub-тан соңғы нұсқаны жүктеңіз</p>
+        <a class="dl-btn" href="https://github.com/Kennurken/qalqan-ai/releases/latest" target="_blank">Жүктеу (GitHub Releases)</a>
+        <p>немесе <a href="https://github.com/Kennurken/qalqan-ai/archive/refs/heads/master.zip">master.zip</a> жүктеп, <code>extension/dist/</code> қалтасын пайдаланыңыз</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Developer Mode қосу</h3>
+        <p>Chrome-да <code>chrome://extensions</code> беттін ашыңыз → оң жоғарғы бұрышта <b>Developer mode</b> ауыстырып-қосыңыз</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Load unpacked</h3>
+        <p><b>Load unpacked</b> түймесін басыңыз → жүктелген ZIP-тен шыққан <code>dist/</code> қалтасын таңдаңыз</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Дайын!</h3>
+        <p>Toolbar-да Qalqan AI белгісі пайда болады. Кез-келген сайтқа өтіңіз — автоматты тексеру іске қосылады.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREFOX -->
+  <div class="panel" id="tab-firefox">
+    <div class="warn">Firefox 128+ қажет. Тұрақты нұсқа: 2026 шілдесінде Mozilla Add-ons-қа жіберіледі.</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Firefox ZIP жүктеу</h3>
+        <p>Firefox-қа арналған пакетті жүктеңіз:</p>
+        <a class="dl-btn" href="https://github.com/Kennurken/qalqan-ai/raw/master/qalqan-ai-firefox-v5.1.0.zip">qalqan-ai-firefox-v5.1.0.zip</a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>about:debugging ашу</h3>
+        <p>Firefox мекенжай жолына <code>about:debugging</code> теріңіз</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Load Temporary Add-on</h3>
+        <p><b>This Firefox</b> → <b>Load Temporary Add-on</b> → жүктелген ZIP файлын таңдаңыз</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Дайын!</h3>
+        <p>Расширение жұмыс істейді. Firefox қайта іске қосылғанда қайта жүктеу керек (уақытша режим).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+</script>
+</body></html>""")
 
 
 # --- Keep-warm (Vercel cron hits every 10 min) ---
