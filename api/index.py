@@ -29,7 +29,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
@@ -770,6 +770,33 @@ loadStats();
 </html>"""
 
 
+def _to_domain(s: str) -> str:
+    """Normalize a URL or bare hostname to a domain (extract_domain needs a scheme)."""
+    s = (s or "").strip()
+    if s and "://" not in s:
+        s = "https://" + s
+    return extract_domain(s)
+
+
+async def community_verdict(domain: str) -> dict | None:
+    """Crowd-block tier: if a domain is community-confirmed scam, return a DANGEROUS hit.
+    Returns None (and never raises) when not blocked or storage unavailable."""
+    try:
+        stats = await get_community_stats(domain)
+    except Exception:
+        return None
+    if not stats.get("auto_blocked"):
+        return None
+    return {
+        "verdict": "DANGEROUS", "threat_score": 88, "threat_type": "community_blocked",
+        "source": "community",
+        "reason_kk": f"Қоғамдастық бұғаттаған: {stats['confirms']} растау, {stats['reports']} шағым",
+        "reason_ru": f"Заблокировано сообществом: {stats['confirms']} подтверждений, {stats['reports']} жалоб",
+        "reason_en": f"Community-blocked: {stats['confirms']} confirmations, {stats['reports']} reports",
+        "indicators": ["community_blocked"], "community": stats,
+    }
+
+
 # --- НЕГІЗГІ ТЕКСЕРУ: 6-деңгейлі pipeline ---
 @app.post("/check")
 async def check_site(request: CheckRequest, req: Request, background_tasks: BackgroundTasks):
@@ -852,15 +879,18 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
             await set_cached(key, result)
             return result
 
-    # --- Tier 2 + 2.5: Databases AND domain intel in parallel ---
+    # --- Tier 2 + 2.5 + 2.7: Databases, domain intel AND community in parallel ---
+    community_hit = None
     try:
         _t2 = await asyncio.gather(
             check_all_databases(url),
             check_domain_intelligence(domain, url),
+            community_verdict(domain),
             return_exceptions=True,
         )
         db_results = _t2[0] if isinstance(_t2[0], list) else []
         domain_info = _t2[1] if isinstance(_t2[1], dict) else None
+        community_hit = _t2[2] if isinstance(_t2[2], dict) else None
         if isinstance(_t2[0], BaseException):
             logger.error(f"check_all_databases raised: {type(_t2[0]).__name__}: {_t2[0]}")
         if isinstance(_t2[1], BaseException):
@@ -869,8 +899,8 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
         logger.error(f"Tier2 gather failed: {type(e).__name__}: {e}")
         db_results, domain_info = [], None
 
-    # Combine DB results
-    all_db = db_results + ([domain_info] if domain_info else [])
+    # Combine DB results (+ community crowd-block as a DANGEROUS source)
+    all_db = db_results + ([domain_info] if domain_info else []) + ([community_hit] if community_hit else [])
 
     if any(r.get("verdict") == "DANGEROUS" for r in all_db):
         result = calculate_final_verdict(all_db, None, None,
@@ -1192,6 +1222,34 @@ async def report_site(request: ReportRequest, req: Request, background_tasks: Ba
     )
 
     return result
+
+
+# --- ҚОҒАМДАСТЫҚ ДАУЫСЫ (community voting) ---
+class VoteRequest(BaseModel):
+    target: str = Field(..., max_length=2048)   # url or bare domain
+    vote: str = Field(..., max_length=10)        # "confirm" | "dispute"
+
+
+@app.post("/vote")
+async def community_vote(request: VoteRequest, req: Request):
+    """Community confirm/dispute vote on a domain. One vote per IP per domain.
+    confirm = «это действительно скам», dispute = «ложное срабатывание»."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="vote"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    vote = request.vote.strip().lower()
+    if vote not in ("confirm", "dispute"):
+        return JSONResponse(status_code=400, content={"error": "vote must be 'confirm' or 'dispute'"})
+    domain = _to_domain(request.target)
+    if not domain or "." not in domain:
+        return JSONResponse(status_code=400, content={"error": "invalid domain"})
+    return await record_vote(domain, vote, client_ip)
+
+
+@app.get("/community/{domain}")
+async def community_info(domain: str):
+    """Public crowd-intelligence for a domain: reports, confirm/dispute votes, auto-block."""
+    return await get_community_stats(_to_domain(domain))
 
 
 # --- СТАТИСТИКА ---

@@ -177,6 +177,8 @@ async def get_trends(days: int = 7) -> dict | None:
         rep_domain_counts: dict[str, int] = {}
         category_counts: dict[str, int] = {}
         for row in reps:
+            if (row.get("category") or "").startswith("vote:"):
+                continue  # community votes are not scam reports
             d = row.get("domain", "")
             if d:
                 rep_domain_counts[d] = rep_domain_counts.get(d, 0) + 1
@@ -204,6 +206,81 @@ async def get_trends(days: int = 7) -> dict | None:
     except Exception as e:
         logger.warning(f"Supabase get_trends failed: {e}")
         return None
+
+
+# Community auto-block thresholds (crowd-sourced)
+COMMUNITY_BLOCK_MIN_SIGNALS = 5   # reports + confirmations
+COMMUNITY_BLOCK_MIN_IPS = 3       # distinct reporters
+
+
+async def get_community_stats(domain: str) -> dict:
+    """Crowd intelligence for a domain: reports, confirm/dispute votes, auto-block status.
+    Backed by the reports table (votes stored with category vote:confirm / vote:dispute)."""
+    base = {"domain": domain, "reports": 0, "confirms": 0, "disputes": 0,
+            "unique_voters": 0, "crowd_score": 0, "auto_blocked": False}
+    if not _available() or not domain:
+        return base
+    try:
+        async with httpx.AsyncClient(timeout=4) as client:
+            r = await client.get(
+                f"{_url()}/rest/v1/reports",
+                headers=_headers(),
+                params={"domain": f"eq.{domain}",
+                        "select": "category,reporter_ip_hash", "limit": "2000"},
+            )
+        if r.status_code != 200:
+            return base
+        reports = confirms = disputes = 0
+        ips: set[str] = set()
+        for row in r.json():
+            c = row.get("category") or ""
+            iph = row.get("reporter_ip_hash")
+            if iph:
+                ips.add(iph)
+            if c == "vote:confirm":
+                confirms += 1
+            elif c == "vote:dispute":
+                disputes += 1
+            else:
+                reports += 1
+        signals = reports + confirms
+        auto = (signals >= COMMUNITY_BLOCK_MIN_SIGNALS
+                and len(ips) >= COMMUNITY_BLOCK_MIN_IPS
+                and confirms >= disputes)
+        return {"domain": domain, "reports": reports, "confirms": confirms, "disputes": disputes,
+                "unique_voters": len(ips), "crowd_score": signals - disputes, "auto_blocked": auto}
+    except Exception as e:
+        logger.warning(f"get_community_stats failed: {e}")
+        return base
+
+
+async def record_vote(domain: str, vote: str, reporter_ip: str) -> dict:
+    """Record a community confirm/dispute vote (one per IP per domain). Returns updated stats."""
+    if not _available() or not domain:
+        return {"ok": False, "reason": "storage_unavailable"}
+    cat = "vote:confirm" if vote == "confirm" else "vote:dispute"
+    ip_hash = _hash(reporter_ip)
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            chk = await client.get(
+                f"{_url()}/rest/v1/reports", headers=_headers(),
+                params={"domain": f"eq.{domain}", "reporter_ip_hash": f"eq.{ip_hash}",
+                        "category": "in.(vote:confirm,vote:dispute)", "select": "id", "limit": "1"},
+            )
+            if chk.status_code == 200 and chk.json():
+                stats = await get_community_stats(domain)
+                return {"ok": False, "already_voted": True, "stats": stats}
+            r = await client.post(
+                f"{_url()}/rest/v1/reports", headers=_headers(),
+                json={"domain": domain, "url_hash": _hash(domain), "category": cat,
+                      "comment": None, "lang": "ru", "reporter_ip_hash": ip_hash},
+            )
+            ok = r.status_code in (200, 201)
+        stats = await get_community_stats(domain)
+        return {"ok": ok, "stats": stats}
+    except Exception as e:
+        logger.warning(f"record_vote failed: {e}")
+        return {"ok": False, "reason": "error"}
 
 
 async def get_dashboard_data(sample: int = 2000) -> dict | None:
@@ -289,7 +366,7 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
         rep_cats: dict[str, int] = {}
         for row in reps:
             c = row.get("category", "")
-            if c:
+            if c and not c.startswith("vote:"):
                 rep_cats[c] = rep_cats.get(c, 0) + 1
 
         series = [{"date": d, **daily[d]} for d in sorted(daily.keys())][-30:]
