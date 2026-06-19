@@ -1,10 +1,30 @@
 import asyncio
 import os
 import hashlib
+import json
 import logging
 import httpx
 
 logger = logging.getLogger("qalqan")
+
+_WHITELIST: set[str] | None = None
+
+
+def _trusted_domains() -> set[str]:
+    """Whitelisted domains — used to scrub false-positives from dashboard stats."""
+    global _WHITELIST
+    if _WHITELIST is None:
+        try:
+            p = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "whitelist.json")
+            with open(p, encoding="utf-8") as f:
+                _WHITELIST = set(json.load(f).get("trusted_domains", []))
+        except Exception:
+            _WHITELIST = set()
+    return _WHITELIST
+
+
+def _is_trusted(dom: str, wl: set[str]) -> bool:
+    return dom in wl or any(dom.endswith("." + td) for td in wl)
 
 def _url() -> str:
     return os.getenv("SUPABASE_URL", "").rstrip("/")
@@ -234,6 +254,7 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
                 return "Доверенные"
             return "Прочее"
 
+        wl = _trusted_domains()
         daily: dict[str, dict] = {}
         verdict_dist: dict[str, int] = {}
         threat_types: dict[str, int] = {}
@@ -257,7 +278,9 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
                 tier_counts[src] = tier_counts.get(src, 0) + 1
             if v in ("DANGEROUS", "SUSPICIOUS") and src not in ("whitelist", "cache"):
                 threat_types[_cat(src)] = threat_types.get(_cat(src), 0) + 1
-            if v == "DANGEROUS" and dom:
+            # Top-dangerous list: skip non-domains (no dot) and whitelisted domains
+            # (stale/garbage rows must never present a trusted brand as "dangerous")
+            if v == "DANGEROUS" and dom and "." in dom and not _is_trusted(dom, wl):
                 danger_domains[dom] = danger_domains.get(dom, 0) + 1
             sc = row.get("score")
             if isinstance(sc, (int, float)):
