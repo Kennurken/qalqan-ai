@@ -2,8 +2,10 @@
 # Build Firefox extension package
 set -e
 
+# Version: prefer EXTENSION_VERSION env, else read from package.json
+VERSION="${EXTENSION_VERSION:-$(node -p "require('./extension/package.json').version" 2>/dev/null || echo "5.1.0")}"
 OUT="extension-firefox/build"
-ZIP="qalqan-ai-firefox-v5.1.0.zip"
+ZIP="qalqan-ai-firefox-v${VERSION}.zip"
 
 echo "🦊 Building Firefox extension..."
 
@@ -38,7 +40,7 @@ cd "$OUT"
 zip -r "../../$ZIP" . -x "*.DS_Store"
 cd ../..
 
-echo "✅ Firefox extension: $ZIP"
+echo "✅ Firefox extension v${VERSION}: $ZIP"
 echo "   Size: $(du -sh $ZIP | cut -f1)"
 echo ""
 echo "📦 Install in Firefox:"
