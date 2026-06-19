@@ -1,0 +1,66 @@
+name: Build Extension
+
+on:
+  push:
+    branches: [master]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: extension/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: extension
+
+      - name: Build Chrome extension
+        run: npm run build
+        working-directory: extension
+
+      - name: Package Chrome extension
+        run: |
+          VERSION=$(node -p "require('./extension/package.json').version")
+          mkdir -p dist-release
+          cd extension/dist
+          zip -r "../../dist-release/qalqan-ai-chrome-v${VERSION}.zip" . -x "*.DS_Store"
+          echo "CHROME_ZIP=qalqan-ai-chrome-v${VERSION}.zip" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Package Firefox extension
+        run: |
+          EXTENSION_VERSION=$VERSION bash build-firefox.sh
+          mv "qalqan-ai-firefox-v${VERSION}.zip" "dist-release/qalqan-ai-firefox-v${VERSION}.zip" 2>/dev/null || \
+          mv qalqan-ai-firefox-v*.zip "dist-release/qalqan-ai-firefox-v${VERSION}.zip" 2>/dev/null || true
+          echo "FIREFOX_ZIP=qalqan-ai-firefox-v${VERSION}.zip" >> $GITHUB_ENV
+
+      - name: Upload Chrome artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension
+          path: dist-release/qalqan-ai-chrome-*.zip
+          retention-days: 30
+
+      - name: Upload Firefox artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-extension
+          path: dist-release/qalqan-ai-firefox-*.zip
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-release/qalqan-ai-chrome-*.zip
+            dist-release/qalqan-ai-firefox-*.zip
