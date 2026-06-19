@@ -186,6 +186,117 @@ async def get_trends(days: int = 7) -> dict | None:
         return None
 
 
+async def get_dashboard_data(sample: int = 2000) -> dict | None:
+    """Aggregated analytics for the regulator dashboard: daily time series,
+    threat-type breakdown, verdict distribution, top malicious domains, KPIs.
+    Returns None if Supabase unavailable (caller falls back to demo data)."""
+    if not _available():
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            logs_r, rep_r = await asyncio.gather(
+                client.get(
+                    f"{_url()}/rest/v1/check_logs"
+                    "?select=domain,verdict,score,top_source,created_at"
+                    f"&order=created_at.desc&limit={sample}",
+                    headers=_headers(),
+                ),
+                client.get(
+                    f"{_url()}/rest/v1/reports"
+                    "?select=domain,category,created_at"
+                    "&order=created_at.desc&limit=1000",
+                    headers=_headers(),
+                ),
+            )
+        if logs_r.status_code != 200:
+            return None
+        logs = logs_r.json()
+        reps = rep_r.json() if rep_r.status_code == 200 else []
+
+        # Map raw detection source → human threat category
+        def _cat(src: str) -> str:
+            s = (src or "").lower()
+            if "pyramid" in s or "afm" in s:
+                return "Финпирамиды"
+            if "gambling" in s:
+                return "Гемблинг"
+            if "phishing" in s or "blacklist" in s:
+                return "Фишинг"
+            if "goszakup" in s:
+                return "Госзакуп-фрод"
+            if "ai" in s or "groq" in s or "gemini" in s:
+                return "AI-вердикт"
+            if "domain" in s or "url" in s:
+                return "Подозр. инфраструктура"
+            if "kz" in s:
+                return "KZ-угрозы"
+            if "whitelist" in s:
+                return "Доверенные"
+            return "Прочее"
+
+        daily: dict[str, dict] = {}
+        verdict_dist: dict[str, int] = {}
+        threat_types: dict[str, int] = {}
+        tier_counts: dict[str, int] = {}
+        danger_domains: dict[str, int] = {}
+        scores: list[int] = []
+
+        for row in logs:
+            day = (row.get("created_at") or "")[:10]
+            v = (row.get("verdict") or "").upper()
+            src = row.get("top_source", "")
+            dom = row.get("domain", "")
+            if day:
+                d = daily.setdefault(day, {"total": 0, "threats": 0})
+                d["total"] += 1
+                if v in ("DANGEROUS", "SUSPICIOUS"):
+                    d["threats"] += 1
+            if v:
+                verdict_dist[v] = verdict_dist.get(v, 0) + 1
+            if src:
+                tier_counts[src] = tier_counts.get(src, 0) + 1
+            if v in ("DANGEROUS", "SUSPICIOUS") and src not in ("whitelist", "cache"):
+                threat_types[_cat(src)] = threat_types.get(_cat(src), 0) + 1
+            if v == "DANGEROUS" and dom:
+                danger_domains[dom] = danger_domains.get(dom, 0) + 1
+            sc = row.get("score")
+            if isinstance(sc, (int, float)):
+                scores.append(int(sc))
+
+        rep_cats: dict[str, int] = {}
+        for row in reps:
+            c = row.get("category", "")
+            if c:
+                rep_cats[c] = rep_cats.get(c, 0) + 1
+
+        series = [{"date": d, **daily[d]} for d in sorted(daily.keys())][-30:]
+        total = len(logs)
+        dangerous = verdict_dist.get("DANGEROUS", 0)
+        suspicious = verdict_dist.get("SUSPICIOUS", 0)
+        return {
+            "kpis": {
+                "total_checks": total,
+                "threats_blocked": dangerous,
+                "suspicious": suspicious,
+                "block_rate_pct": round(100 * dangerous / total, 1) if total else 0,
+                "total_reports": len(reps),
+                "avg_score": round(sum(scores) / len(scores), 1) if scores else 0,
+            },
+            "time_series": series,
+            "verdict_distribution": dict(sorted(verdict_dist.items(), key=lambda x: -x[1])),
+            "threat_types": dict(sorted(threat_types.items(), key=lambda x: -x[1])),
+            "tier_effectiveness": dict(sorted(tier_counts.items(), key=lambda x: -x[1])[:8]),
+            "top_dangerous_domains": [
+                {"domain": d, "count": c}
+                for d, c in sorted(danger_domains.items(), key=lambda x: -x[1])[:12]
+            ],
+            "report_categories": dict(sorted(rep_cats.items(), key=lambda x: -x[1])),
+        }
+    except Exception as e:
+        logger.warning(f"get_dashboard_data failed: {e}")
+        return None
+
+
 async def get_admin_data(limit: int = 100) -> dict | None:
     """Fetch recent reports, appeals, and check_logs for admin dashboard."""
     if not _available():

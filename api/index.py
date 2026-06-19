@@ -29,7 +29,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
@@ -684,6 +684,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
     <a href="https://github.com/Kennurken/qalqan-ai" target="_blank">GitHub</a>
     <a href="/docs">API Docs</a>
     <a href="/stats">Statistics</a>
+    <a href="/dashboard">Панель регулятора</a>
     <a href="/health">Health</a>
   </div>
   <div style="margin-top:16px;font-size:12px;color:var(--muted)">
@@ -1329,6 +1330,220 @@ async def get_trends():
             "note": "Supabase not configured",
         }
     return data
+
+
+# ── Regulator Dashboard ───────────────────────────────────────────────────────
+_DASHBOARD_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Панель регулятора</title>
+<style>
+:root{--bg:#0a0e1a;--panel:#111827;--panel2:#0d1424;--cyan:#00d4ff;--red:#ff3b5c;--amber:#ffb020;--green:#22c55e;--tx:#e6edf6;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:24px;max-width:1280px;margin:0 auto}
+a{color:var(--cyan);text-decoration:none}
+.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px}
+h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mut);font-size:13px;margin-bottom:20px}
+.badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--bd)}
+.badge.live{color:var(--green);border-color:#14532d;background:#052e16}
+.badge.demo{color:var(--amber);border-color:#713f12;background:#1f1505}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.kpi .v{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--mut);font-size:12px;margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+.kpi.red .v{color:var(--red)}.kpi.amber .v{color:var(--amber)}.kpi.cyan .v{color:var(--cyan)}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:16px}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--tx)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px}
+.bar-row .nm{width:160px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:18px;background:var(--panel2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#0891b2,var(--cyan))}
+.bar-row .vv{width:46px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd)}
+th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase}
+td.dom{font-family:ui-monospace,monospace;color:var(--red)}
+td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.foot{color:var(--mut);font-size:12px;margin-top:24px;text-align:center}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div>
+    <h1>🛡️ Панель регулятора <span id="src" class="badge demo">—</span></h1>
+    <div class="sub">Qalqan AI · Мониторинг кибер-экономических угроз Республики Казахстан</div>
+  </div>
+  <div><a href="/">← На главную</a> &nbsp; <a href="/dashboard/data">JSON API</a></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h3>Динамика проверок и угроз (30 дней)</h3>
+      <svg id="line" viewBox="0 0 640 220" style="width:100%;height:auto"></svg>
+      <div class="legend"><span><span class="dot" style="background:#00d4ff"></span>Всего проверок</span><span><span class="dot" style="background:#ff3b5c"></span>Угрозы (опасн.+подозр.)</span></div>
+    </div>
+    <div class="card">
+      <h3>🔴 Топ опасных доменов</h3>
+      <table><thead><tr><th>Домен</th><th style="text-align:right">Блокировок</th></tr></thead><tbody id="domains"></tbody></table>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h3>Распределение вердиктов</h3>
+      <svg id="donut" viewBox="0 0 200 200" style="width:160px;height:160px;display:block;margin:0 auto"></svg>
+      <div id="donut-leg" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <h3>Типы угроз</h3>
+      <div id="types"></div>
+    </div>
+    <div class="card">
+      <h3>Эффективность уровней детекции</h3>
+      <div id="tiers"></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · данные агрегируются анонимно (url_hash/ip_hash)</div>
+
+<script>
+const fmt = n => (n||0).toLocaleString('ru-RU');
+const $ = id => document.getElementById(id);
+
+function kpiCard(v,l,cls){return `<div class="kpi ${cls||''}"><div class="v">${v}</div><div class="l">${l}</div></div>`}
+
+function renderBars(elId, obj, max){
+  const entries = Object.entries(obj||{});
+  const mx = max || Math.max(1, ...entries.map(e=>e[1]));
+  $(elId).innerHTML = entries.map(([k,v])=>`
+    <div class="bar-row"><div class="nm" title="${k}">${k}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.round(100*v/mx)}%"></div></div>
+    <div class="vv">${fmt(v)}</div></div>`).join('') || '<div class="sub">нет данных</div>';
+}
+
+function renderLine(series){
+  if(!series||!series.length){return}
+  const W=640,H=220,pad=30, mx=Math.max(...series.map(s=>s.total),1);
+  const X=i=>pad+i*(W-2*pad)/(series.length-1);
+  const Y=v=>H-pad-(v/mx)*(H-2*pad);
+  const path=arr=>arr.map((s,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(s).toFixed(1)}`).join(' ');
+  const grid=[0,.25,.5,.75,1].map(f=>`<line x1="${pad}" y1="${H-pad-f*(H-2*pad)}" x2="${W-pad}" y2="${H-pad-f*(H-2*pad)}" stroke="#1e293b" stroke-width="1"/>`).join('');
+  $('line').innerHTML = grid +
+    `<path d="${path(series.map(s=>s.total))}" fill="none" stroke="#00d4ff" stroke-width="2.5"/>`+
+    `<path d="${path(series.map(s=>s.threats))}" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>`+
+    `<text x="${pad}" y="14" fill="#7d8aa0" font-size="11">${fmt(mx)}</text>`;
+}
+
+function renderDonut(vd){
+  const order=[['DANGEROUS','#ff3b5c'],['SUSPICIOUS','#ffb020'],['SAFE','#22c55e']];
+  const total=Object.values(vd||{}).reduce((a,b)=>a+b,0)||1;
+  let a0=-Math.PI/2, svg='', leg='';
+  for(const [k,c] of order){
+    const val=vd[k]||0; const frac=val/total; const a1=a0+frac*2*Math.PI;
+    const r=80,cx=100,cy=100, lg=frac>.5?1:0;
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    if(val>0)svg+=`<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${lg} 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${c}"/>`;
+    leg+=`<div class="bar-row"><span><span class="dot" style="background:${c}"></span>${k}</span><div style="flex:1"></div><b>${fmt(val)}</b> <span class="sub">(${Math.round(frac*100)}%)</span></div>`;
+    a0=a1;
+  }
+  svg+='<circle cx="100" cy="100" r="46" fill="#111827"/>';
+  $('donut').innerHTML=svg; $('donut-leg').innerHTML=leg;
+}
+
+fetch('/dashboard/data').then(r=>r.json()).then(d=>{
+  const src=$('src'); const live=d._source==='live';
+  src.textContent = live?'● LIVE':'● DEMO'; src.className='badge '+(live?'live':'demo');
+  const k=d.kpis||{};
+  $('kpis').innerHTML =
+    kpiCard(fmt(k.total_checks),'Всего проверок','cyan')+
+    kpiCard(fmt(k.threats_blocked),'Заблокировано угроз','red')+
+    kpiCard(fmt(k.suspicious),'Подозрительных','amber')+
+    kpiCard((k.block_rate_pct||0)+'%','Доля угроз')+
+    kpiCard(fmt(k.total_reports),'Жалоб граждан')+
+    kpiCard(k.avg_score||0,'Средний риск-балл');
+  renderLine(d.time_series);
+  renderDonut(d.verdict_distribution);
+  renderBars('types', d.threat_types);
+  renderBars('tiers', d.tier_effectiveness);
+  $('domains').innerHTML = (d.top_dangerous_domains||[]).map(x=>
+    `<tr><td class="dom">${x.domain}</td><td class="n">${fmt(x.count)}</td></tr>`).join('')||'<tr><td class="sub">нет данных</td></tr>';
+}).catch(e=>{ $('kpis').innerHTML='<div class="sub">Ошибка загрузки данных</div>'; });
+</script>
+</body>
+</html>"""
+
+
+def _dashboard_demo() -> dict:
+    """Deterministic, realistic demo dataset so the dashboard always renders
+    populated for a judge demo even when Supabase is empty."""
+    import datetime
+    base = datetime.date(2026, 6, 19)
+    series = []
+    for i in range(29, -1, -1):
+        day = base - datetime.timedelta(days=i)
+        n = 29 - i
+        total = 180 + n * 9 + (40 if day.weekday() < 5 else -30)
+        threats = int(total * (0.20 + 0.004 * n))
+        series.append({"date": day.isoformat(), "total": total, "threats": threats})
+    total_checks = sum(s["total"] for s in series)
+    blocked = sum(s["threats"] for s in series)
+    suspicious = int(blocked * 0.6)
+    return {
+        "kpis": {
+            "total_checks": total_checks, "threats_blocked": blocked, "suspicious": suspicious,
+            "block_rate_pct": round(100 * blocked / total_checks, 1),
+            "total_reports": 342, "avg_score": 38.4,
+        },
+        "time_series": series,
+        "verdict_distribution": {
+            "SAFE": total_checks - blocked - suspicious, "SUSPICIOUS": suspicious, "DANGEROUS": blocked,
+        },
+        "threat_types": {
+            "Фишинг": 1240, "Гемблинг": 880, "Финпирамиды": 560, "KZ-угрозы": 430,
+            "Подозр. инфраструктура": 390, "Госзакуп-фрод": 210,
+        },
+        "tier_effectiveness": {
+            "groq_ai": 1450, "gambling_list": 880, "local_blacklist": 620, "pyramid_list": 560,
+            "domain_intel": 390, "kz_impersonation": 300, "url_features": 260, "goszakup": 210,
+        },
+        "top_dangerous_domains": [
+            {"domain": "kaspi-bonus123.kz", "count": 47}, {"domain": "halyk-verify.com", "count": 39},
+            {"domain": "egov-kz.support", "count": 33}, {"domain": "1xbet-kz.top", "count": 28},
+            {"domain": "finiko-invest.kz", "count": 24}, {"domain": "mostbet-kz.bet", "count": 21},
+            {"domain": "kaspi-gold.site", "count": 18}, {"domain": "qazaqstan-lottery.com", "count": 15},
+        ],
+        "report_categories": {"phishing": 156, "pyramid": 89, "gambling": 61, "other": 36},
+    }
+
+
+@app.get("/dashboard/data")
+async def dashboard_data():
+    """JSON feed for the regulator dashboard. Falls back to demo data when
+    Supabase is empty/unavailable so the page never looks broken."""
+    data = await get_dashboard_data()
+    if not data or data.get("kpis", {}).get("total_checks", 0) < 10:
+        demo = _dashboard_demo()
+        demo["_source"] = "demo"
+        return demo
+    data["_source"] = "live"
+    return data
+
+
+@app.get("/dashboard")
+async def dashboard_page():
+    """Regulator-facing threat-landscape dashboard (KZ economic-cyber threats)."""
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(_DASHBOARD_HTML)
 
 
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
