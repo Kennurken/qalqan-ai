@@ -9,10 +9,6 @@
   },
   "crons": [
     {
-      "path": "/ping",
-      "schedule": "*/10 * * * *"
-    },
-    {
       "path": "/report/generate",
       "schedule": "0 7 1 * *"
     },
