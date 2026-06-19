@@ -246,7 +246,7 @@ async def get_community_stats(domain: str) -> dict:
         signals = reports + confirms
         auto = (signals >= COMMUNITY_BLOCK_MIN_SIGNALS
                 and len(ips) >= COMMUNITY_BLOCK_MIN_IPS
-                and confirms >= disputes)
+                and (disputes == 0 or confirms > disputes))
         return {"domain": domain, "reports": reports, "confirms": confirms, "disputes": disputes,
                 "unique_voters": len(ips), "crowd_score": signals - disputes, "auto_blocked": auto}
     except Exception as e:
