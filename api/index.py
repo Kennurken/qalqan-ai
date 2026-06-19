@@ -435,6 +435,8 @@ _LANDING_HTML = """<!DOCTYPE html>
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
 <meta name="twitter:description" content="Blocks phishing, scams, gambling before page loads. 7-tier AI pipeline. Kazakh/Russian/English.">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#00d4ff">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--cyan:#00d4ff;--cyan2:#00b8d9;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--bg:#0a0e1a;--bg2:#0f1629;--card:#131d35;--border:#1e2d4a;--text:#e2e8f0;--muted:#64748b}
@@ -1322,6 +1324,37 @@ async def telegram_weekly_report(req: Request):
     except Exception as e:
         logger.error(f"Weekly report failed: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)[:100]})
+
+
+# --- PWA Web App Manifest ---
+@app.get("/manifest.webmanifest")
+async def pwa_manifest():
+    from fastapi.responses import Response as _Resp
+    import json as _json
+    manifest = {
+        "name": "Qalqan AI — Cyber Shield",
+        "short_name": "Qalqan AI",
+        "description": "AI-powered cybersecurity for Kazakhstan. Blocks phishing, scams, gambling.",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0a0e1a",
+        "theme_color": "#00d4ff",
+        "lang": "kk",
+        "icons": [
+            {"src": "https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon48.png",
+             "sizes": "48x48", "type": "image/png"},
+            {"src": "https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png",
+             "sizes": "128x128", "type": "image/png"}
+        ],
+        "categories": ["security", "utilities"],
+        "shortcuts": [
+            {"name": "URL тексеру", "url": "/", "description": "Check a URL for threats"},
+            {"name": "Статистика", "url": "/stats", "description": "View threat statistics"},
+            {"name": "Орнату", "url": "/install", "description": "Install the extension"}
+        ]
+    }
+    return _Resp(content=_json.dumps(manifest), media_type="application/manifest+json",
+                 headers={"Cache-Control": "public, max-age=86400"})
 
 
 # --- Installation guide page ---

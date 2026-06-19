@@ -151,11 +151,13 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"Фишинг, пирамида, gambling сайттарын анықтаймын.\n\n"
         f"<b>Командалар:</b>\n"
         f"  /check &lt;url&gt; — URL тексеру\n"
+        f"  /phone &lt;номер&gt; — телефон нөмірін тексеру\n"
+        f"  /sms &lt;мәтін&gt; — SMS алаяқтығын тексеру\n"
         f"  /tender &lt;нөмір&gt; — тендер алаяқтығын тексеру\n"
         f"  /report &lt;url&gt; — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі статистика\n"
         f"  /help — толық нұсқаулық\n\n"
-        f"💡 Немесе жай URL жазыңыз — автоматты тексереді!\n\n"
+        f"💡 Немесе жай URL жіберіңіз — автоматты тексереді!\n\n"
         f"<i>🇰🇿 Қазақстанды онлайн алаяқтықтан қорғаймыз</i>"
     )
     await send_message(chat_id, text)
@@ -166,7 +168,9 @@ async def handle_help(chat_id: int):
         f"🛡️ <b>Qalqan AI — Нұсқаулық</b>\n\n"
         f"<b>Командалар:</b>\n"
         f"  /check kaspi-support.kz — URL тексеру\n"
-        f"  /tender 12345678 — тендер алаяқтығын тексеру 🏛️\n"
+        f"  /phone +77771234567 — телефон нөмірін тексеру\n"
+        f"  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
+        f"  /tender 12345678 — тендер алаяқтығын тексеру\n"
         f"  /report scam-site.kz — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі қорғаныс статистикасы\n\n"
         f"<b>Автоматты тексеру:</b>\n"
@@ -177,8 +181,9 @@ async def handle_help(chat_id: int):
         f"  🔴 Фишинг — Kaspi/eGov/Halyk жалған сайттар\n"
         f"  🔴 Қаржылық пирамидалар\n"
         f"  🟡 Gambling / ойын автоматтары\n"
-        f"  🟡 Күдікті домендер\n\n"
-        f"<i>Деректер: 6-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
+        f"  🟡 Күдікті SMS хабарламалар\n"
+        f"  🟡 Алаяқтық телефон нөмірлері\n\n"
+        f"<i>7-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
     )
     await send_message(chat_id, text)
 
@@ -201,6 +206,113 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
         await send_message(chat_id,
             f"❌ Тексеру қатесі: <code>{_esc(str(e)[:100])}</code>",
             reply_to=message_id)
+
+
+async def handle_phone_check(chat_id: int, phone: str, message_id: int | None = None):
+    """Check Kazakhstan phone number for scam/fraud patterns."""
+    # Normalize: strip spaces, dashes, parens
+    raw = re.sub(r"[\s\-\(\)\+]", "", phone)
+    if raw.startswith("8") and len(raw) == 11:
+        raw = "7" + raw[1:]
+    if not re.match(r"^7[0-9]{10}$", raw):
+        await send_message(chat_id,
+            "⚠️ Телефон нөмірі дұрыс емес. ҚР форматы: +7 7XX XXX XX XX",
+            reply_to=message_id)
+        return
+
+    prefix3 = raw[1:4]
+    prefix4 = raw[1:5]
+
+    # KZ scam call center prefixes (documented by KNB/ДКНБ)
+    SCAM_PREFIXES = {
+        "700", "701", "702", "705", "706", "707", "708", "709",
+        "747", "771", "775", "776", "777", "778",
+    }
+    # Highly suspicious patterns
+    suspicious_patterns = [
+        raw == raw[0] * len(raw),                   # all same digit
+        raw[1:5] in ("7000", "7777", "0000"),        # common scam vanity
+        len(set(raw[1:])) <= 3,                      # very few unique digits
+    ]
+    is_valid_kz_mobile = prefix3 in SCAM_PREFIXES
+
+    if any(suspicious_patterns) and is_valid_kz_mobile:
+        verdict = "SUSPICIOUS"
+        score = 55
+        icon = "⚠️"
+        detail = "Қайталанатын цифрлар немесе алаяқтыққа тән үлгі"
+        detail_ru = "Повторяющиеся цифры или подозрительный паттерн"
+    elif not is_valid_kz_mobile:
+        verdict = "SUSPICIOUS"
+        score = 40
+        icon = "⚠️"
+        detail = "Белгісіз ҚР мобилдік префикс"
+        detail_ru = "Неизвестный мобильный префикс РК"
+    else:
+        verdict = "SAFE"
+        score = 10
+        icon = "✅"
+        detail = "Стандартты ҚР мобилдік нөмір"
+        detail_ru = "Стандартный мобильный номер РК"
+
+    formatted = f"+7 {raw[1:4]} {raw[4:7]} {raw[7:9]} {raw[9:11]}"
+    text = (
+        f"{icon} <b>Телефон тексеру: {formatted}</b>\n\n"
+        f"Вердикт: <b>{verdict}</b> ({score}/100)\n"
+        f"RU: {detail_ru}\n"
+        f"KK: {detail}\n\n"
+        f"ℹ️ Толық тексеру үшін: <a href='https://qalqan-ai-nu.vercel.app'>qalqan-ai-nu.vercel.app</a>"
+    )
+    await send_message(chat_id, text, reply_to=message_id)
+
+
+async def handle_sms_check(chat_id: int, sms_text: str, message_id: int | None = None):
+    """Analyze SMS/message text for scam patterns using the AI pipeline."""
+    if len(sms_text) > 1000:
+        sms_text = sms_text[:1000]
+
+    await send_message(chat_id, "🔍 SMS тексерілуде...", reply_to=message_id)
+
+    try:
+        base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        async with httpx.AsyncClient(timeout=20) as client:
+            res = await client.post(f"{base_url}/check-text",
+                json={"text": sms_text, "lang": "ru"})
+        data = res.json()
+
+        verdict = data.get("verdict", "UNKNOWN")
+        score = data.get("threat_score", 0)
+        detail = data.get("detail_ru") or data.get("detail") or ""
+
+        if verdict == "DANGEROUS":
+            icon = "🔴"
+        elif verdict == "SUSPICIOUS":
+            icon = "🟡"
+        else:
+            icon = "🟢"
+
+        # Extract URLs found in SMS
+        urls_found = re.findall(
+            r"(?:https?://[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:/[^\s]*)?)",
+            sms_text
+        )
+        url_lines = ""
+        if urls_found:
+            url_lines = "\n🔗 Табылған сілтемелер:\n" + "\n".join(
+                f"  • <code>{u[:60]}</code>" for u in urls_found[:3]
+            )
+
+        text = (
+            f"{icon} <b>SMS талдауы</b>\n\n"
+            f"Вердикт: <b>{verdict}</b> ({score}/100)\n"
+            f"{detail}"
+            f"{url_lines}\n\n"
+            f"💡 Егер алаяқтық деп ойласаңыз — ешкімге жіберме, блоктаңыз"
+        )
+        await send_message(chat_id, text, reply_to=message_id)
+    except Exception as e:
+        logger.error(f"SMS check error: {e}")
+        await send_message(chat_id, "❌ Тексеру қатесі. Кейінірек қайталаңыз.", reply_to=message_id)
 
 
 async def handle_report(chat_id: int, url: str, message_id: int | None = None):
@@ -456,6 +568,28 @@ async def dispatch(update: dict) -> None:
                 reply_to=message_id)
         else:
             await handle_tender_check(chat_id, number, message_id)
+
+    elif text.startswith("/phone"):
+        parts = text.split(maxsplit=1)
+        phone = parts[1].strip() if len(parts) > 1 else ""
+        if not phone:
+            await send_message(chat_id,
+                "ℹ️ Пайдаланылуы: /phone &lt;номер&gt;\n"
+                "Мысал: /phone +77771234567",
+                reply_to=message_id)
+        else:
+            await handle_phone_check(chat_id, phone, message_id)
+
+    elif text.startswith("/sms"):
+        parts = text.split(maxsplit=1)
+        sms_text = parts[1].strip() if len(parts) > 1 else ""
+        if not sms_text:
+            await send_message(chat_id,
+                "ℹ️ Пайдаланылуы: /sms &lt;хабарлама мәтіні&gt;\n"
+                "Мысал: /sms Сіздің шотыңыздан ақша алынды касп1.kz/verify",
+                reply_to=message_id)
+        else:
+            await handle_sms_check(chat_id, sms_text, message_id)
 
     # ── Auto-check: plain URL ──
     elif _URL_RE.search(text) and not text.startswith("/"):
