@@ -95,7 +95,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     console.log(`Qalqan AI updated to v5.1 from ${details.previousVersion}`);
     fetchAndUpdateOfflineDb();
   }
-  chrome.alarms.create("qalqan_db_update", { periodInMinutes: 1440 });
+  chrome.alarms.create("qalqan_db_update", { periodInMinutes: 720 }); // 12h per passport spec
 });
 
 // On SW startup: load cached DB into memory

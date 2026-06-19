@@ -9,6 +9,7 @@ import time
 import logging
 import asyncio
 import traceback
+import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
