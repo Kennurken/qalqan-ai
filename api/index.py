@@ -577,7 +577,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
       <div class="stat-card"><div class="stat-num" id="statChecked">—</div><div class="stat-label">Тексерілді</div></div>
       <div class="stat-card"><div class="stat-num" id="statBlocked">—</div><div class="stat-label">Бұғатталды</div></div>
       <div class="stat-card"><div class="stat-num" id="statDomains">390+</div><div class="stat-label">Офлайн база</div></div>
-      <div class="stat-card"><div class="stat-num">7</div><div class="stat-label">Анықтау деңгейі</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Анықтау деңгейі</div></div>
     </div>
   </div>
 </section>
