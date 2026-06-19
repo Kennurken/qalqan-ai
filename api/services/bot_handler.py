@@ -41,7 +41,8 @@ async def _tg(method: str, payload: dict) -> dict:
 
 
 async def send_message(chat_id: int | str, text: str, parse_mode="HTML",
-                       reply_to: int | None = None, disable_preview=True) -> dict:
+                       reply_to: int | None = None, disable_preview=True,
+                       reply_markup: dict | None = None) -> dict:
     payload: dict = {
         "chat_id": chat_id,
         "text": text,
@@ -50,7 +51,51 @@ async def send_message(chat_id: int | str, text: str, parse_mode="HTML",
     }
     if reply_to:
         payload["reply_to_message_id"] = reply_to
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
     return await _tg("sendMessage", payload)
+
+
+async def answer_callback(callback_id: str, text: str = "", alert: bool = False) -> dict:
+    return await _tg("answerCallbackQuery", {
+        "callback_query_id": callback_id, "text": text[:200], "show_alert": alert,
+    })
+
+
+# KZ-CERT incident reporting (official national CERT)
+_KZCERT_URL = "https://www.cert.gov.kz/"
+
+
+def _result_keyboard(domain: str) -> dict | None:
+    """Inline keyboard for a check result: community vote + report to KZ-CERT.
+    callback_data must stay <=64 bytes, so skip vote buttons for very long domains."""
+    rows = []
+    if domain and len(domain) <= 48:
+        rows.append([
+            {"text": "🚨 Растау (скам)", "callback_data": f"v:c:{domain}"},
+            {"text": "🙅 Жалған дабыл", "callback_data": f"v:d:{domain}"},
+        ])
+    rows.append([{"text": "📢 KZ-CERT-ке хабарлау", "url": _KZCERT_URL}])
+    return {"inline_keyboard": rows} if rows else None
+
+
+async def _resolve_redirects(url: str, max_hops: int = 5) -> list[str]:
+    """Follow redirects (short-link unmasking). Returns the hop chain incl. final URL."""
+    chain: list[str] = []
+    try:
+        async with httpx.AsyncClient(timeout=6, follow_redirects=False) as client:
+            cur = url
+            for _ in range(max_hops):
+                r = await client.get(cur, headers={"User-Agent": "QalqanAI/1.0"})
+                if r.status_code in (301, 302, 303, 307, 308) and "location" in r.headers:
+                    nxt = str(httpx.URL(cur).join(r.headers["location"]))
+                    chain.append(nxt)
+                    cur = nxt
+                else:
+                    break
+    except Exception as e:
+        logger.debug(f"redirect resolve failed for {url}: {e}")
+    return chain
 
 
 async def answer_inline(inline_query_id: str, results: list) -> dict:
@@ -200,9 +245,16 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
                        reply_to=message_id)
 
     try:
-        result = await _run_pipeline(url)
+        # Pipeline + redirect-chain unmasking in parallel (no extra latency)
+        result, chain = await asyncio.gather(_run_pipeline(url), _resolve_redirects(url))
         text = format_result(url, result)
-        await send_message(chat_id, text, reply_to=message_id)
+        if chain:
+            hops = " →\n     ".join(f"<code>{_esc(h[:70])}</code>" for h in chain[:4])
+            text += (f"\n\n🔗 <b>Бағыттау тізбегі</b> (қысқа сілтеме ашылды):\n"
+                     f"     <code>{_esc(url[:70])}</code> →\n     {hops}")
+        from .threat_db import extract_domain
+        await send_message(chat_id, text, reply_to=message_id,
+                           reply_markup=_result_keyboard(extract_domain(url)))
     except Exception as e:
         logger.error(f"Bot check error for {url}: {e}")
         await send_message(chat_id,
@@ -552,8 +604,40 @@ async def _run_pipeline(url: str) -> dict:
 
 # ── Main dispatcher ───────────────────────────────────────────────────────────
 
+async def handle_callback(cb: dict) -> None:
+    """Handle inline-button presses (community confirm/dispute votes)."""
+    cb_id = cb.get("id", "")
+    data = cb.get("data", "")
+    user_id = cb.get("from", {}).get("id", "anon")
+
+    if data.startswith(("v:c:", "v:d:")):
+        vote = "confirm" if data[2] == "c" else "dispute"
+        domain = data[4:]
+        from ..utils.supabase import record_vote
+        res = await record_vote(domain, vote, f"tg:{user_id}")
+        if res.get("already_voted"):
+            await answer_callback(cb_id, "Сіз бұл домен бойынша дауыс бергенсіз ✓")
+        elif res.get("ok"):
+            st = res.get("stats", {})
+            label = "Растадыңыз 🚨" if vote == "confirm" else "Жалған дабыл деп белгіледіңіз 🙅"
+            blocked = " · ҚОҒАМ БҰҒАТТАДЫ 🛑" if st.get("auto_blocked") else ""
+            await answer_callback(
+                cb_id,
+                f"{label} (растау: {st.get('confirms', 0)}, шағым: {st.get('reports', 0)}){blocked}",
+            )
+        else:
+            await answer_callback(cb_id, "Дауыс сақталмады, кейінірек қайталаңыз")
+        return
+    await answer_callback(cb_id, "")
+
+
 async def dispatch(update: dict) -> None:
     """Route incoming Telegram update to correct handler."""
+
+    # ── Callback query (inline buttons: votes) ──
+    if "callback_query" in update:
+        await handle_callback(update["callback_query"])
+        return
 
     # ── Inline query ──
     if "inline_query" in update:

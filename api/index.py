@@ -2223,7 +2223,7 @@ async def set_telegram_webhook(req: Request):
     base = os.getenv("QALQAN_API_URL", str(req.base_url).rstrip("/"))
     webhook_url = f"{base}/telegram/webhook"
 
-    payload: dict = {"url": webhook_url, "allowed_updates": ["message", "inline_query"]}
+    payload: dict = {"url": webhook_url, "allowed_updates": ["message", "inline_query", "callback_query"]}
     if secret:
         payload["secret_token"] = secret
 
