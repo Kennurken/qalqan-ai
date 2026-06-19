@@ -1143,25 +1143,118 @@ async def report_site(request: ReportRequest, req: Request, background_tasks: Ba
 
 # --- СТАТИСТИКА ---
 @app.get("/stats")
-async def get_stats():
+async def get_stats(request: Request):
     from .utils.cache import _mem
     reports = _load_reports()
-    return {
+    json_data = {
         "total_reported_domains": len(reports),
         "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 10 and len(r.get("unique_ips", [])) >= 3),
         "whitelist_size": len(_whitelist),
         "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
         "version": "5.1.0",
-        "features": [
-            "goszakup_fraud_detection",
-            "telegram_bot",
-            "kz_threat_report",
-            "6tier_pipeline",
-            "xai_explainer",
-        ],
+        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "7tier_pipeline", "xai_explainer"],
         "report_url": "/report/generate",
     }
+    if "text/html" not in request.headers.get("accept", ""):
+        return json_data
+
+    # Fetch live trends from Supabase for HTML page
+    trends = await supabase_trends() or {}
+    total = trends.get("total_checks", 0)
+    dist = trends.get("verdict_distribution", {})
+    dangerous = dist.get("DANGEROUS", 0)
+    suspicious = dist.get("SUSPICIOUS", 0)
+    safe_cnt = dist.get("SAFE", 0)
+    top_domains = trends.get("top_domains_checked", [])[:5]
+    top_reported = trends.get("top_reported_domains", [])[:5]
+
+    top_dom_html = "".join(
+        f'<div class="row-item"><span class="ri-name">{d["domain"]}</span><span class="ri-count">{d["checks"]}</span></div>'
+        for d in top_domains
+    ) or '<div class="row-item muted">Нет данных</div>'
+    top_rep_html = "".join(
+        f'<div class="row-item"><span class="ri-name">{d["domain"]}</span><span class="ri-count ri-danger">{d["reports"]}</span></div>'
+        for d in top_reported
+    ) or '<div class="row-item muted">Нет данных</div>'
+
+    danger_pct = round(dangerous / total * 100) if total else 0
+
+    html = f"""<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalqan AI — Статистика</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:#0a0e1a;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:0}}
+.navbar{{background:rgba(10,14,26,.95);border-bottom:1px solid #1e2d4a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}}
+.logo{{color:#00d4ff;font-weight:700;font-size:18px;text-decoration:none}}
+.nav-back{{color:#64748b;font-size:14px;text-decoration:none}}
+.nav-back:hover{{color:#00d4ff}}
+.page{{max-width:1000px;margin:0 auto;padding:40px 24px}}
+h1{{font-size:28px;font-weight:700;margin-bottom:6px}}
+.subtitle{{color:#64748b;font-size:14px;margin-bottom:40px}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:40px}}
+.card{{background:#131d35;border:1px solid #1e2d4a;border-radius:14px;padding:24px}}
+.card-num{{font-size:36px;font-weight:800;color:#00d4ff;font-variant-numeric:tabular-nums}}
+.card-num.danger{{color:#ef4444}}
+.card-num.warn{{color:#f59e0b}}
+.card-num.safe{{color:#22c55e}}
+.card-label{{font-size:12px;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}}
+.section{{margin-bottom:32px}}
+.section-title{{font-size:16px;font-weight:600;margin-bottom:16px;color:#94a3b8}}
+.row-item{{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0f1629;border-radius:8px;margin-bottom:6px;font-size:13px}}
+.ri-name{{color:#e2e8f0;font-family:monospace}}
+.ri-count{{color:#00d4ff;font-weight:600}}
+.ri-danger{{color:#ef4444}}
+.muted{{color:#64748b}}
+.bar-wrap{{background:#0f1629;border-radius:8px;height:28px;margin-bottom:10px;overflow:hidden;position:relative}}
+.bar-fill{{height:100%;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600;color:#0a0e1a;transition:width .5s ease}}
+.bar-label{{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#64748b}}
+.report-btn{{display:inline-flex;align-items:center;gap:8px;background:#00d4ff;color:#0a0e1a;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;margin-top:24px}}
+.report-btn:hover{{opacity:.85}}
+footer{{text-align:center;padding:32px;color:#334155;font-size:12px;border-top:1px solid #1e2d4a;margin-top:40px}}
+</style></head><body>
+<div class="navbar">
+  <a class="logo" href="/">🛡 Qalqan AI</a>
+  <a class="nav-back" href="/">← Басты бет</a>
+</div>
+<div class="page">
+  <h1>Статистика</h1>
+  <p class="subtitle">Нақты уақыт деректері · Real-time from Supabase</p>
+
+  <div class="grid">
+    <div class="card"><div class="card-num">{total}</div><div class="card-label">Барлығы тексерілді</div></div>
+    <div class="card"><div class="card-num danger">{dangerous}</div><div class="card-label">Қауіпті анықталды</div></div>
+    <div class="card"><div class="card-num warn">{suspicious}</div><div class="card-label">Күдікті</div></div>
+    <div class="card"><div class="card-num safe">{safe_cnt}</div><div class="card-label">Қауіпсіз</div></div>
+    <div class="card"><div class="card-num">{danger_pct}%</div><div class="card-label">Қауіп үлесі</div></div>
+    <div class="card"><div class="card-num">{json_data["whitelist_size"]}</div><div class="card-label">Ақ тізім</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Вердикт бойынша бөлініс</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:{danger_pct}%;background:#ef4444">{danger_pct}% ОПАСНО</div><div class="bar-label">{dangerous} сайт</div></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:{round(suspicious/total*100) if total else 0}%;background:#f59e0b">{round(suspicious/total*100) if total else 0}% ПОДОЗРИТЕЛЬНО</div><div class="bar-label">{suspicious} сайт</div></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:{round(safe_cnt/total*100) if total else 0}%;background:#22c55e">{round(safe_cnt/total*100) if total else 0}% БЕЗОПАСНО</div><div class="bar-label">{safe_cnt} сайт</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="section">
+      <div class="section-title">Жиі тексерілген домендер</div>
+      {top_dom_html}
+    </div>
+    <div class="section">
+      <div class="section-title">Жиі хабарланған домендер</div>
+      {top_rep_html}
+    </div>
+  </div>
+
+  <a class="report-btn" href="/report/generate">PDF есеп жүктеу</a>
+</div>
+<footer>Qalqan AI v5.1.0 · Деректер: Supabase PostgreSQL · © 2026 Қыдырбек Елдос</footer>
+</body></html>"""
+    return HTMLResponse(content=html)
 
 
 # --- ТРЕНДЫ (crowd-sourced) ---
@@ -1184,6 +1277,44 @@ async def get_trends():
             "note": "Supabase not configured",
         }
     return data
+
+
+# --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
+@app.get("/telegram/weekly-report")
+async def telegram_weekly_report(req: Request):
+    """Send weekly threat summary to Telegram admin channel. Called by Vercel cron."""
+    from .utils.telegram import send_message as _tg_send
+    chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+    if not chat_id:
+        return {"error": "TELEGRAM_CHAT_ID not set"}
+    try:
+        trends = await supabase_trends() or {}
+        total = trends.get("total_checks", 0)
+        dist = trends.get("verdict_distribution", {})
+        dangerous = dist.get("DANGEROUS", 0)
+        suspicious = dist.get("SUSPICIOUS", 0)
+        safe_cnt = dist.get("SAFE", 0)
+        top_rep = trends.get("top_reported_domains", [])[:3]
+        rep_lines = "\n".join(f"  • <code>{d['domain']}</code> ({d['reports']} хабарлама)" for d in top_rep) or "  —"
+
+        from datetime import datetime, timezone
+        week = datetime.now(timezone.utc).strftime("%d.%m.%Y")
+        text = (
+            f"📊 <b>Qalqan AI — Апталық есеп</b>\n"
+            f"<i>{week} ұяты</i>\n\n"
+            f"🔍 Тексерілді: <b>{total}</b>\n"
+            f"🔴 Қауіпті: <b>{dangerous}</b>\n"
+            f"🟡 Күдікті: <b>{suspicious}</b>\n"
+            f"🟢 Қауіпсіз: <b>{safe_cnt}</b>\n\n"
+            f"📌 Жиі хабарланған:\n{rep_lines}\n\n"
+            f"🌐 <a href='https://qalqan-ai-nu.vercel.app/stats'>Толық статистика</a>"
+        )
+        await _tg_send(int(chat_id), text)
+        logger.info("Weekly Telegram report sent")
+        return {"ok": True, "sent_to": chat_id, "total_checks": total}
+    except Exception as e:
+        logger.error(f"Weekly report failed: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)[:100]})
 
 
 # --- Keep-warm (Vercel cron hits every 10 min) ---
