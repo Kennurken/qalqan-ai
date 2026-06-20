@@ -1,4 +1,5 @@
 {
+  "_disclaimer": "EXPERIMENTAL / OFFLINE. These metrics are from a local fine-tuning run on the author's RTX 3070 Ti. The trained model WEIGHTS are NOT committed to git (too large). Production detection is the 6-tier pipeline (heuristics + DBs + AI), NOT this model. Do not cite these numbers as production accuracy.",
   "accuracy": 0.9976012793176973,
   "precision": 0.9994649545211343,
   "recall": 0.9957356076759062,

@@ -13,7 +13,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -198,6 +198,25 @@ if DEMO_MODE:
 # (_DEMO_RESULTS moved to demo.py)
 
 
+def _is_encoded_internal_ip(host: str) -> bool:
+    """Catch decimal/hex-encoded IPs the string regex misses (e.g. http://2130706433/
+    = 127.0.0.1). No DNS — pure int decode, safe in a sync validator."""
+    import ipaddress
+    h = (host or "").strip().lower()
+    ip = None
+    try:
+        if h.isdigit():
+            ip = ipaddress.ip_address(int(h))
+        elif h.startswith("0x"):
+            ip = ipaddress.ip_address(int(h, 16))
+    except (ValueError, OverflowError):
+        return False
+    if ip is None:
+        return False
+    return (ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified)
+
+
 # --- Деректер модельдері (validated) ---
 class CheckRequest(BaseModel):
     url: str = Field(..., max_length=2048)
@@ -213,7 +232,7 @@ class CheckRequest(BaseModel):
         if not v.startswith(("http://", "https://")):
             v = "https://" + v
         host = urlparse(v).hostname or ""
-        if _PRIVATE_IP_RE.match(host):
+        if _PRIVATE_IP_RE.match(host) or _is_encoded_internal_ip(host):
             raise ValueError("Private or internal addresses not allowed")
         return v
 
@@ -562,6 +581,16 @@ async def check_text(request: TextCheckRequest, req: Request):
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
 
 
+@app.post("/sms")
+async def check_sms(request: TextCheckRequest, req: Request):
+    """SMS scam check — same analysis as /check-text plus any extracted links."""
+    result = await check_text(request, req)
+    if isinstance(result, dict):
+        from .services.phone_sms import extract_urls
+        result["urls_found"] = extract_urls(request.text)[:5]
+    return result
+
+
 # --- AI СКАМ-СОВЕТНИК: опиши ситуацию словами → вердикт + совет ---
 class AdvisorRequest(BaseModel):
     text: str = Field(..., max_length=2000)
@@ -749,73 +778,27 @@ async def appeal(request: AppealRequest, req: Request, background_tasks: Backgro
     return result
 
 
-# --- ШАҒЫМ (crowd-sourced) ---
-# Primary store is in-memory (persists within one serverless instance lifetime).
-# File write is best-effort — Vercel ephemeral FS resets on cold start.
-_reports_file = os.path.join(_data_dir, "reports.json")
-_reports_memory: dict = {}
-try:
-    with open(_reports_file, "r", encoding="utf-8") as f:
-        _reports_memory = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError):
-    pass
-
-def _load_reports() -> dict:
-    return _reports_memory
-
-def _save_reports(reports: dict):
-    global _reports_memory
-    _reports_memory = reports
-    try:
-        with open(_reports_file, "w", encoding="utf-8") as f:
-            json.dump(reports, f, ensure_ascii=False)
-    except Exception:
-        pass
-
+# --- ШАҒЫМ (crowd-sourced; backed by Supabase — serverless-safe, no in-memory store) ---
 @app.post("/report")
 async def report_site(request: ReportRequest, req: Request, background_tasks: BackgroundTasks):
     client_ip = _get_client_ip(req)
-    # Fix #4: separate rate limit key (was "appeal:", now "report:")
     if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 3 reports per minute."})
 
     domain = extract_domain(request.url)
-    reports = _load_reports()
-    if domain not in reports:
-        reports[domain] = {"count": 0, "types": [], "unique_ips": [], "first_report": time.time()}
+    # Persist to Supabase, awaited so the crowd count below reflects this report
+    await log_report(domain=domain, url=request.url, category=request.threat_type,
+                     comment=request.note, lang=getattr(request, "lang", "ru"),
+                     reporter_ip=client_ip)
 
-    reports[domain]["count"] += 1
-    reports[domain]["types"].append(request.threat_type)
-    # Hash IP before storing (privacy — GDPR / KZ ЗоПД compliance)
-    from hashlib import md5 as _md5
-    ip_hash = _md5(client_ip.encode()).hexdigest()[:16]
-    unique_ips: list = reports[domain].setdefault("unique_ips", [])
-    if ip_hash not in unique_ips:
-        unique_ips.append(ip_hash)
-
-    # Fix #9: threshold raised to 10 AND requires 3+ unique IPs
-    auto_blocked = reports[domain]["count"] >= 10 and len(unique_ips) >= 3
-    _save_reports(reports)
-
-    if auto_blocked:
-        logger.warning(f"AUTO-BLOCKED: {domain} ({reports[domain]['count']} reports, {len(unique_ips)} unique IPs)")
-
-    # Telegram хабарлама
     result = await send_report(request.url, request.threat_type, request.note)
-    result["reports_count"] = reports[domain]["count"]
-    result["auto_blocked"] = auto_blocked
 
-    # Supabase: persist report (fire-and-forget)
-    background_tasks.add_task(
-        log_report,
-        domain=domain,
-        url=request.url,
-        category=request.threat_type,
-        comment=request.note,
-        lang=getattr(request, "lang", "ru"),
-        reporter_ip=client_ip,
-    )
-
+    # Authoritative crowd status from Supabase (no ephemeral in-memory counter)
+    stats = await get_community_stats(domain)
+    result["reports_count"] = stats.get("reports", 0)
+    result["auto_blocked"] = bool(stats.get("auto_blocked"))
+    if result["auto_blocked"]:
+        logger.warning(f"AUTO-BLOCKED (crowd): {domain}")
     return result
 
 
@@ -851,10 +834,12 @@ async def community_info(domain: str):
 @app.get("/stats")
 async def get_stats(request: Request):
     from .utils.cache import _mem
-    reports = _load_reports()
+    trends = await supabase_trends() or {}
+    top_rep = trends.get("top_reported_domains", [])
     json_data = {
-        "total_reported_domains": len(reports),
-        "auto_blocked": sum(1 for r in reports.values() if r["count"] >= 10 and len(r.get("unique_ips", [])) >= 3),
+        "total_reports": trends.get("total_reports", 0),
+        "total_reported_domains": len(top_rep),
+        "auto_blocked": sum(1 for d in top_rep if d.get("auto_blocked")),
         "whitelist_size": len(_whitelist),
         "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
@@ -865,8 +850,7 @@ async def get_stats(request: Request):
     if "text/html" not in request.headers.get("accept", ""):
         return json_data
 
-    # Fetch live trends from Supabase for HTML page
-    trends = await supabase_trends() or {}
+    # HTML page reuses the trends fetched above
     total = trends.get("total_checks", 0)
     dist = trends.get("verdict_distribution", {})
     dangerous = dist.get("DANGEROUS", 0)
@@ -1156,7 +1140,7 @@ async def pwa_manifest():
         ]
     }
     return _Resp(content=_json.dumps(manifest), media_type="application/manifest+json",
-                 headers={"Cache-Control": "public, max-age=86400"})
+                 headers={"Cache-Control": "public, max-age=300"})
 
 
 # --- Installation guide page ---
@@ -1836,66 +1820,6 @@ async def federated_feed():
 
 
 # ── Partner (B2G) API — banks / regulators via X-API-Key ─────────────────────
-_PARTNERS_HTML = """<!DOCTYPE html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Qalqan AI — Партнёрский API (B2G)</title>
-<style>
-:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#8194ad;--cyan:#00d4ff;--green:#22c55e}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:24px;max-width:860px;margin:0 auto;line-height:1.6}
-a{color:var(--cyan);text-decoration:none}
-h1{font-size:26px;font-weight:800;margin-bottom:4px}
-.sub{color:var(--mut);margin-bottom:24px}
-h2{font-size:17px;margin:26px 0 10px;border-left:3px solid var(--cyan);padding-left:10px}
-.card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--bd)}
-th{color:var(--mut);font-size:12px;text-transform:uppercase}
-code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-code{background:#0d1424;padding:2px 6px;border-radius:5px;color:var(--cyan);font-size:13px}
-pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14px;overflow-x:auto;font-size:13px;color:#cbd5e1;margin:8px 0}
-.method{color:var(--green);font-weight:700}
-.tag{display:inline-block;font-size:11px;font-weight:700;color:#06121a;background:var(--cyan);padding:3px 9px;border-radius:999px}
-.foot{color:var(--mut);font-size:12px;margin-top:30px;text-align:center}
-</style></head><body>
-<h1>🛡 Qalqan AI — Партнёрский API <span class="tag">B2G</span></h1>
-<div class="sub">Для банков, Антифрод-центра Нацбанка, KZ-CERT, АФМ. Проверка угроз в реальном времени.</div>
-
-<h2>Авторизация</h2>
-<div class="card">Все запросы — с заголовком <code>X-API-Key: &lt;ваш ключ&gt;</code>.<br>
-Демо-ключ (ограниченный): <code>qalqan-demo-2026</code>. Боевой ключ — по запросу.</div>
-
-<h2>Эндпоинты</h2>
-<div class="card"><table>
-<tr><th>Метод</th><th>Путь</th><th>Назначение</th></tr>
-<tr><td><span class="method">POST</span></td><td><code>/v1/check</code></td><td>Проверка одного URL</td></tr>
-<tr><td><span class="method">POST</span></td><td><code>/v1/batch</code></td><td>Пакетная проверка URL</td></tr>
-<tr><td><span class="method">GET</span></td><td><code>/v1/feed</code></td><td>Полный KZ threat-feed</td></tr>
-<tr><td><span class="method">GET</span></td><td><code>/v1/usage</code></td><td>Счётчик запросов вашего ключа</td></tr>
-</table></div>
-
-<h2>Пример — проверка URL</h2>
-<pre>curl -X POST https://qalqan-ai-nu.vercel.app/v1/check \\
-  -H "X-API-Key: qalqan-demo-2026" \\
-  -H "Content-Type: application/json" \\
-  -d '{"url":"kaspi-bonus123.kz","lang":"ru"}'</pre>
-<pre>{
-  "partner": "Demo (rate-limited)",
-  "request_id": "a1b2c3d4e5f6...",
-  "result": { "verdict": "DANGEROUS", "threat_score": 95, ... }
-}</pre>
-
-<h2>Лимиты</h2>
-<div class="card">Демо-ключ: <b>30 запросов/мин</b>. Партнёрский ключ: <b>600/мин</b> (настраивается).<br>
-Ответ <code>429</code> при превышении.</div>
-
-<h2>Получить боевой ключ</h2>
-<div class="card">Напишите на <a href="mailto:kmarukob76@gmail.com">kmarukob76@gmail.com</a> с указанием организации.
-Ключ выдаётся под конкретного партнёра, лимиты и логирование — индивидуально.</div>
-
-<div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · <a href="/">главная</a> · <a href="/dashboard">панель</a></div>
-</body></html>"""
 
 
 def _partner_auth(req: Request) -> tuple[str, str | None]:
@@ -1998,7 +1922,7 @@ async def api_v1_phone(request: PhoneRequest, req: Request):
 @app.get("/partners")
 async def partners_docs():
     from fastapi.responses import HTMLResponse
-    return HTMLResponse(_PARTNERS_HTML)
+    return HTMLResponse(PARTNERS_HTML)
 
 
 @app.get("/offline-db")

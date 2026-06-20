@@ -1087,3 +1087,66 @@ self.addEventListener('fetch',e=>{
   }
 });
 """
+
+
+# ── Partner (B2G) API docs page ──────────────────────────────────────────────
+PARTNERS_HTML = """<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalqan AI — Партнёрский API (B2G)</title>
+<style>
+:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#8194ad;--cyan:#00d4ff;--green:#22c55e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:24px;max-width:860px;margin:0 auto;line-height:1.6}
+a{color:var(--cyan);text-decoration:none}
+h1{font-size:26px;font-weight:800;margin-bottom:4px}
+.sub{color:var(--mut);margin-bottom:24px}
+h2{font-size:17px;margin:26px 0 10px;border-left:3px solid var(--cyan);padding-left:10px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--bd)}
+th{color:var(--mut);font-size:12px;text-transform:uppercase}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+code{background:#0d1424;padding:2px 6px;border-radius:5px;color:var(--cyan);font-size:13px}
+pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14px;overflow-x:auto;font-size:13px;color:#cbd5e1;margin:8px 0}
+.method{color:var(--green);font-weight:700}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:#06121a;background:var(--cyan);padding:3px 9px;border-radius:999px}
+.foot{color:var(--mut);font-size:12px;margin-top:30px;text-align:center}
+</style></head><body>
+<h1>🛡 Qalqan AI — Партнёрский API <span class="tag">B2G</span></h1>
+<div class="sub">Для банков, Антифрод-центра Нацбанка, KZ-CERT, АФМ. Проверка угроз в реальном времени.</div>
+
+<h2>Авторизация</h2>
+<div class="card">Все запросы — с заголовком <code>X-API-Key: &lt;ваш ключ&gt;</code>.<br>
+Демо-ключ (ограниченный): <code>qalqan-demo-2026</code>. Боевой ключ — по запросу.</div>
+
+<h2>Эндпоинты</h2>
+<div class="card"><table>
+<tr><th>Метод</th><th>Путь</th><th>Назначение</th></tr>
+<tr><td><span class="method">POST</span></td><td><code>/v1/check</code></td><td>Проверка одного URL</td></tr>
+<tr><td><span class="method">POST</span></td><td><code>/v1/batch</code></td><td>Пакетная проверка URL</td></tr>
+<tr><td><span class="method">GET</span></td><td><code>/v1/feed</code></td><td>Полный KZ threat-feed</td></tr>
+<tr><td><span class="method">GET</span></td><td><code>/v1/usage</code></td><td>Счётчик запросов вашего ключа</td></tr>
+</table></div>
+
+<h2>Пример — проверка URL</h2>
+<pre>curl -X POST https://qalqan-ai-nu.vercel.app/v1/check \\
+  -H "X-API-Key: qalqan-demo-2026" \\
+  -H "Content-Type: application/json" \\
+  -d '{"url":"kaspi-bonus123.kz","lang":"ru"}'</pre>
+<pre>{
+  "partner": "Demo (rate-limited)",
+  "request_id": "a1b2c3d4e5f6...",
+  "result": { "verdict": "DANGEROUS", "threat_score": 95, ... }
+}</pre>
+
+<h2>Лимиты</h2>
+<div class="card">Демо-ключ: <b>30 запросов/мин</b>. Партнёрский ключ: <b>600/мин</b> (настраивается).<br>
+Ответ <code>429</code> при превышении.</div>
+
+<h2>Получить боевой ключ</h2>
+<div class="card">Напишите на <a href="mailto:kmarukob76@gmail.com">kmarukob76@gmail.com</a> с указанием организации.
+Ключ выдаётся под конкретного партнёра, лимиты и логирование — индивидуально.</div>
+
+<div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · <a href="/">главная</a> · <a href="/dashboard">панель</a></div>
+</body></html>"""
