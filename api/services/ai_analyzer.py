@@ -419,6 +419,37 @@ async def analyze_text(text: str) -> dict:
     return result or _fallback_result("Барлық AI провайдерлері қолжетімсіз")
 
 
+SYSTEM_PROMPT_ADVISOR = """You are Qalqan AI — a scam-advisor for ordinary citizens of Kazakhstan.
+The user describes a SITUATION in their own words (a phone call, an SMS, a chat message, an
+investment offer, a job offer, a "bank security" call, a prize, etc). Assess how likely it is a
+scam, using Kazakhstan context:
+- Fake Kaspi / Halyk / eGov / 1414 "security service" calls asking for SMS codes, card data, or to
+  "move money to a safe account"
+- +7 7xx scam call-center patterns, pressure/urgency, threats
+- Financial pyramids / MLM ("гарантированный доход", "пассивный доход", "приведи друга"), AFM-listed
+- Fake job / easy-money / crypto-investment offers
+- Deepfake AI-voice/video impersonation of relatives or bosses asking for urgent transfers
+- Fake goszakup / tender / supplier fraud
+Be decisive but calm — do NOT panic the user. If it matches a known scam pattern, say so clearly.
+Reply with ONLY a JSON object, no prose:
+{"verdict":"DANGEROUS|SUSPICIOUS|SAFE","threat_score":0-100,"scam_type":"<short>",
+ "reasoning":"<2-3 sentences>","red_flags":["...","..."],"advice":["...","..."]}
+Write reasoning, red_flags and advice IN THE USER'S LANGUAGE (kk/ru/en as given)."""
+
+
+async def analyze_situation(text: str, lang: str = "ru") -> dict:
+    """AI scam-advisor: assess a free-text described situation. Groq → Gemini → fallback."""
+    safe = _sanitize_for_prompt(text, max_len=1500)
+    user = f"User language: {lang}\nSituation described by user:\n{safe}"
+    result = await _call_groq(SYSTEM_PROMPT_ADVISOR, user)
+    if result and result.get("source") != "ai_error":
+        return result
+    result2 = await _call_gemini(SYSTEM_PROMPT_ADVISOR, user)
+    if result2 and result2.get("source") != "ai_error":
+        return result2
+    return result or _fallback_result("AI қолжетімсіз — мұқият болыңыз, асықпаңыз")
+
+
 async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | None:
     """Groq Vision API — tries multiple vision models."""
     if not _groq_key():

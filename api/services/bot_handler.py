@@ -152,6 +152,33 @@ async def handle_deepfake(chat_id: int, message_id: int | None = None):
     await send_message(chat_id, text, reply_to=message_id)
 
 
+async def handle_ask(chat_id: int, situation: str, message_id: int | None = None):
+    """AI scam-advisor: user describes a situation in words → AI verdict + advice."""
+    await send_message(chat_id, "🤔 Жағдайды талдап жатырмын...", reply_to=message_id)
+    try:
+        base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        async with httpx.AsyncClient(timeout=25) as client:
+            res = await client.post(f"{base_url}/advisor",
+                                    json={"text": situation[:2000], "lang": "ru"})
+        d = res.json()
+        verdict = d.get("verdict", "SUSPICIOUS")
+        score = d.get("threat_score", 50)
+        icon = "🔴" if verdict == "DANGEROUS" else "🟡" if verdict == "SUSPICIOUS" else "🟢"
+        parts = [f"{icon} <b>AI-кеңесші</b> · {verdict} ({score}/100)\n"]
+        if d.get("reasoning"):
+            parts.append(_esc(str(d["reasoning"])[:500]))
+        if d.get("red_flags"):
+            parts.append("\n⚠️ <b>Қауіп белгілері:</b>")
+            parts += [f"  • {_esc(str(f))}" for f in d["red_flags"][:5]]
+        if d.get("advice"):
+            parts.append("\n✅ <b>Не істеу керек:</b>")
+            parts += [f"  • {_esc(str(a))}" for a in d["advice"][:5]]
+        await send_message(chat_id, "\n".join(parts), reply_to=message_id)
+    except Exception as e:
+        logger.error(f"ask error: {e}")
+        await send_message(chat_id, "❌ Талдау қатесі. Кейінірек қайталаңыз.", reply_to=message_id)
+
+
 async def answer_inline(inline_query_id: str, results: list) -> dict:
     return await _tg("answerInlineQuery", {
         "inline_query_id": inline_query_id,
@@ -253,6 +280,7 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"  /phone &lt;номер&gt; — телефон нөмірін тексеру\n"
         f"  /sms &lt;мәтін&gt; — SMS алаяқтығын тексеру\n"
         f"  /pyramid &lt;атау&gt; — қаржы пирамидасын тексеру (АФМ)\n"
+        f"  /ask &lt;жағдай&gt; — AI-кеңесшіге жағдайды сипаттаңыз\n"
         f"  /deepfake — AI-дауыс/видео алаяқтығынан қорғану\n"
         f"  /tender &lt;нөмір&gt; — тендер алаяқтығын тексеру\n"
         f"  /report &lt;url&gt; — алаяқтықты хабарлау\n"
@@ -272,6 +300,7 @@ async def handle_help(chat_id: int):
         f"  /phone +77771234567 — телефон нөмірін тексеру\n"
         f"  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
         f"  /pyramid Финико — қаржы пирамидасын атау бойынша тексеру (АФМ/АРРФР)\n"
+        f"  /ask Каспиден қоңырау, кодты сұрап жатыр — жағдайды сөзбен сипаттап, AI-кеңес ал\n"
         f"  /deepfake — AI-дауыс/видео (deepfake) алаяқтығынан қорғану кеңесі\n"
         f"  /tender 12345678 — тендер алаяқтығын тексеру\n"
         f"  /report scam-site.kz — алаяқтықты хабарлау\n"
@@ -800,8 +829,23 @@ async def dispatch(update: dict) -> None:
     elif text.startswith("/deepfake") or text.startswith("/voice"):
         await handle_deepfake(chat_id, message_id)
 
-    # ── Auto-check: plain URL ──
+    elif text.startswith("/ask"):
+        parts = text.split(maxsplit=1)
+        q = parts[1].strip() if len(parts) > 1 else ""
+        if not q:
+            await send_message(chat_id,
+                "ℹ️ /ask &lt;жағдайды сипаттаңыз&gt;\n"
+                "Мысал: /ask Каспи қауіпсіздік қызметінен қоңырау шалып, SMS-кодты сұрап жатыр",
+                reply_to=message_id)
+        else:
+            await handle_ask(chat_id, q, message_id)
+
+    # ── Auto: plain URL → check ──
     elif _URL_RE.search(text) and not text.startswith("/"):
         m = _URL_RE.search(text)
         if m:
             await handle_check(chat_id, m.group(0), message_id)
+
+    # ── Auto: free-text situation (40+ chars, no URL) → AI advisor ──
+    elif not text.startswith("/") and len(text) >= 40:
+        await handle_ask(chat_id, text, message_id)

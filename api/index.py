@@ -18,7 +18,7 @@ from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
 from .services.threat_db import check_all_databases, extract_domain, feed_stats
-from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot
+from .services.ai_analyzer import analyze_url, analyze_text, analyze_screenshot, analyze_situation
 from .services.pyramid_detector import check_pyramid_domain, check_local_blacklist, detect_pyramid_patterns
 from .services.pyramid_registry import check_pyramid_name, registry_size
 from .services.kz_intel import check_kz_social_engineering, check_kz_impersonation_url, check_gambling_domain
@@ -540,6 +540,22 @@ async def check_text(request: TextCheckRequest, req: Request):
             ai_result.setdefault("indicators", []).append(f"pyramid_conf_{int(pyramid_conf * 100)}pct")
 
     return calculate_final_verdict([], ai_result, None, lang=request.lang)
+
+
+# --- AI СКАМ-СОВЕТНИК: опиши ситуацию словами → вердикт + совет ---
+class AdvisorRequest(BaseModel):
+    text: str = Field(..., max_length=2000)
+    lang: str = Field(default="ru", max_length=5)
+
+
+@app.post("/advisor")
+async def advisor(request: AdvisorRequest, req: Request):
+    """AI scam-advisor. User describes a situation (call/SMS/offer) in free text →
+    verdict + reasoning + red_flags + advice, KZ-aware, in the user's language."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="advisor"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    return await analyze_situation(request.text, request.lang)
 
 
 # --- АФМ/АРРФР ПИРАМИДА ТІЗІМІ: атау бойынша тексеру ---
