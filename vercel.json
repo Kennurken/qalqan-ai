@@ -15,6 +15,10 @@
     {
       "path": "/telegram/weekly-report",
       "schedule": "0 9 * * 0"
+    },
+    {
+      "path": "/health/check",
+      "schedule": "0 6 * * *"
     }
   ]
 }

@@ -30,7 +30,7 @@ from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
 from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_rate_limit, check_health as redis_health
 from .evaluation.benchmark import run_benchmark
-from .utils.telegram import send_appeal, send_report, notify_block
+from .utils.telegram import send_appeal, send_report, notify_block, health_alert
 from .utils.i18n import t
 from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed
 
@@ -1209,6 +1209,25 @@ async def health():
     }
 
 
+@app.get("/health/check")
+async def health_check_alert(req: Request):
+    """Monitoring probe (cron/secret-gated): checks deps, alerts admin Telegram
+    on degradation. Wire to Vercel cron or UptimeRobot."""
+    if not _authorize_cron(req):
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+    sb, rd = await asyncio.gather(supabase_health(), redis_health())
+    problems = []
+    if sb.get("status") not in ("ok", "disabled"):
+        problems.append(f"Supabase: {sb.get('status')}")
+    if rd.get("status") not in ("ok", "disabled"):
+        problems.append(f"Redis: {rd.get('status')}")
+    if not os.getenv("GROQ_API_KEY") and not os.getenv("GEMINI_API_KEY"):
+        problems.append("AI: ешқандай кілт жоқ (no AI key)")
+    if problems:
+        await health_alert("Деградация:\n• " + "\n• ".join(problems))
+    return {"status": "degraded" if problems else "ok", "problems": problems}
+
+
 # ============================================================
 # ADMIN DASHBOARD
 # ============================================================
@@ -1962,6 +1981,18 @@ async def api_v1_contribute(request: ContributeRequest, req: Request, background
     community = await get_community_stats(domain)
     return {"accepted": True, "partner": partner, "indicator": domain,
             "type": request.type, "community": community}
+
+
+@app.post("/v1/phone")
+async def api_v1_phone(request: PhoneRequest, req: Request):
+    """Partner KZ phone-scam check (partner rate tier)."""
+    key, partner = _partner_auth(req)
+    if not partner:
+        return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
+    if not await check_rate_limit(key_id(key), _partner_limit(key), endpoint="apiphone"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.phone_sms import analyze_phone
+    return {"partner": partner, "result": analyze_phone(request.phone, request.lang)}
 
 
 @app.get("/partners")

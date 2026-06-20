@@ -11,6 +11,43 @@ def _bot_token() -> str | None:
 def _chat_id() -> str | None:
     return os.getenv("TELEGRAM_CHAT_ID")
 
+def _channel_id() -> str | None:
+    """Public threat-broadcast channel (bot must be admin). Optional."""
+    return os.getenv("TELEGRAM_CHANNEL_ID")
+
+
+async def _send(chat_id: str, text: str, parse_mode: str = "Markdown") -> bool:
+    token = _bot_token()
+    if not token or not chat_id:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            r = await client.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                                  json={"chat_id": chat_id, "text": text,
+                                        "parse_mode": parse_mode, "disable_web_page_preview": True})
+            return r.status_code == 200
+    except Exception:
+        return False
+
+
+async def notify_channel(url: str, verdict: str, score: int):
+    """Broadcast a newly-detected dangerous site to the public channel (if set)."""
+    ch = _channel_id()
+    if not ch:
+        return
+    text = (
+        f"🛑 *Жаңа қауіпті сайт анықталды*\n\n"
+        f"🌐 `{_escape_md(url)}`\n"
+        f"⚠️ {verdict} ({score}/100)\n\n"
+        f"_Qalqan AI сізді қорғайды_ · @QalqanAI\\_bot"
+    )
+    await _send(ch, text)
+
+
+async def health_alert(text: str) -> bool:
+    """Send an ops/health alert to the admin chat."""
+    return await _send(_chat_id() or "", f"🚨 *Qalqan AI · мониторинг*\n\n{text}")
+
 
 def _escape_md(text: str) -> str:
     """Fix #2: Escape Telegram MarkdownV1 special chars in user-supplied text.
@@ -65,6 +102,8 @@ async def notify_block(url: str, verdict: str, score: int, source: str):
             await client.post(api_url, json={"chat_id": _chat_id(), "text": message, "parse_mode": "Markdown"})
     except Exception:
         pass
+    # Also broadcast to the public threat channel (best-effort, only if configured)
+    await notify_channel(url, verdict, score)
 
 
 async def send_report(url: str, threat_type: str, reporter_note: str = "") -> dict:
