@@ -262,6 +262,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
     <a href="/docs">API Docs</a>
     <a href="/stats">Statistics</a>
     <a href="/dashboard">Панель регулятора</a>
+    <a href="/goszakup/graph">Граф госзакупок</a>
     <a href="/health">Health</a>
   </div>
   <div style="margin-top:16px;font-size:12px;color:var(--muted)">
@@ -797,3 +798,77 @@ async function loadMap(){
 }
 </script>
 </body></html>"""
+
+
+GRAPH_HTML = """<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Граф госзакупок</title>
+<style>
+:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#7d8aa0;--cyan:#00d4ff;--red:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px;max-width:1280px;margin:0 auto}
+a{color:var(--cyan);text-decoration:none}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+h1{font-size:22px;font-weight:800}
+.sub{color:var(--mut);font-size:13px;margin:4px 0 16px}
+.wrap{display:grid;grid-template-columns:1fr 360px;gap:16px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:14px}
+svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.risk{font-size:15px;margin-bottom:12px}
+.risk b{color:var(--red);font-size:20px}
+.DANGEROUS{color:var(--red);font-weight:800}.SUSPICIOUS{color:#f59e0b;font-weight:800}.SAFE{color:#22c55e;font-weight:800}
+.finding{font-size:13px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.finding .sc{color:var(--red);font-weight:800;font-variant-numeric:tabular-nums}
+.foot{color:var(--mut);font-size:12px;margin-top:20px;text-align:center}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+</style></head><body>
+<div class="top">
+  <div><h1>🕸️ Граф госзакупок — аффилированность и сговор</h1>
+  <div class="sub">Qalqan AI · экономические угрозы (ДЭР) · <span id="src">—</span></div></div>
+  <div><a href="/">← На главную</a> &nbsp; <a href="/goszakup/graph/demo">JSON</a></div>
+</div>
+<div class="wrap">
+  <div class="card">
+    <svg id="graph" viewBox="0 0 900 600"></svg>
+    <div class="legend">
+      <span><span class="dot" style="background:#00d4ff"></span>Заказчик</span>
+      <span><span class="dot" style="background:#a855f7"></span>Поставщик</span>
+      <span><span class="dot" style="background:#f59e0b"></span>Учредитель</span>
+      <span><span class="dot" style="background:#22c55e"></span>Адрес</span>
+      <span><span class="dot" style="background:#ef4444"></span>Чиновник</span>
+      <span><span class="dot" style="background:#ef4444"></span>— красная связь = подозрение</span>
+    </div>
+  </div>
+  <div class="card"><h3 style="font-size:14px;margin-bottom:12px">🚩 Найденные схемы</h3><div id="findings"></div></div>
+</div>
+<div class="foot">Qalqan AI · граф строится из данных закупок (заказчик↔поставщик↔учредитель↔адрес↔чиновник)</div>
+<script>
+const COL={customer:'#00d4ff',supplier:'#a855f7',founder:'#f59e0b',address:'#22c55e',official:'#ef4444'};
+fetch('/goszakup/graph/demo').then(r=>r.json()).then(render).catch(()=>{document.getElementById('findings').textContent='Ошибка загрузки';});
+function render(g){
+  document.getElementById('src').textContent = (g._source==='demo'?'демо-сценарий':'данные');
+  const W=900,H=600,nodes=g.nodes,edges=g.edges;
+  nodes.forEach((n,i)=>{const a=i/nodes.length*6.283; n.x=W/2+Math.cos(a)*200; n.y=H/2+Math.sin(a)*170; n.vx=0;n.vy=0;});
+  const by=Object.fromEntries(nodes.map(n=>[n.id,n]));
+  for(let it=0;it<320;it++){
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j];let dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1,f=2600/(d*d);
+      a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;}
+    edges.forEach(e=>{const a=by[e.source],b=by[e.target];if(!a||!b)return;let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,f=(d-95)*0.02;a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;});
+    nodes.forEach(n=>{n.vx+=(W/2-n.x)*0.002;n.vy+=(H/2-n.y)*0.002;n.x+=Math.max(-8,Math.min(8,n.vx));n.y+=Math.max(-8,Math.min(8,n.vy));n.vx*=0.84;n.vy*=0.84;n.x=Math.max(40,Math.min(W-40,n.x));n.y=Math.max(34,Math.min(H-24,n.y));});
+  }
+  let s='';
+  edges.forEach(e=>{const a=by[e.source],b=by[e.target];if(!a||!b)return;const c=e.risk?'#ef4444':'#334155';
+    s+=`<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${c}" stroke-width="${e.risk?2.6:1}" ${e.risk?'stroke-dasharray="5 3"':''}/>`;});
+  nodes.forEach(n=>{const c=COL[n.type]||'#888',r=(n.type==='customer'||n.type==='supplier')?13:8;
+    s+=`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}" fill="${c}" stroke="${n.risk?'#ef4444':'#0a0e1a'}" stroke-width="${n.risk?3:1.5}"/>`;
+    s+=`<text x="${n.x.toFixed(1)}" y="${(n.y-r-5).toFixed(1)}" fill="#e6edf6" font-size="10" text-anchor="middle">${(n.label||'').slice(0,22)}</text>`;});
+  document.getElementById('graph').innerHTML=s;
+  let f=`<div class="risk">Риск: <b>${g.risk_score}/100</b> · <span class="${g.verdict}">${g.verdict}</span></div>`;
+  f+=(g.findings||[]).map(x=>`<div class="finding"><span class="sc">+${x.score}</span><span>${x.ru}</span></div>`).join('');
+  document.getElementById('findings').innerHTML=f;
+}
+</script></body></html>"""

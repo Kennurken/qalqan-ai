@@ -13,7 +13,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
@@ -1609,6 +1609,39 @@ async def goszakup_check_tender(tender_number: str, req: Request):
     from .services.goszakup import check_tender_by_number
     result = await check_tender_by_number(tender_number)
     return result
+
+
+# ── Goszakup Fraud Graph (affiliation / collusion / cartel) ──────────────────
+
+
+class GraphRequest(BaseModel):
+    companies: list[dict] = Field(default_factory=list)
+    tenders: list[dict] = Field(default_factory=list)
+
+
+@app.post("/goszakup/graph")
+async def goszakup_graph_analyse(request: GraphRequest, req: Request):
+    """Build a procurement relationship graph and detect affiliation, collusion,
+    conflict-of-interest and cartel-bidding patterns."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.goszakup_graph import build_fraud_graph
+    return build_fraud_graph({"companies": request.companies, "tenders": request.tenders})
+
+
+@app.get("/goszakup/graph/demo")
+async def goszakup_graph_demo():
+    from .services.goszakup_graph import build_fraud_graph, demo_graph_data
+    g = build_fraud_graph(demo_graph_data())
+    g["_source"] = "demo"
+    return g
+
+
+@app.get("/goszakup/graph")
+async def goszakup_graph_page():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(GRAPH_HTML)
 
 
 # ── KZ Threat Report ──────────────────────────────────────────────────────────
