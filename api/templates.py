@@ -657,3 +657,143 @@ function showTab(name, el) {
 }
 </script>
 </body></html>"""
+
+
+# ── Telegram Mini App (Web App) ───────────────────────────────────────────────
+MINIAPP_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Qalqan AI</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0a0e1a;--card:#111827;--card2:#0d1424;--cyan:#00d4ff;--red:#ff3b5c;--amber:#ffb020;--green:#22c55e;--tx:#e6edf6;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:14px;min-height:100vh}
+.hd{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.hd .logo{font-size:22px}.hd h1{font-size:18px;font-weight:800}
+.tabs{display:flex;gap:6px;margin-bottom:14px;background:var(--card2);padding:4px;border-radius:12px}
+.tab{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:13px;font-weight:700;color:var(--mut);cursor:pointer}
+.tab.on{background:var(--cyan);color:#04121a}
+.panel{display:none}.panel.on{display:block}
+input,textarea{width:100%;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:13px;color:var(--tx);font-size:15px;outline:none;font-family:inherit}
+textarea{min-height:84px;resize:vertical}
+.btn{width:100%;margin-top:10px;background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer}
+.btn:active{opacity:.85}
+.hint{color:var(--mut);font-size:12px;margin:8px 2px}
+.res{margin-top:14px;border-radius:14px;padding:16px;border:1px solid var(--bd);background:var(--card);display:none}
+.res.show{display:block}
+.verdict{font-size:20px;font-weight:800;margin-bottom:4px}
+.score{color:var(--mut);font-size:13px;margin-bottom:10px}
+.bar{height:8px;border-radius:5px;background:var(--card2);overflow:hidden;margin-bottom:12px}
+.bar > div{height:100%;border-radius:5px}
+.detail{font-size:14px;line-height:1.5}
+.meta{margin-top:10px;font-size:12px;color:var(--mut)}
+.kzmap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.kzt{border-radius:9px;padding:8px 4px;text-align:center;border:1px solid var(--bd);font-size:10px}
+.kzt b{display:block;font-size:14px;margin-top:2px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.kpi .v{font-size:22px;font-weight:800}.kpi .l{font-size:11px;color:var(--mut);text-transform:uppercase}
+.spin{text-align:center;color:var(--mut);padding:14px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="hd"><span class="logo">🛡️</span><h1>Qalqan AI</h1></div>
+
+<div class="tabs">
+  <div class="tab on" data-p="check">🔍 Тексеру</div>
+  <div class="tab" data-p="ask">🤖 AI-кеңес</div>
+  <div class="tab" data-p="map">🗺️ Карта</div>
+</div>
+
+<div class="panel on" id="p-check">
+  <input id="url" placeholder="kaspi-bonus.kz немесе https://..." autocapitalize="off" autocomplete="off">
+  <button class="btn" id="btn-check">Тексеру</button>
+  <div class="hint">Сілтемені қой — фишинг, клон, гемблингті тексеремін</div>
+  <div class="res" id="res-check"></div>
+</div>
+
+<div class="panel" id="p-ask">
+  <textarea id="situation" placeholder="Жағдайды сипаттаңыз: «Каспиден қоңырау шалып, SMS-кодты сұрап жатыр...»"></textarea>
+  <button class="btn" id="btn-ask">AI-кеңес сұрау</button>
+  <div class="hint">Не болғанын сөзбен жаз — AI алаяқтық па екенін айтады</div>
+  <div class="res" id="res-ask"></div>
+</div>
+
+<div class="panel" id="p-map">
+  <div class="kpis" id="kpis"></div>
+  <div style="font-size:13px;font-weight:700;margin-bottom:6px">Облыстар бойынша қауіп</div>
+  <div class="kzmap" id="kzmap"></div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const API = location.origin;
+const $ = s => document.querySelector(s);
+const vcolor = v => v==='DANGEROUS'?'var(--red)':v==='SUSPICIOUS'?'var(--amber)':'var(--green)';
+const vlabel = v => v==='DANGEROUS'?'🔴 ҚАУІПТІ':v==='SUSPICIOUS'?'🟡 КҮДІКТІ':'🟢 ҚАУІПСІЗ';
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); $('#p-'+t.dataset.p).classList.add('on');
+  if(t.dataset.p==='map') loadMap();
+});
+
+async function check(){
+  const url=$('#url').value.trim(); if(!url) return;
+  const box=$('#res-check'); box.className='res show'; box.innerHTML='<div class="spin">Тексерілуде...</div>';
+  try{
+    const r=await fetch(API+'/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:'kk'})});
+    const d=await r.json();
+    const v=d.verdict, sc=d.threat_score||0;
+    box.innerHTML=`<div class="verdict" style="color:${vcolor(v)}">${vlabel(v)}</div>
+      <div class="score">${sc}/100 · ${d.source||''}</div>
+      <div class="bar"><div style="width:${sc}%;background:${vcolor(v)}"></div></div>
+      <div class="detail">${d.detail_kk||d.detail||''}</div>`;
+    if(tg) tg.HapticFeedback?.notificationOccurred(v==='DANGEROUS'?'error':v==='SAFE'?'success':'warning');
+  }catch(e){ box.innerHTML='<div class="spin">Қате. Кейінірек қайталаңыз.</div>'; }
+}
+$('#btn-check').onclick=check;
+$('#url').addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+
+async function ask(){
+  const t=$('#situation').value.trim(); if(t.length<10) return;
+  const box=$('#res-ask'); box.className='res show'; box.innerHTML='<div class="spin">AI талдап жатыр...</div>';
+  try{
+    const r=await fetch(API+'/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,lang:'ru'})});
+    const d=await r.json();
+    const v=d.verdict, sc=d.threat_score||0;
+    let h=`<div class="verdict" style="color:${vcolor(v)}">${vlabel(v)}</div>
+      <div class="score">${sc}/100 · ${d.scam_type||''}</div>
+      <div class="bar"><div style="width:${sc}%;background:${vcolor(v)}"></div></div>
+      <div class="detail">${d.reasoning||d.detail_ru||''}</div>`;
+    if((d.advice||[]).length) h+='<div class="meta">✅ '+d.advice.slice(0,4).map(a=>a).join('<br>✅ ')+'</div>';
+    box.innerHTML=h;
+  }catch(e){ box.innerHTML='<div class="spin">Қате. Кейінірек қайталаңыз.</div>'; }
+}
+$('#btn-ask').onclick=ask;
+
+let mapLoaded=false;
+async function loadMap(){
+  if(mapLoaded) return; mapLoaded=true;
+  try{
+    const d=await (await fetch(API+'/dashboard/data?demo=1')).json();
+    const k=d.kpis||{};
+    $('#kpis').innerHTML=
+      `<div class="kpi"><div class="v" style="color:var(--cyan)">${(k.total_checks||0).toLocaleString()}</div><div class="l">Тексерілді</div></div>`+
+      `<div class="kpi"><div class="v" style="color:var(--red)">${(k.threats_blocked||0).toLocaleString()}</div><div class="l">Қауіп</div></div>`;
+    const reg=d.regions||{}; const mx=Math.max(1,...Object.values(reg).map(r=>r.threats||0));
+    const top=Object.entries(reg).sort((a,b)=>(b[1].threats||0)-(a[1].threats||0)).slice(0,12);
+    $('#kzmap').innerHTML=top.map(([nm,r])=>{
+      const f=Math.min(1,(r.threats||0)/mx);
+      const c=`rgb(${Math.round(13+(255-13)*f)},${Math.round(20+(59-20)*f)},${Math.round(36+(92-36)*f)})`;
+      return `<div class="kzt" style="background:${c};color:${f>.45?'#fff':'#e6edf6'}">${nm}<b>${r.threats||0}</b></div>`;
+    }).join('');
+  }catch(e){ $('#kzmap').innerHTML='<div class="spin">Қате</div>'; }
+}
+</script>
+</body></html>"""

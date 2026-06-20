@@ -13,7 +13,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
@@ -1029,6 +1029,12 @@ async def dashboard_page():
     """Regulator-facing threat-landscape dashboard (KZ economic-cyber threats)."""
     from fastapi.responses import HTMLResponse
     return HTMLResponse(DASHBOARD_HTML)
+
+
+@app.get("/app")
+async def mini_app():
+    """Telegram Mini App (Web App): URL checker + AI advisor + KZ threat map."""
+    return HTMLResponse(MINIAPP_HTML)
 
 
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---

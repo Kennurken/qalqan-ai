@@ -152,6 +152,18 @@ async def handle_deepfake(chat_id: int, message_id: int | None = None):
     await send_message(chat_id, text, reply_to=message_id)
 
 
+async def handle_app(chat_id: int, message_id: int | None = None):
+    """Send a button that opens the Qalqan AI Telegram Mini App (Web App)."""
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    kb = {"inline_keyboard": [[{"text": "🛡️ Qalqan AI қосымшасын ашу",
+                               "web_app": {"url": f"{base}/app"}}]]}
+    await send_message(
+        chat_id,
+        "📱 <b>Qalqan AI қосымшасы</b>\n\n"
+        "Сілтеме тексеру · AI-кеңесші · KZ қауіп картасы — бәрі бір терезеде.",
+        reply_to=message_id, reply_markup=kb)
+
+
 async def handle_ask(chat_id: int, situation: str, message_id: int | None = None):
     """AI scam-advisor: user describes a situation in words → AI verdict + advice."""
     await send_message(chat_id, "🤔 Жағдайды талдап жатырмын...", reply_to=message_id)
@@ -280,6 +292,7 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"  /phone &lt;номер&gt; — телефон нөмірін тексеру\n"
         f"  /sms &lt;мәтін&gt; — SMS алаяқтығын тексеру\n"
         f"  /pyramid &lt;атау&gt; — қаржы пирамидасын тексеру (АФМ)\n"
+        f"  /app — 📱 Qalqan AI қосымшасын ашу (Mini App)\n"
         f"  /ask &lt;жағдай&gt; — AI-кеңесшіге жағдайды сипаттаңыз\n"
         f"  /deepfake — AI-дауыс/видео алаяқтығынан қорғану\n"
         f"  /tender &lt;нөмір&gt; — тендер алаяқтығын тексеру\n"
@@ -830,6 +843,9 @@ async def dispatch(update: dict) -> None:
                 reply_to=message_id)
         else:
             await handle_pyramid_check(chat_id, name, message_id)
+
+    elif text.startswith("/app"):
+        await handle_app(chat_id, message_id)
 
     elif text.startswith("/deepfake") or text.startswith("/voice"):
         await handle_deepfake(chat_id, message_id)
