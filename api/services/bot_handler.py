@@ -319,7 +319,8 @@ async def handle_help(chat_id: int):
         f"  /report scam-site.kz — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі қорғаныс статистикасы\n\n"
         f"<b>Автоматты тексеру:</b>\n"
-        f"  Кез-келген URL жіберіңіз — бот автоматты тексереді\n\n"
+        f"  Кез-келген URL жіберіңіз — бот автоматты тексереді\n"
+        f"  🎙 Дауыстық хабарлама/қоңырау жазбасын жіберіңіз — алаяқтық қоңырауды анықтаймыз\n\n"
         f"<b>Inline режим:</b>\n"
         f"  @QalqanAI_bot URL — кез-келген чатта тексеріңіз\n\n"
         f"<b>Анықталатын қауіптер:</b>\n"
@@ -689,6 +690,50 @@ async def _run_pipeline(url: str) -> dict:
 
 # ── Main dispatcher ───────────────────────────────────────────────────────────
 
+async def handle_voice(chat_id: int, file_id: str, message_id: int | None = None):
+    """Download a Telegram voice/audio message → transcribe → call-scam verdict."""
+    await send_message(chat_id, "🎙 Аудио талдануда (транскрипция + алаяқтық анализі)...",
+                       reply_to=message_id)
+    token = _token()
+    try:
+        async with httpx.AsyncClient(timeout=45) as client:
+            gf = await client.get(f"{TG_API}{token}/getFile", params={"file_id": file_id})
+            fp = gf.json().get("result", {}).get("file_path")
+            if not fp:
+                await send_message(chat_id, "❌ Аудионы жүктеу мүмкін болмады.", reply_to=message_id)
+                return
+            audio = (await client.get(f"https://api.telegram.org/file/bot{token}/{fp}")).content
+    except Exception as e:
+        logger.error(f"voice download error: {e}")
+        await send_message(chat_id, "❌ Аудионы жүктеу қатесі.", reply_to=message_id)
+        return
+
+    from ..services.voice_scam import analyze_voice
+    r = await analyze_voice(audio, fp.split("/")[-1], "kk")
+    if r.get("error"):
+        await send_message(chat_id, f"❌ {_esc(r['error'])}", reply_to=message_id)
+        return
+
+    v = r.get("verdict", "SUSPICIOUS")
+    emoji = _VERDICT_EMOJI.get(v, "⚠️")
+    lines = [
+        f"{emoji} <b>{v}</b> · қауіп {r.get('threat_score', 0)}/100 {_score_bar(r.get('threat_score', 0))}",
+        "",
+        _esc(r.get("detail") or r.get("detail_kk", "")),
+    ]
+    flags = r.get("red_flags", [])
+    if flags:
+        lines.append("\n🚩 <b>Белгілер:</b>")
+        lines += [f"  • {_esc(f.get('kk', ''))}" for f in flags[:6]]
+    tr = r.get("transcript")
+    if tr:
+        lines.append(f"\n📝 <i>Транскрипт:</i> <code>{_esc(tr[:300])}</code>")
+    if r.get("advice"):
+        lines.append(f"\n💡 {_esc(r['advice'])}")
+    lines.append("\n<i>Qalqan AI · дауыс/қоңырау анализі</i>")
+    await send_message(chat_id, "\n".join(lines), reply_to=message_id)
+
+
 async def handle_callback(cb: dict) -> None:
     """Handle inline-button presses (community confirm/dispute votes)."""
     cb_id = cb.get("id", "")
@@ -739,6 +784,12 @@ async def dispatch(update: dict) -> None:
     message_id = msg.get("message_id")
     text       = (msg.get("text") or "").strip()
     first_name = msg.get("from", {}).get("first_name", "")
+
+    # ── Voice / audio message → call-scam analysis ──
+    media = msg.get("voice") or msg.get("audio") or msg.get("video_note")
+    if media and media.get("file_id"):
+        await handle_voice(chat_id, media["file_id"], message_id)
+        return
 
     if not text:
         return

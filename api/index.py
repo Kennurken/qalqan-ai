@@ -11,7 +11,7 @@ import asyncio
 import traceback
 import httpx
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
 from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS
 from .demo import _DEMO_RESULTS
@@ -691,6 +691,22 @@ async def check_screen(request: ScreenRequest, req: Request):
 
     result = await analyze_screenshot(request.image_base64)
     return calculate_final_verdict([], result, None, lang=request.lang)
+
+
+# --- VOICE / CALL-SCAM (audio → transcript → fraud verdict) ---
+@app.post("/voice")
+async def check_voice(req: Request, file: UploadFile = File(...), lang: str = "kk"):
+    """Upload a voice/call recording → transcribe (Groq Whisper) → call-scam verdict."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="voice"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 5/min."})
+    from .services.voice_scam import analyze_voice, MAX_AUDIO_BYTES
+    audio = await file.read()
+    if not audio:
+        return JSONResponse(status_code=422, content={"error": "Empty audio"})
+    if len(audio) > MAX_AUDIO_BYTES:
+        return JSONResponse(status_code=413, content={"error": "Audio too large (max 20MB)"})
+    return await analyze_voice(audio, file.filename or "audio.ogg", lang)
 
 
 # --- АПЕЛЛЯЦИЯ ---
