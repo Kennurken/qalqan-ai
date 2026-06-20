@@ -98,6 +98,60 @@ async def _resolve_redirects(url: str, max_hops: int = 5) -> list[str]:
     return chain
 
 
+async def send_photo(chat_id: int | str, photo_url: str, caption: str = "",
+                     reply_to: int | None = None) -> dict:
+    payload: dict = {"chat_id": chat_id, "photo": photo_url, "parse_mode": "HTML"}
+    if caption:
+        payload["caption"] = caption[:1000]
+    if reply_to:
+        payload["reply_to_message_id"] = reply_to
+    return await _tg("sendPhoto", payload)
+
+
+def _screenshot_url(url: str) -> str:
+    """Third-party renderer (WordPress mShots) — they render the page, we never
+    touch the malicious site ourselves. Safe preview for the user."""
+    from urllib.parse import quote
+    return f"https://s.wordpress.com/mshots/v1/{quote(url, safe='')}?w=720"
+
+
+# ── Deepfake / AI voice-scam awareness (2025 жаһандық тренд) ──────────────────
+_DEEPFAKE_FLAGS = [
+    # ru
+    "голосов", "видеозвон", "видео-звон", "подтвердите голос", "ваш голос",
+    "синтез голос", "дипфейк", "deepfake", "голосовое подтверждение",
+    "руководитель просит", "директор просит перевести", "ии-голос", "ai голос",
+    # kk
+    "дауыспен раста", "бейнеқоңырау", "дауысыңызды", "басшы сұрап",
+    # en
+    "voice verification", "video call verify", "voice of your", "ai voice", "voice clone",
+]
+
+
+def _deepfake_flag(text: str) -> bool:
+    t = (text or "").lower()
+    return any(k in t for k in _DEEPFAKE_FLAGS)
+
+
+async def handle_deepfake(chat_id: int, message_id: int | None = None):
+    """Advisory on AI voice/video (deepfake) scams — a fast-growing 2025 threat."""
+    text = (
+        "🎭 <b>Deepfake / AI-дауыс алаяқтығы</b>\n"
+        "<i>2025 жылы дүниежүзінде ~$1.1 млрд зиян, импер. алаяқтық +1400%</i>\n\n"
+        "<b>Қалай танимыз:</b>\n"
+        "• Туыс/басшы кенет ақша/құпиясөз сұрайды — асығыс\n"
+        "• Дауыс «бір қалыпты», тыныс алу/эмоция табиғи емес\n"
+        "• Видеода ауыз/көз синхрон емес, жарық/көлеңке оғаш\n"
+        "• «Қазір растау керек», қысым жасайды\n\n"
+        "<b>Не істеу керек:</b>\n"
+        "• Қоңырауды доғарып, <b>таныс нөмірге өзің қайта қоңырау шал</b>\n"
+        "• Отбасылық «құпия сөз» келісіп қой\n"
+        "• Ешқашан дауыс/видео арқылы ақша аударма\n\n"
+        "Күдікті сілтеме/нөмір болса: /check, /phone, /sms"
+    )
+    await send_message(chat_id, text, reply_to=message_id)
+
+
 async def answer_inline(inline_query_id: str, results: list) -> dict:
     return await _tg("answerInlineQuery", {
         "inline_query_id": inline_query_id,
@@ -199,6 +253,7 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"  /phone &lt;номер&gt; — телефон нөмірін тексеру\n"
         f"  /sms &lt;мәтін&gt; — SMS алаяқтығын тексеру\n"
         f"  /pyramid &lt;атау&gt; — қаржы пирамидасын тексеру (АФМ)\n"
+        f"  /deepfake — AI-дауыс/видео алаяқтығынан қорғану\n"
         f"  /tender &lt;нөмір&gt; — тендер алаяқтығын тексеру\n"
         f"  /report &lt;url&gt; — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі статистика\n"
@@ -217,6 +272,7 @@ async def handle_help(chat_id: int):
         f"  /phone +77771234567 — телефон нөмірін тексеру\n"
         f"  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
         f"  /pyramid Финико — қаржы пирамидасын атау бойынша тексеру (АФМ/АРРФР)\n"
+        f"  /deepfake — AI-дауыс/видео (deepfake) алаяқтығынан қорғану кеңесі\n"
         f"  /tender 12345678 — тендер алаяқтығын тексеру\n"
         f"  /report scam-site.kz — алаяқтықты хабарлау\n"
         f"  /stats — бүгінгі қорғаныс статистикасы\n\n"
@@ -255,6 +311,14 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
         from .threat_db import extract_domain
         await send_message(chat_id, text, reply_to=message_id,
                            reply_markup=_result_keyboard(extract_domain(url)))
+        # Screenshot preview (rendered by a third-party service — we never load the site)
+        if (os.getenv("BOT_SCREENSHOTS", "1") != "0"
+                and result.get("verdict") in ("DANGEROUS", "SUSPICIOUS")):
+            try:
+                await send_photo(chat_id, _screenshot_url(url),
+                                 caption="📸 Сайттың алдын ала көрінісі (ашпаңыз!)")
+            except Exception as e:
+                logger.debug(f"screenshot send failed: {e}")
     except Exception as e:
         logger.error(f"Bot check error for {url}: {e}")
         await send_message(chat_id,
@@ -356,11 +420,16 @@ async def handle_sms_check(chat_id: int, sms_text: str, message_id: int | None =
                 f"  • <code>{u[:60]}</code>" for u in urls_found[:3]
             )
 
+        df_line = ""
+        if _deepfake_flag(sms_text):
+            df_line = ("\n\n🎭 <b>Deepfake/AI-дауыс белгісі!</b> Дауыс/видео арқылы "
+                       "растау сұраса — таныс нөмірге өзің қайта қоңырау шал. /deepfake")
         text = (
             f"{icon} <b>SMS талдауы</b>\n\n"
             f"Вердикт: <b>{verdict}</b> ({score}/100)\n"
             f"{detail}"
-            f"{url_lines}\n\n"
+            f"{url_lines}"
+            f"{df_line}\n\n"
             f"💡 Егер алаяқтық деп ойласаңыз — ешкімге жіберме, блоктаңыз"
         )
         await send_message(chat_id, text, reply_to=message_id)
@@ -727,6 +796,9 @@ async def dispatch(update: dict) -> None:
                 reply_to=message_id)
         else:
             await handle_pyramid_check(chat_id, name, message_id)
+
+    elif text.startswith("/deepfake") or text.startswith("/voice"):
+        await handle_deepfake(chat_id, message_id)
 
     # ── Auto-check: plain URL ──
     elif _URL_RE.search(text) and not text.startswith("/"):
