@@ -447,22 +447,32 @@ async def handle_sms_check(chat_id: int, sms_text: str, message_id: int | None =
 
 
 async def handle_report(chat_id: int, url: str, message_id: int | None = None):
-    """Forward user-submitted scam report to admin Telegram chat."""
-    from ..utils.telegram import send_report
+    """Persist a user scam report to the crowd DB (via /report API) + admin notify."""
     if not url:
         await send_message(chat_id,
             "ℹ️ Пайдаланылуы: /report &lt;url&gt;\n"
             "Мысал: /report kaspi-bonus123.kz")
         return
 
-    result = await send_report(url, "user_report", f"Telegram bot report from user")
-    if result.get("status") == "success":
-        await send_message(chat_id,
-            f"✅ Шағымыңыз қабылданды!\n"
-            f"🌐 URL: <code>{_esc(url[:80])}</code>\n\n"
-            f"<i>Модераторлар тексереді. Рахмет!</i>",
-            reply_to=message_id)
-    else:
+    base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            res = await client.post(f"{base_url}/report",
+                json={"url": url, "threat_type": "other",
+                      "note": "Telegram bot report", "lang": "kk"})
+        d = res.json()
+        cnt = d.get("reports_count", 0)
+        lines = [
+            "✅ Шағымыңыз қабылданды!",
+            f"🌐 <code>{_esc(url[:80])}</code>",
+            f"📊 Осы домен бойынша барлық шағым: <b>{cnt}</b>",
+        ]
+        if d.get("auto_blocked"):
+            lines.append("🛑 <b>ҚОҒАМ БҰҒАТТАДЫ</b> — жеткілікті шағым жиналды!")
+        lines.append("\n<i>Рахмет! Сіздің шағымыңыз басқаларды қорғайды.</i>")
+        await send_message(chat_id, "\n".join(lines), reply_to=message_id)
+    except Exception as e:
+        logger.error(f"bot report error: {e}")
         await send_message(chat_id, "❌ Жіберу қатесі. Кейінірек қайталаңыз.",
                            reply_to=message_id)
 
