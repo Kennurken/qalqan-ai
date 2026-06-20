@@ -1,179 +1,139 @@
-# QALQAN AI v5.1 — Кибер Қалқан / Кибер Щит
+# 🛡️ QALQAN AI — Кибер Қалқан
 
-AI-powered Chrome extension protecting Kazakhstani users from phishing, financial pyramids, illegal gambling, and scams. Built for the national cybersecurity competition.
+AI-платформа, защищающая казахстанцев от фишинга, телефонного мошенничества, финансовых пирамид, нелегального гемблинга и фрода в госзакупках. Сделана для республиканского конкурса ДЭР.
 
-**Live**: [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **Extension**: Chrome MV3 · **3 languages**: Қазақша / Русский / English
+**Live**: [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **3 языка**: Қазақша / Русский / English · **Открытый код**
+
+> За 10 мес. 2025 казахстанцы потеряли **16,4 млрд ₸** от киберскама (×29 к 2024), **26 300 случаев** (+86%). Телефонное мошенничество — угроза №1.
 
 ---
 
-## What it detects
+## Попробовать вживую
 
-| Threat | Detection method |
+| Что | Ссылка |
 |---|---|
-| KZ brand phishing (Kaspi, eGov, Halyk fakes) | Offline patterns + KZ brand DB |
-| Financial pyramids / MLM | JSON blacklist (166+ schemes) + AI |
-| Illegal gambling (1xBet, Mostbet, Vulkan, 80+ sites) | Offline DB + regex patterns |
-| Phishing (general) | PhishTank + OpenPhish + URLhaus + Google Safe Browsing |
-| New suspicious domains (<30 days old) | RDAP domain intelligence |
-| Homoglyph attacks (Cyrillic in URL) | URL feature extraction |
-| Fraudulent government procurement | Goszakup.gov.kz API (10 red-flag rules) |
-| Scam SMS / messages in Kazakh & Russian | Text analysis endpoint |
+| 🌐 Лендинг + проверка URL | [`/`](https://qalqan-ai-nu.vercel.app/) |
+| 📊 Дашборд регулятора + KZ-карта угроз | [`/dashboard?demo=1`](https://qalqan-ai-nu.vercel.app/dashboard?demo=1) |
+| 🕸️ Граф фрода в госзакупках | [`/goszakup/graph`](https://qalqan-ai-nu.vercel.app/goszakup/graph) |
+| 📱 Мобильное PWA (offline) | [`/m`](https://qalqan-ai-nu.vercel.app/m) |
+| 🏛️ B2G API для банков/регуляторов | [`/partners`](https://qalqan-ai-nu.vercel.app/partners) |
+| 🤖 Telegram-бот (голос/SMS/URL) | [@QalqanAI_bot](https://t.me/QalqanAI_bot) |
+| 🌐 Открытый KZ threat-feed (CC-BY) | [`/feed/kz`](https://qalqan-ai-nu.vercel.app/feed/kz) |
 
----
-
-## How it works — 6-tier pipeline
-
-```
-Every site visit → background.js (Service Worker)
-│
-├── Phase 1: INSTANT (before page renders, <1ms)
-│   ├── Offline DB — 390+ known domains in memory
-│   ├── Regex patterns — gambling keywords, KZ brand + free TLD
-│   └── DANGEROUS → block page immediately
-│
-└── Phase 2: Full API (800ms debounce)
-    └── POST /check → Vercel FastAPI
-        ├── Tier 0   — Whitelist
-        ├── Tier 0.5 — Cache (Redis)
-        ├── Tier 1.5 — URL features (30+ ML signals)
-        ├── Tier 1   — Pyramid DB + blacklist
-        ├── Tier 1.7 — KZ brand impersonation
-        ├── Tier 1.8 — Gambling DB
-        ├── Tier 1.9 — Goszakup fraud detection
-        ├── Tier 2   — PhishTank + SafeBrowsing + URLhaus + OpenPhish
-        ├── Tier 2.5 — RDAP domain age + SSL check
-        └── Tier 3   — Groq llama-3.3-70b → Gemini 2.5-flash → heuristics
+```bash
+# Проверить фишинговый клон Kaspi (кириллическая «а»):
+curl -X POST https://qalqan-ai-nu.vercel.app/check \
+  -H "Content-Type: application/json" -d '{"url":"https://kаspi.kz/login","lang":"ru"}'
+# → DANGEROUS 100, indicators: homoglyph_attack, brand_impersonation
 ```
 
 ---
 
-## Tech Stack
+## Что детектит
 
-**Backend**
-- FastAPI (Python 3.11) — Vercel serverless, 60s timeout
-- Groq `llama-3.3-70b-versatile` — primary AI (14,400 req/day free)
-- Groq `llama-3.1-8b-instant` — fallback if rate-limited
-- Groq `llama-4-scout-17b` — Vision AI (screenshot analysis)
-- Gemini 2.5-flash — AI backup + vision backup
-- httpx — async HTTP, all external calls
+| Угроза | Метод |
+|---|---|
+| Фишинг KZ-брендов (Kaspi/eGov/Halyk-фейки) | Homoglyph/typosquat + KZ brand DB |
+| **Телефонное мошенничество (голос)** | Whisper-транскрипция → 11 KZ скам-паттернов |
+| Скам-номера телефонов | Эвристики префиксов (КНБ) + паттерны |
+| Финансовые пирамиды | АФМ/АРРФР-реестр по названию + домен-база + AI |
+| Нелегальный гемблинг | Офлайн-база + regex (1xBet, Mostbet…) |
+| Фишинг (общий) | PhishTank + OpenPhish + URLhaus + Google Safe Browsing |
+| Новые домены (<30 дней) | RDAP domain intelligence |
+| **Фрод в госзакупках (аффилированность/сговор/картель)** | Граф связей заказчик↔поставщик↔учредитель↔адрес↔чиновник |
+| Скам SMS/сообщения (kk/ru) | Текст-анализ + извлечение ссылок |
 
-**Extension**
-- React 19 + Vite — Chrome Manifest V3
-- Service Worker — auto-check on every navigation
-- Content Script — block page rendering
-- Offline DB — 390+ domains, works without internet
+---
 
-**Data sources**
-- PhishTank, OpenPhish, URLhaus, Google Safe Browsing
-- Custom KZ pyramid/gambling/phishing databases
-- RDAP (domain age, free, no key needed)
-- Goszakup.gov.kz open data API
+## Платформы
+
+- **🌐 Веб** — лендинг с живой проверкой, дашборд регулятора с KZ-картой угроз, граф госзакупок
+- **📱 Мобилка** — installable PWA (`/m`), работает офлайн, на главный экран Android/iOS
+- **🧩 Расширение** — Chrome/Firefox MV3, блок до загрузки страницы, офлайн-база 390+ доменов
+- **🤖 Telegram-бот** — `/check`, `/phone`, `/pyramid`, голосовые сообщения, inline-кнопки голосования
+- **🏛️ B2G API** — `X-API-Key`, эндпоинты `/v1/*` для банков/регуляторов, federated-обмен угрозами
+
+---
+
+## Архитектура — 6-уровневый pipeline
+
+```
+POST /check → FastAPI (Vercel)
+  ├── Tier 0   — Whitelist
+  ├── Tier 0.5 — Cache (Upstash Redis)
+  ├── Tier 1   — Офлайн-база: пирамиды, blacklist, KZ-бренды, гемблинг, threat-feeds
+  ├── Tier 1.9 — Goszakup fraud detection
+  ├── Tier 2   — Внешние БД: PhishTank, SafeBrowsing, URLhaus, OpenPhish + RDAP/SSL
+  └── Tier 3   — Groq llama-3.3-70b → Gemini 2.5-flash → эвристики
+```
+
+Краудинтеллект: жалобы граждан + голоса сообщества + контрибуции партнёров (federated) → авто-блок при пороге. Все данные анонимны — храним хеши URL/IP, не сырьё.
+
+---
+
+## Стек
+
+**Backend** — FastAPI (Python 3.11) на Vercel serverless · Groq (llama-3.3-70b + Whisper) · Gemini 2.5-flash · Supabase Postgres · Upstash Redis · httpx (async)
+**Frontend** — React 19 + Vite (расширение, website) · vanilla SVG-дашборды/граф · PWA + service worker
+**Данные** — PhishTank/OpenPhish/URLhaus/SafeBrowsing · RDAP · Goszakup.gov.kz API · кастомные KZ-базы (пирамиды/гемблинг/бренды/АФМ)
+**CI** — GitHub Actions (билд расширений) · 121 авто-тест (pytest)
+
+---
+
+## API (основные эндпоинты, 45+)
+
+| Группа | Эндпоинты |
+|---|---|
+| Проверка | `POST /check` `/check-text` `/sms` `/phone` `/voice` `/advisor` `/batch` `/analyze-screen` |
+| Пирамиды/госзакуп | `POST /pyramid/check` `/goszakup/analyse` `/goszakup/graph` · `GET /goszakup/check/{n}` |
+| Крауд | `POST /report` `/vote` · `GET /community/{domain}` |
+| Аналитика | `GET /dashboard/data` `/trends` `/stats` `/report/generate` (PDF) |
+| Фиды | `GET /feed/kz` `/feed/federated` (CC-BY) |
+| B2G (X-API-Key) | `POST /v1/check` `/v1/batch` `/v1/phone` `/v1/contribute` · `GET /v1/feed` `/v1/usage` |
+| Ops | `GET /health` `/health/check` (cron-gated) |
 
 ---
 
 ## Setup
 
-### 1. Backend (local dev)
-
 ```bash
-cd api
-pip install -r requirements.txt
-cp .env.example .env  # fill in API keys
+# Backend (local)
+pip install -r api/requirements.txt
+cp .env.example .env          # вписать ключи (все бесплатные, без карты)
 uvicorn api.index:app --reload --port 8000
+
+# Тесты
+pip install pytest && pytest
+
+# Расширение
+cd extension && npm install && npm run build   # → chrome://extensions → Load unpacked → dist/
 ```
 
-### 2. Extension
+Ключи (`.env.example`): `GROQ_API_KEY` (обязательно), `GEMINI_API_KEY`, `GOOGLE_SAFE_BROWSING_KEY`, `SUPABASE_URL`/`SUPABASE_SERVICE_KEY`, `TELEGRAM_BOT_TOKEN`, `UPSTASH_REDIS_*`. Прод: добавить в Vercel → Settings → Environment Variables.
 
-```bash
-cd extension
-npm install
-# For local dev: set IS_DEV = true in src/config.js
-npm run build
-# Chrome → chrome://extensions → Developer mode → Load unpacked → select dist/
-```
-
-### 3. Environment variables
-
-Copy `.env.example` → `.env`. All keys are free, no credit card required.
-
-| Variable | Service | Limit | Required |
-|---|---|---|---|
-| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) | 14,400 req/day | Yes |
-| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com/apikey) | 250 req/day | Recommended |
-| `GOOGLE_SAFE_BROWSING_KEY` | Google Cloud Console | 10,000 req/day | Recommended |
-| `PHISHTANK_API_KEY` | phishtank.org | — | Optional |
-| `VIRUSTOTAL_API_KEY` | virustotal.com | 500 req/day | Optional |
-| `TELEGRAM_BOT_TOKEN` | @BotFather | — | Optional |
-| `TELEGRAM_CHAT_ID` | @userinfobot | — | Optional |
-| `SUPABASE_URL` | supabase.com | — | Recommended |
-| `SUPABASE_SERVICE_KEY` | supabase.com | — | Recommended |
-| `DEMO_MODE` | — | — | For presentations |
-
-> For production deploy: add all variables to Vercel → Settings → Environment Variables.
-
-### 4. Demo mode
-
-Set `DEMO_MODE=true` in Vercel env vars for presentations — returns deterministic results without calling external APIs.
+**Опциональные env:** `TELEGRAM_CHANNEL_ID` (публичный канал угроз), `CRON_SECRET` (защита cron), `QALQAN_API_KEYS` (партнёрские B2G-ключи), `QALQAN_EXTENSION_IDS` (CORS-пин), `DEMO_MODE`.
 
 ---
 
-## API Endpoints
+## Мониторинг (рекомендуется)
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/check` | POST | Main 6-tier URL check |
-| `/check-text` | POST | Analyze SMS/message text for scams |
-| `/batch` | POST | Check up to 10 URLs at once |
-| `/analyze-screen` | POST | Vision AI screenshot analysis |
-| `/appeal` | POST | Appeal a wrongful block |
-| `/report` | POST | Report a malicious site |
-| `/goszakup/check/{number}` | GET | Check tender number for fraud |
-| `/goszakup/analyse` | POST | Analyse procurement data |
-| `/report/generate` | GET | Generate PDF KZ Threat Report |
-| `/health` | GET | Service status |
-| `/stats` | GET | Statistics |
-| `/trends` | GET | Threat trends |
+`GET /health` — статус сервиса (Supabase/Redis/ключи). `GET /health/check` — алертит админу в Telegram при деградации (защищён `CRON_SECRET`).
+
+**UptimeRobot (5 мин, бесплатно):** [uptimerobot.com](https://uptimerobot.com) → Add Monitor → HTTP(s) → `https://qalqan-ai-nu.vercel.app/health` → интервал 5 мин → алерт на email/Telegram. Падение прода видно мгновенно.
 
 ---
 
-## Project structure
+## Документы
 
-```
-qalqan-ai/
-├── api/
-│   ├── index.py              # Main router, 19 endpoints
-│   ├── services/
-│   │   ├── ai_analyzer.py    # Groq → Gemini → fallback chain
-│   │   ├── threat_db.py      # PhishTank, SafeBrowsing, URLhaus, OpenPhish
-│   │   ├── kz_intel.py       # KZ brand protection + social engineering
-│   │   ├── pyramid_detector.py
-│   │   ├── domain_intel.py   # RDAP + SSL
-│   │   ├── goszakup.py       # Gov procurement fraud (10 rules)
-│   │   ├── url_features.py   # 30+ ML features
-│   │   ├── scoring.py        # Final verdict aggregation
-│   │   ├── explainer.py      # XAI factor breakdown
-│   │   ├── bot_handler.py    # Telegram Bot
-│   │   └── threat_report.py  # PDF KZ Threat Report
-│   └── data/
-│       ├── pyramid_schemes.json
-│       ├── kz_brands.json
-│       └── kz_phishing_patterns.json
-├── extension/
-│   ├── public/
-│   │   ├── background.js     # Service Worker, auto-check
-│   │   ├── content.js        # Block page
-│   │   └── offline-db.js     # 390+ domains, works offline
-│   └── src/
-│       ├── App.jsx
-│       ├── components/       # 13 components
-│       └── i18n/             # kk / ru / en (84 keys each)
-└── website/                  # Landing page
-```
+- [`DEMO.md`](DEMO.md) — сценарий защиты (что показывать жюри, 8–10 мин)
+- [`AUDIT_2026-06-20.md`](AUDIT_2026-06-20.md) — A-Z аудит, план масштабирования/инвестиций/языков
 
 ---
 
-## Made in Kazakhstan
+## Безопасность
 
-Built by Eldos Kennurken for the national cybersecurity competition 2026.
+Храним только хеши (`url_hash`/`ip_hash`), не сырые URL/IP. SSRF-защита (блок internal/metadata/encoded-IP). Rate-limiting по IP. Telegram-webhook с secret-token. CORS-пин для расширения. Cron-эндпоинты за `CRON_SECRET`.
 
-`Qalqan AI`
+---
+
+**Сделано в Казахстане** · Республиканский конкурс ДЭР 2026
