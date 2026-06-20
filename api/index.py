@@ -32,7 +32,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
@@ -1763,6 +1763,8 @@ async def feed_index():
     return {
         "kz_feed": {"count": kz["count"], "url": "/feed/kz", "txt": "/feed/kz?format=txt",
                     "license": kz["license"]},
+        "federated_feed": {"url": "/feed/federated",
+                           "contribute": "POST /v1/contribute (X-API-Key)"},
         "live_threat_feeds": feed_stats(),
     }
 
@@ -1780,6 +1782,23 @@ async def kz_threat_feed(format: str | None = None):
         return PlainTextResponse(body)
     from datetime import datetime, timezone
     return {**feed, "generated_at": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/feed/federated")
+async def federated_feed():
+    """Federated KZ threat feed: Qalqan-curated + live partner/CERT contributions.
+    The data-network-effect artifact — grows as institutions contribute."""
+    contributed = await get_federated_feed() or []
+    base = _build_kz_feed()
+    return {
+        "name": "Qalqan AI — Federated Kazakhstan Threat Feed",
+        "license": "CC-BY-4.0",
+        "sources": ["qalqan_curated", "partner_contributions", "openphish/urlhaus (live ingest)"],
+        "curated_count": base["count"],
+        "contributed_count": len(contributed),
+        "contributed": contributed[:200],
+        "curated": base["entries"][:200],
+    }
 
 
 # ── Partner (B2G) API — banks / regulators via X-API-Key ─────────────────────
@@ -1902,6 +1921,32 @@ async def api_v1_usage(req: Request):
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
     return {"partner": partner, "requests": usage_for(key), "rate_limit_per_min": _partner_limit(key)}
+
+
+class ContributeRequest(BaseModel):
+    indicator: str = Field(..., max_length=2048)     # domain / URL
+    type: str = Field(default="phishing", max_length=32)
+    evidence: str = Field(default="", max_length=500)
+
+
+@app.post("/v1/contribute")
+async def api_v1_contribute(request: ContributeRequest, req: Request, background_tasks: BackgroundTasks):
+    """Federated threat-sharing: a partner/CERT contributes a threat indicator.
+    Feeds the crowd-intelligence store and the federated feed."""
+    key, partner = _partner_auth(req)
+    if not partner:
+        return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
+    if not await check_rate_limit(key_id(key), _partner_limit(key), endpoint="apicontrib"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    domain = extract_domain(request.indicator) or request.indicator.strip().lower()
+    background_tasks.add_task(
+        log_report, domain=domain, url=request.indicator,
+        category=f"federated:{request.type}",
+        comment=f"[{partner}] {request.evidence}"[:500], lang="en",
+        reporter_ip=f"partner:{partner}")
+    community = await get_community_stats(domain)
+    return {"accepted": True, "partner": partner, "indicator": domain,
+            "type": request.type, "community": community}
 
 
 @app.get("/partners")

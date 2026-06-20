@@ -426,6 +426,39 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
         return None
 
 
+async def get_federated_feed(limit: int = 500) -> list[dict] | None:
+    """Threat indicators contributed by partners/CERTs (category 'federated:*').
+    Aggregated by domain with contribution counts. None if Supabase unavailable."""
+    if not _available():
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=6) as client:
+            r = await client.get(
+                f"{_url()}/rest/v1/reports"
+                "?select=domain,category,created_at&category=ilike.federated*"
+                f"&order=created_at.desc&limit={limit}",
+                headers=_headers())
+        if r.status_code != 200:
+            return None
+        agg: dict[str, dict] = {}
+        for row in r.json():
+            d = row.get("domain", "")
+            if not d:
+                continue
+            a = agg.setdefault(d, {"domain": d, "contributions": 0, "types": set(),
+                                   "last": row.get("created_at")})
+            a["contributions"] += 1
+            cat = row.get("category", "")
+            if ":" in cat:
+                a["types"].add(cat.split(":", 1)[1])
+        return [{"domain": v["domain"], "contributions": v["contributions"],
+                 "types": sorted(v["types"]), "last": v["last"]}
+                for v in sorted(agg.values(), key=lambda x: -x["contributions"])]
+    except Exception as e:
+        logger.warning(f"get_federated_feed failed: {e}")
+        return None
+
+
 async def get_admin_data(limit: int = 100) -> dict | None:
     """Fetch recent reports, appeals, and check_logs for admin dashboard."""
     if not _available():
