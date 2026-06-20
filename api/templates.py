@@ -264,6 +264,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
     <a href="/stats">Statistics</a>
     <a href="/dashboard">Панель регулятора</a>
     <a href="/goszakup/graph">Граф госзакупок</a>
+    <a href="/partners">API для партнёров</a>
     <a href="/health">Health</a>
   </div>
   <div style="margin-top:16px;font-size:12px;color:var(--muted)">
