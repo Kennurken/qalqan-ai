@@ -84,13 +84,37 @@ def _is_internal_host(host: str) -> bool:
     return False
 
 
+async def _ip_intel(domain: str) -> dict | None:
+    """Resolve domain → IP, then enrich via ip-api.com (free, no key):
+    geo country + ASN + org + datacenter-hosting/proxy flags."""
+    try:
+        loop = asyncio.get_running_loop()
+        ip = await loop.run_in_executor(None, socket.gethostbyname, domain)
+        async with httpx.AsyncClient(timeout=4) as client:
+            r = await client.get(
+                f"http://ip-api.com/json/{ip}"
+                "?fields=status,country,countryCode,as,org,isp,hosting,proxy,query")
+            d = r.json()
+        if d.get("status") != "success":
+            return None
+        return {
+            "ip": d.get("query"), "country": d.get("country"),
+            "country_code": d.get("countryCode"), "asn": d.get("as"),
+            "org": d.get("org") or d.get("isp"),
+            "hosting": bool(d.get("hosting")), "proxy": bool(d.get("proxy")),
+        }
+    except Exception as e:
+        logger.debug(f"ip_intel failed for {domain}: {e}")
+        return None
+
+
 async def check_domain_intelligence(domain: str, url: str) -> dict | None:
-    """RDAP + SSL тексеру. Қосымша threat_score қайтарады."""
+    """RDAP + SSL + IP/ASN intel. Қосымша threat_score қайтарады."""
     score_adjust = 0
     indicators = []
     details = {}
 
-    # Run RDAP and SSL concurrently
+    # Run RDAP, SSL and IP-intel concurrently
     loop = asyncio.get_running_loop()
 
     # SSRF guard: never open sockets / RDAP to internal/reserved/metadata hosts
@@ -99,7 +123,16 @@ async def check_domain_intelligence(domain: str, url: str) -> dict | None:
         return None
     age_task = asyncio.create_task(_get_domain_age_rdap(domain))
     ssl_task = loop.run_in_executor(None, _check_ssl_cert, domain)
-    age_days, ssl_info = await asyncio.gather(age_task, ssl_task, return_exceptions=True)
+    ip_task = asyncio.create_task(_ip_intel(domain))
+    age_days, ssl_info, ip_info = await asyncio.gather(
+        age_task, ssl_task, ip_task, return_exceptions=True)
+
+    # --- IP / ASN / hosting intel ---
+    if isinstance(ip_info, dict):
+        details["ip_intel"] = ip_info
+        if ip_info.get("proxy"):
+            score_adjust += 15
+            indicators.append("proxy_anonymizer")
 
     # --- RDAP: домен жасы ---
     if isinstance(age_days, int):

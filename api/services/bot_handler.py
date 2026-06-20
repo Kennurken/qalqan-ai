@@ -337,6 +337,11 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
             hops = " →\n     ".join(f"<code>{_esc(h[:70])}</code>" for h in chain[:4])
             text += (f"\n\n🔗 <b>Бағыттау тізбегі</b> (қысқа сілтеме ашылды):\n"
                      f"     <code>{_esc(url[:70])}</code> →\n     {hops}")
+        ipx = (result.get("domain_details") or {}).get("ip_intel")
+        if ipx and ipx.get("country"):
+            text += f"\n\n🌍 Хостинг: <b>{_esc(ipx['country'])}</b> · <code>{_esc(str(ipx.get('asn', ''))[:40])}</code>"
+            if ipx.get("proxy"):
+                text += "  ⚠️ proxy/анонимайзер"
         from .threat_db import extract_domain
         await send_message(chat_id, text, reply_to=message_id,
                            reply_markup=_result_keyboard(extract_domain(url)))
