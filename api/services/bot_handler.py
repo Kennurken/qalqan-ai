@@ -679,43 +679,12 @@ def _inline_tip() -> dict:
 # ── Internal pipeline call ────────────────────────────────────────────────────
 
 async def _run_pipeline(url: str) -> dict:
-    """Call Qalqan detection pipeline directly (same process)."""
-    from ..services.threat_db import check_all_databases, extract_domain
-    from ..services.kz_intel import check_kz_impersonation_url, check_gambling_domain
-    from ..services.pyramid_detector import check_pyramid_domain
-    from ..services.domain_intel import check_domain_intelligence
-    from ..services.scoring import calculate_final_verdict
-    from ..utils.cache import url_hash, get_cached, set_cached
-
-    # Cache check
-    h = url_hash(url)
-    cached = get_cached(h)
-    if cached:
-        return cached
-
-    domain = extract_domain(url)
-    results = []
-
-    # Run checks concurrently
-    tasks = [
-        check_all_databases(url),
-        check_kz_impersonation_url(url),
-        check_gambling_domain(domain),
-        check_pyramid_domain(domain),
-        check_domain_intelligence(domain, url),
-    ]
-    checks = await asyncio.gather(*tasks, return_exceptions=True)
-
-    for c in checks:
-        if c and not isinstance(c, Exception):
-            if isinstance(c, list):
-                results.extend(c)
-            else:
-                results.append(c)
-
-    verdict_data = calculate_final_verdict(results, url)
-    set_cached(h, verdict_data)
-    return verdict_data
+    """Run the full Qalqan pipeline via the /check API (same deployment) — the one
+    real, tested pipeline (whitelist, cache, all tiers, AI, domain enrichment)."""
+    base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    async with httpx.AsyncClient(timeout=25) as client:
+        res = await client.post(f"{base_url}/check", json={"url": url, "lang": "kk"})
+    return res.json()
 
 
 # ── Main dispatcher ───────────────────────────────────────────────────────────
