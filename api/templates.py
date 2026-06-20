@@ -937,9 +937,9 @@ nav button.on{color:var(--cyan)} nav button svg{width:22px;height:22px;stroke:cu
 </header>
 <main>
   <section class="panel on" id="p-check">
-    <h2>Сілтемені тексеру</h2>
-    <div class="sub">URL немесе домен енгізіңіз — фишинг, скам, гемблингке тексереміз.</div>
-    <input id="url" inputmode="url" placeholder="kaspi-bonus.kz немесе https://...">
+    <h2>Сілтеме / нөмір тексеру</h2>
+    <div class="sub">URL, домен немесе телефон нөмірін енгізіңіз — фишинг, скам, гемблинг, алаяқ нөмір.</div>
+    <input id="url" placeholder="kaspi-bonus.kz немесе +7 700 123 45 67" autocapitalize="off" autocomplete="off">
     <button class="go" id="btn-check">Тексеру</button>
     <div class="res" id="r-check"></div>
   </section>
@@ -1013,10 +1013,13 @@ $('#btn-check').onclick=async()=>{
       const bad=[...offlineDomains].some(x=>d===x||d.endsWith('.'+x));
       showRes(el,bad?'DANGEROUS':'SAFE',bad?90:0,bad?'Офлайн базада қауіпті деп тіркелген':'Офлайн базада жоқ (интернетсіз тексеру шектеулі)');
     }else{
-      const r=await fetch(API+'/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:'kk'})});
+      const isPhone=/^[\\d\\s+()-]{9,18}$/.test(url) && url.replace(/\\D/g,'').length>=10;
+      const ep=isPhone?'/phone':'/check';
+      const body=isPhone?{phone:url,lang:'kk'}:{url,lang:'kk'};
+      const r=await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();
       showRes(el,d.verdict,d.threat_score,d.detail||d.detail_kk,(d.indicators||[]));
-      pushHist(url,d.verdict,d.threat_score);
+      pushHist(isPhone?(d.formatted||url):url,d.verdict,d.threat_score);
     }
   }catch(e){showRes(el,'SUSPICIOUS',50,'Қате: '+e.message);}
   btn.disabled=false; btn.textContent='Тексеру';

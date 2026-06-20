@@ -375,58 +375,18 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
 
 
 async def handle_phone_check(chat_id: int, phone: str, message_id: int | None = None):
-    """Check Kazakhstan phone number for scam/fraud patterns."""
-    # Normalize: strip spaces, dashes, parens
-    raw = re.sub(r"[\s\-\(\)\+]", "", phone)
-    if raw.startswith("8") and len(raw) == 11:
-        raw = "7" + raw[1:]
-    if not re.match(r"^7[0-9]{10}$", raw):
-        await send_message(chat_id,
-            "⚠️ Телефон нөмірі дұрыс емес. ҚР форматы: +7 7XX XXX XX XX",
-            reply_to=message_id)
+    """Check Kazakhstan phone number for scam/fraud patterns (shared service)."""
+    from ..services.phone_sms import analyze_phone
+    r = analyze_phone(phone, "kk")
+    if r.get("error"):
+        await send_message(chat_id, f"⚠️ {_esc(r.get('detail', ''))}", reply_to=message_id)
         return
-
-    prefix3 = raw[1:4]
-    prefix4 = raw[1:5]
-
-    # KZ scam call center prefixes (documented by KNB/ДКНБ)
-    SCAM_PREFIXES = {
-        "700", "701", "702", "705", "706", "707", "708", "709",
-        "747", "771", "775", "776", "777", "778",
-    }
-    # Highly suspicious patterns
-    suspicious_patterns = [
-        raw == raw[0] * len(raw),                   # all same digit
-        raw[1:5] in ("7000", "7777", "0000"),        # common scam vanity
-        len(set(raw[1:])) <= 3,                      # very few unique digits
-    ]
-    is_valid_kz_mobile = prefix3 in SCAM_PREFIXES
-
-    if any(suspicious_patterns) and is_valid_kz_mobile:
-        verdict = "SUSPICIOUS"
-        score = 55
-        icon = "⚠️"
-        detail = "Қайталанатын цифрлар немесе алаяқтыққа тән үлгі"
-        detail_ru = "Повторяющиеся цифры или подозрительный паттерн"
-    elif not is_valid_kz_mobile:
-        verdict = "SUSPICIOUS"
-        score = 40
-        icon = "⚠️"
-        detail = "Белгісіз ҚР мобилдік префикс"
-        detail_ru = "Неизвестный мобильный префикс РК"
-    else:
-        verdict = "SAFE"
-        score = 10
-        icon = "✅"
-        detail = "Стандартты ҚР мобилдік нөмір"
-        detail_ru = "Стандартный мобильный номер РК"
-
-    formatted = f"+7 {raw[1:4]} {raw[4:7]} {raw[7:9]} {raw[9:11]}"
+    icon = _VERDICT_EMOJI.get(r["verdict"], "⚠️")
     text = (
-        f"{icon} <b>Телефон тексеру: {formatted}</b>\n\n"
-        f"Вердикт: <b>{verdict}</b> ({score}/100)\n"
-        f"RU: {detail_ru}\n"
-        f"KK: {detail}\n\n"
+        f"{icon} <b>Телефон тексеру: {r['formatted']}</b>\n\n"
+        f"Вердикт: <b>{r['verdict']}</b> ({r['threat_score']}/100)\n"
+        f"RU: {_esc(r['detail_ru'])}\n"
+        f"KK: {_esc(r['detail_kk'])}\n\n"
         f"ℹ️ Толық тексеру үшін: <a href='https://qalqan-ai-nu.vercel.app'>qalqan-ai-nu.vercel.app</a>"
     )
     await send_message(chat_id, text, reply_to=message_id)

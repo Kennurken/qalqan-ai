@@ -505,6 +505,21 @@ async def _run_url_check(request: CheckRequest, req: Request, background_tasks: 
 
 
 # --- МӘТІН ТЕКСЕРУ ---
+class PhoneRequest(BaseModel):
+    phone: str = Field(..., max_length=32)
+    lang: str = Field(default="kk", max_length=5)
+
+
+@app.post("/phone")
+async def check_phone(request: PhoneRequest, req: Request):
+    """Heuristic scam check for a KZ phone number (first-class: API + mobile + bot)."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="phone"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.phone_sms import analyze_phone
+    return analyze_phone(request.phone, request.lang)
+
+
 @app.post("/check-text")
 async def check_text(request: TextCheckRequest, req: Request):
     client_ip = _get_client_ip(req)
