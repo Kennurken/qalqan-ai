@@ -13,7 +13,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
@@ -1098,10 +1098,13 @@ async def pwa_manifest():
         "name": "Qalqan AI — Cyber Shield",
         "short_name": "Qalqan AI",
         "description": "AI-powered cybersecurity for Kazakhstan. Blocks phishing, scams, gambling.",
-        "start_url": "/",
+        "id": "/m",
+        "start_url": "/m",
+        "scope": "/",
         "display": "standalone",
+        "orientation": "portrait",
         "background_color": "#0a0e1a",
-        "theme_color": "#00d4ff",
+        "theme_color": "#0a0e1a",
         "lang": "kk",
         "icons": [
             {"src": "https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon48.png",
@@ -1124,6 +1127,19 @@ async def pwa_manifest():
 @app.get("/install")
 async def install_page():
     return HTMLResponse(content=INSTALL_HTML)
+
+
+# --- Mobile PWA (installable, offline-capable app shell) ---
+@app.get("/m")
+async def mobile_app():
+    return HTMLResponse(content=MOBILE_HTML)
+
+
+@app.get("/sw.js")
+async def service_worker():
+    from fastapi.responses import Response as _Resp
+    return _Resp(content=SW_JS, media_type="application/javascript",
+                 headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"})
 
 
 # --- Keep-warm (Vercel cron hits every 10 min) ---

@@ -259,6 +259,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
   <div class="footer-sub">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1.0</div>
   <div class="footer-links">
     <a href="https://github.com/Kennurken/qalqan-ai" target="_blank">GitHub</a>
+    <a href="/m">📱 Мобиль қосымша</a>
     <a href="/docs">API Docs</a>
     <a href="/stats">Statistics</a>
     <a href="/dashboard">Панель регулятора</a>
@@ -872,3 +873,213 @@ function render(g){
   document.getElementById('findings').innerHTML=f;
 }
 </script></body></html>"""
+
+
+# ── Mobile PWA app shell (installable, offline-capable) ──────────────────────
+MOBILE_HTML = """<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Qalqan AI</title>
+<meta name="theme-color" content="#0a0e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<style>
+:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#8194ad;--cyan:#00d4ff;--red:#ef4444;--amber:#f59e0b;--green:#22c55e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:10;background:rgba(10,14,26,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:800;font-size:18px;color:var(--cyan);display:flex;align-items:center;gap:7px}
+.net{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px}
+.net .d{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.net.off{color:var(--amber)} .net.off .d{background:var(--amber)}
+#install{display:none;background:var(--cyan);color:#06121a;border:none;border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px}
+main{padding:16px}
+.panel{display:none} .panel.on{display:block;animation:f .2s ease}
+@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{font-size:16px;margin-bottom:12px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:16px;line-height:1.5}
+input,textarea{width:100%;background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:14px;color:var(--tx);font-size:16px;outline:none}
+textarea{min-height:120px;resize:vertical;font-family:inherit}
+button.go{width:100%;margin-top:12px;background:var(--cyan);color:#06121a;border:none;border-radius:12px;padding:15px;font-weight:800;font-size:15px}
+button.go:disabled{opacity:.5}
+.res{margin-top:16px;border-radius:14px;padding:16px;border:1px solid var(--bd);display:none}
+.res.show{display:block}
+.res.DANGEROUS{border-color:#7f1d2e;background:#1a0a0f}.res.SUSPICIOUS{border-color:#7c5210;background:#1a1305}.res.SAFE{border-color:#14532d;background:#05140b}
+.verdict{font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px}
+.DANGEROUS .verdict{color:var(--red)}.SUSPICIOUS .verdict{color:var(--amber)}.SAFE .verdict{color:var(--green)}
+.score{font-size:13px;color:var(--mut);margin:4px 0 10px}
+.detail{font-size:14px;line-height:1.55}
+.flags{margin-top:10px} .flag{font-size:13px;padding:6px 0;border-top:1px solid var(--bd);color:var(--mut)}
+.region{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px}
+.region .nm{width:96px;color:var(--mut)} .region .tk{flex:1;height:18px;background:var(--panel);border-radius:6px;overflow:hidden}
+.region .fl{height:100%;background:linear-gradient(90deg,#7c2d12,var(--red))} .region .vv{width:42px;text-align:right;font-weight:700}
+.hist{font-size:13px;padding:11px;background:var(--panel);border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hist .u{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace}
+.dot2{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.muted{color:var(--mut);font-size:13px;text-align:center;padding:24px}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,14,26,.97);backdrop-filter:blur(10px);border-top:1px solid var(--bd);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;color:var(--mut);padding:11px 0;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button.on{color:var(--cyan)} nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #06121a;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-3px}
+@keyframes s{to{transform:rotate(360deg)}}
+</style></head>
+<body>
+<header>
+  <div class="logo">🛡 Qalqan AI</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button id="install">Орнату</button>
+    <span class="net" id="net"><span class="d"></span><span id="nett">онлайн</span></span>
+  </div>
+</header>
+<main>
+  <section class="panel on" id="p-check">
+    <h2>Сілтемені тексеру</h2>
+    <div class="sub">URL немесе домен енгізіңіз — фишинг, скам, гемблингке тексереміз.</div>
+    <input id="url" inputmode="url" placeholder="kaspi-bonus.kz немесе https://...">
+    <button class="go" id="btn-check">Тексеру</button>
+    <div class="res" id="r-check"></div>
+  </section>
+
+  <section class="panel" id="p-ai">
+    <h2>AI кеңесші</h2>
+    <div class="sub">Жағдайды сипаттаңыз (қоңырау, SMS, ұсыныс) — алаяқтық па екенін айтамыз.</div>
+    <textarea id="sit" placeholder="Мысалы: банктен қоңырау шалып, SMS кодын сұрап жатыр..."></textarea>
+    <button class="go" id="btn-ai">Талдау</button>
+    <div class="res" id="r-ai"></div>
+  </section>
+
+  <section class="panel" id="p-map">
+    <h2>Қауіп картасы</h2>
+    <div class="sub">Облыстар бойынша скам белсенділігі.</div>
+    <div id="regions"><div class="muted">Жүктелуде…</div></div>
+  </section>
+
+  <section class="panel" id="p-hist">
+    <h2>Тарих</h2>
+    <div id="hist"><div class="muted">Тексерулер әзірге жоқ</div></div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-t="check"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Тексеру</button>
+  <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-4 12.7V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.3A7 7 0 0 0 12 2z"/><path d="M9 22h6"/></svg>AI</button>
+  <button data-t="map"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Карта</button>
+  <button data-t="hist"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Тарих</button>
+</nav>
+
+<script>
+const $=s=>document.querySelector(s);
+const API=location.origin;
+let offlineDomains=new Set();
+
+// tabs
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  $('#p-'+b.dataset.t).classList.add('on');
+  if(b.dataset.t==='map')loadMap();
+  if(b.dataset.t==='hist')renderHist();
+});
+
+// online/offline
+function netState(){const on=navigator.onLine;const el=$('#net');el.classList.toggle('off',!on);$('#nett').textContent=on?'онлайн':'офлайн';}
+addEventListener('online',netState);addEventListener('offline',netState);netState();
+
+// history
+function getHist(){try{return JSON.parse(localStorage.getItem('qh')||'[]')}catch(e){return[]}}
+function pushHist(u,v,s){const h=getHist();h.unshift({u,v,s,t:Date.now()});localStorage.setItem('qh',JSON.stringify(h.slice(0,30)));}
+function vcolor(v){return v==='DANGEROUS'?'#ef4444':v==='SUSPICIOUS'?'#f59e0b':'#22c55e'}
+function renderHist(){const h=getHist();$('#hist').innerHTML=h.length?h.map(x=>`<div class="hist"><span class="u">${x.u}</span><span style="display:flex;gap:7px;align-items:center"><b style="color:${vcolor(x.v)}">${x.s}</b><span class="dot2" style="background:${vcolor(x.v)}"></span></span></div>`).join(''):'<div class="muted">Тексерулер әзірге жоқ</div>';}
+
+function showRes(el,v,score,detail,flags){
+  el.className='res show '+v;
+  let h=`<div class="verdict">${v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅'} ${v}</div><div class="score">Қауіп: ${score}/100</div><div class="detail">${detail||''}</div>`;
+  if(flags&&flags.length)h+='<div class="flags">'+flags.slice(0,5).map(f=>`<div class="flag">• ${f}</div>`).join('')+'</div>';
+  el.innerHTML=h;
+}
+
+// URL check
+$('#btn-check').onclick=async()=>{
+  const url=$('#url').value.trim(); if(!url)return;
+  const btn=$('#btn-check'),el=$('#r-check'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    if(!navigator.onLine){
+      const d=(url.replace(/^https?:\\/\\//,'').split('/')[0]||'').toLowerCase();
+      const bad=[...offlineDomains].some(x=>d===x||d.endsWith('.'+x));
+      showRes(el,bad?'DANGEROUS':'SAFE',bad?90:0,bad?'Офлайн базада қауіпті деп тіркелген':'Офлайн базада жоқ (интернетсіз тексеру шектеулі)');
+    }else{
+      const r=await fetch(API+'/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:'kk'})});
+      const d=await r.json();
+      showRes(el,d.verdict,d.threat_score,d.detail||d.detail_kk,(d.indicators||[]));
+      pushHist(url,d.verdict,d.threat_score);
+    }
+  }catch(e){showRes(el,'SUSPICIOUS',50,'Қате: '+e.message);}
+  btn.disabled=false; btn.textContent='Тексеру';
+};
+
+// AI advisor
+$('#btn-ai').onclick=async()=>{
+  const text=$('#sit').value.trim(); if(text.length<10){return;}
+  const btn=$('#btn-ai'),el=$('#r-ai'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    const r=await fetch(API+'/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,lang:'kk'})});
+    const d=await r.json();
+    const flags=(d.red_flags||d.indicators||[]).map(f=>typeof f==='string'?f:(f.kk||f.ru||f.text||''));
+    showRes(el,d.verdict||'SUSPICIOUS',d.threat_score||d.score||50,d.advice||d.reasoning||d.detail||'',flags);
+  }catch(e){showRes(el,'SUSPICIOUS',50,'Қате: '+e.message);}
+  btn.disabled=false; btn.textContent='Талдау';
+};
+
+// map
+let mapLoaded=false;
+async function loadMap(){
+  if(mapLoaded)return; mapLoaded=true;
+  try{
+    const d=await (await fetch(API+'/dashboard/data?demo=1')).json();
+    const reg=Object.entries(d.regions||{}).sort((a,b)=>b[1].threats-a[1].threats).slice(0,12);
+    const mx=Math.max(1,...reg.map(r=>r[1].threats));
+    $('#regions').innerHTML=reg.map(([n,r])=>`<div class="region"><span class="nm">${n}</span><span class="tk"><span class="fl" style="width:${Math.round(100*r.threats/mx)}%"></span></span><span class="vv">${r.threats}</span></div>`).join('');
+  }catch(e){$('#regions').innerHTML='<div class="muted">Картаны жүктеу қатесі</div>';}
+}
+
+// offline-db cache
+fetch(API+'/offline-db').then(r=>r.json()).then(d=>{
+  const s=new Set();
+  Object.values(d).forEach(v=>{if(Array.isArray(v))v.forEach(x=>typeof x==='string'&&s.add(x.toLowerCase()));});
+  offlineDomains=s; localStorage.setItem('qodb',JSON.stringify([...s].slice(0,5000)));
+}).catch(()=>{try{offlineDomains=new Set(JSON.parse(localStorage.getItem('qodb')||'[]'))}catch(e){}});
+
+// install prompt
+let deferred;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#install').style.display='block';});
+$('#install').onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('#install').style.display='none';};
+
+// service worker
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body></html>"""
+
+
+SW_JS = """const CACHE='qalqan-pwa-v1';
+const SHELL=['/m','/manifest.webmanifest'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(Promise.all([
+  caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),
+  self.clients.claim()
+]));});
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  const u=new URL(e.request.url);
+  if(u.pathname==='/m'||u.pathname==='/manifest.webmanifest'){
+    e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{const cp=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,cp));return resp;})));
+    return;
+  }
+  if(u.pathname==='/offline-db'){
+    e.respondWith(fetch(e.request).then(resp=>{const cp=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,cp));return resp;}).catch(()=>caches.match(e.request)));
+  }
+});
+"""
