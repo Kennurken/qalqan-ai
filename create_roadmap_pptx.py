@@ -782,6 +782,46 @@ add_text(sl, "🚀  Маусымда бастаймыз → Telegram Bot + Го�
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# SLIDE 9 — ОРЫНДАЛДЫ (progress as of June 2026)
+# ════════════════════════════════════════════════════════════════════════════
+sl = prs.slides.add_slide(BLANK); bg(sl)
+tag(sl, "2026 МАУСЫМ", Inches(0.3), Inches(0.4), color=GREEN)
+add_text(sl, "ОРЫНДАЛДЫ — жоспардан асып", Inches(0.3), Inches(0.78), Inches(12.7),
+         Inches(0.7), size=Pt(28), bold=True, color=WHITE)
+accent_line(sl, Inches(0.32), Inches(1.55), Inches(2.0), color=GREEN)
+
+y = card(sl, Inches(0.3), Inches(1.85), Inches(4.15), Inches(4.6), accent_color=GREEN,
+         title="✅  ЖОСПАР БОЙЫНША")
+for i, t in enumerate(["Госзакуп fraud detection", "Telegram бот (7 пәрмен)",
+                       "Firefox кеңейтім", "PWA + лендинг + статистика",
+                       "Офлайн-DB 390+ домен"]):
+    dot_item(sl, t, Inches(0.5), y + Inches(0.1 + i*0.62), Inches(3.8),
+             dot_color=GREEN, text_size=Pt(12.5), text_color=WHITE)
+
+y = card(sl, Inches(4.6), Inches(1.85), Inches(4.15), Inches(4.6), accent_color=PURPLE,
+         title="ҚОСЫМША — жоспарда жоқ")
+for i, t in enumerate(["KZ облыстық қауіп картасы", "АФМ-пирамида чек (атау)",
+                       "Community voting + батырмалар", "Threat-feeds + ашық KZ-фид",
+                       "Homoglyph детектор"]):
+    dot_item(sl, t, Inches(4.8), y + Inches(0.1 + i*0.62), Inches(3.8),
+             dot_color=PURPLE, text_size=Pt(12.5), text_color=WHITE)
+
+y = card(sl, Inches(8.9), Inches(1.85), Inches(4.13), Inches(4.6), accent_color=BLUE,
+         title="🛡  САПА")
+for i, t in enumerate(["80 автотест + CI", "SSRF / CORS қорғаныс",
+                       "6-деңгейлі pipeline (адал)", "Де-монолит (templates/demo)",
+                       "Бәрі продакшенде"]):
+    dot_item(sl, t, Inches(9.1), y + Inches(0.1 + i*0.62), Inches(3.8),
+             dot_color=BLUE, text_size=Pt(12.5), text_color=WHITE)
+
+add_rect(sl, Inches(0.3), Inches(6.75), Inches(12.73), Inches(0.42),
+         fill=RGBColor(0x05, 0x0d, 0x1e))
+add_text(sl, "🌐  Барлығы live: qalqan-ai-nu.vercel.app  ·  @QalqanAI_bot  ·  80 тест жасыл",
+         Inches(0.3), Inches(6.77), Inches(12.73), Inches(0.4),
+         size=Pt(13), bold=True, color=BLUE_LIGHT, align=PP_ALIGN.CENTER)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # SAVE
 # ════════════════════════════════════════════════════════════════════════════
 out_path = "/Users/eldoskydyrbek/qalqan-ai/Qalqan_AI_Roadmap_2026.pptx"
