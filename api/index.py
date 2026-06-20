@@ -767,7 +767,7 @@ async def appeal(request: AppealRequest, req: Request, background_tasks: Backgro
     result = await send_appeal(request.url, request.reason)
 
     # Supabase: persist appeal (fire-and-forget)
-    domain = extract_domain(request.url)
+    domain = _to_domain(request.url)
     background_tasks.add_task(
         log_appeal,
         domain=domain,
@@ -785,7 +785,7 @@ async def report_site(request: ReportRequest, req: Request, background_tasks: Ba
     if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="report"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded. Max 3 reports per minute."})
 
-    domain = extract_domain(request.url)
+    domain = _to_domain(request.url)
     # Persist to Supabase, awaited so the crowd count below reflects this report
     await log_report(domain=domain, url=request.url, category=request.threat_type,
                      comment=request.note, lang=getattr(request, "lang", "ru"),
