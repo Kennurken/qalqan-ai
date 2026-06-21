@@ -7,16 +7,26 @@ LANDING_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Қазақстандық киберқауіпсіздік</title>
-<meta name="description" content="Qalqan AI — AI-powered cybersecurity extension protecting Kazakhstani users from phishing, scams, gambling and pyramid schemes.">
-<meta property="og:title" content="Qalqan AI — Казахстанский ИИ-щит от фишинга">
-<meta property="og:description" content="Chrome расширение: блокирует фишинг, пирамиды, гемблинг до загрузки страницы. Офлайн-база 390+ доменов. 6-уровневый AI-анализ.">
+<meta name="description" content="Qalqan AI — бесплатная AI-защита казахстанцев от фишинга, телефонного мошенничества, пирамид, гемблинга и фрода в госзакупках. Расширение, мобилка, Telegram-бот, дашборд регулятора.">
+<meta name="keywords" content="киберқауіпсіздік, фишинг, алаяқтық, қаржылық пирамида, госзакупки фрод, Kaspi фейк, Қазақстан, cybersecurity Kazakhstan, scam detection">
+<meta name="author" content="Qalqan AI">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://qalqan-ai-nu.vercel.app/">
+<meta property="og:title" content="Qalqan AI — Казахстанский ИИ-щит от мошенников">
+<meta property="og:description" content="Бесплатно: блокирует фишинг, пирамиды, гемблинг, телефонный скам и госзакуп-фрод. Расширение + мобилка + Telegram-бот + дашборд регулятора. 6-уровневый AI.">
 <meta property="og:url" content="https://qalqan-ai-nu.vercel.app">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
+<meta property="og:locale" content="kk_KZ">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
-<meta name="twitter:description" content="Blocks phishing, scams, gambling before page loads. 6-tier AI pipeline. Kazakh/Russian/English.">
+<meta name="twitter:description" content="Blocks phishing, scams, gambling, phone fraud & procurement fraud. Extension + mobile + bot + regulator dashboard. 6-tier AI. kk/ru/en.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#00d4ff">
+<meta name="theme-color" content="#0a0e1a">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Qalqan AI","applicationCategory":"SecurityApplication","operatingSystem":"Web, Chrome, Firefox, Android, iOS","offers":{"@type":"Offer","price":"0","priceCurrency":"KZT"},"inLanguage":["kk","ru","en"],"url":"https://qalqan-ai-nu.vercel.app","description":"AI cybersecurity for Kazakhstan: phishing, phone scam, financial pyramids, gambling and procurement-fraud detection."}
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--cyan:#00d4ff;--cyan2:#00b8d9;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--bg:#0a0e1a;--bg2:#0f1629;--card:#131d35;--border:#1e2d4a;--text:#e2e8f0;--muted:#64748b}
@@ -73,6 +83,9 @@ h1{font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1.1;margin-bottom:
 .feat-icon svg{width:20px;height:20px;stroke:var(--cyan);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .feat-title{font-size:15px;font-weight:600;margin-bottom:8px}
 .feat-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.demo-link{display:block;text-decoration:none;color:inherit}
+.demo-link .feat-title{color:var(--cyan)}
+.demo-arrow{font-size:12px;color:var(--cyan);margin-top:12px;font-weight:600}
 /* PIPELINE */
 .pipeline{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 24px}
 .pipeline-inner{max-width:900px;margin:0 auto}
@@ -213,6 +226,45 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
       <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-name">Сыртқы DB + домен</div></div>
       <div class="pipe-step"><div class="pipe-num">6</div><div class="pipe-name">Groq / Gemini AI</div></div>
     </div>
+  </div>
+</section>
+
+<!-- DEMO / PLATFORMS -->
+<section class="section" id="demo">
+  <div class="section-label">Демо</div>
+  <div class="section-title">Бәрі тірі — ашып көріңіз</div>
+  <p class="section-sub">Жұмыс істеп тұрған платформалар мен панельдер</p>
+  <div class="features-grid">
+    <a class="feat-card demo-link" href="/dashboard?demo=1">
+      <div class="feat-title">📊 Реттеуші панелі</div>
+      <div class="feat-desc">Облыстар бойынша қауіп картасы, динамика, топ қауіпті домендер.</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
+    <a class="feat-card demo-link" href="/goszakup/graph">
+      <div class="feat-title">🕸️ Госзакуп фрод графы</div>
+      <div class="feat-desc">Аффилированность, сговор, картель — байланыс графы.</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
+    <a class="feat-card demo-link" href="/m">
+      <div class="feat-title">📱 Мобиль қосымша</div>
+      <div class="feat-desc">Офлайн жұмыс істейді, телефон экранына орнатылады (PWA).</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
+    <a class="feat-card demo-link" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
+      <div class="feat-title">🤖 Telegram бот</div>
+      <div class="feat-desc">Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
+    <a class="feat-card demo-link" href="/stats">
+      <div class="feat-title">📈 Тірі статистика</div>
+      <div class="feat-desc">Нақты деректер: тексерулер, вердиктер, трендтер.</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
+    <a class="feat-card demo-link" href="/feed/kz">
+      <div class="feat-title">🌐 KZ Threat Feed</div>
+      <div class="feat-desc">Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.</div>
+      <div class="demo-arrow">Ашу →</div>
+    </a>
   </div>
 </section>
 
