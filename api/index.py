@@ -92,6 +92,18 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 # Static HTML shells — let the CDN serve them (data loads via AJAX, not cached)
 _HTML_CACHE = {"Cache-Control": "public, max-age=300, s-maxage=600"}
 
+# Inline SVG favicon — kills the /favicon.ico 404 (browser auto-requests it)
+_FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00d4ff">'
+            '<path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z"/></svg>')
+
+
+@app.get("/favicon.ico")
+@app.get("/favicon.svg")
+async def favicon():
+    from fastapi.responses import Response as _Resp
+    return _Resp(content=_FAVICON, media_type="image/svg+xml",
+                 headers={"Cache-Control": "public, max-age=604800"})
+
 # --- CORS: extension + localhost only (not wildcard) ---
 _ALLOWED_ORIGINS = [
     "chrome-extension://",          # any Chrome extension (prefix match done below)

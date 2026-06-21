@@ -23,6 +23,7 @@ LANDING_HTML = """<!DOCTYPE html>
 <meta name="twitter:description" content="Blocks phishing, scams, gambling, phone fraud & procurement fraud. Extension + mobile + bot + regulator dashboard. 6-tier AI. kk/ru/en.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
 <link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="/favicon.ico">
 <meta name="theme-color" content="#0a0e1a">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Qalqan AI","applicationCategory":"SecurityApplication","operatingSystem":"Web, Chrome, Firefox, Android, iOS","offers":{"@type":"Offer","price":"0","priceCurrency":"KZT"},"inLanguage":["kk","ru","en"],"url":"https://qalqan-ai-nu.vercel.app","description":"AI cybersecurity for Kazakhstan: phishing, phone scam, financial pyramids, gambling and procurement-fraud detection."}
@@ -136,6 +137,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24p
   <div class="nav-links">
     <a href="#features">Функции</a>
     <a href="#pipeline">Pipeline</a>
+    <a href="#demo">Демо</a>
     <a href="#telegram">Telegram</a>
     <a href="#tech">Технологии</a>
   </div>
