@@ -4,7 +4,8 @@ import time
 import json
 import logging
 from collections import OrderedDict
-import httpx
+
+from .http import get_client
 
 logger = logging.getLogger("qalqan")
 
@@ -46,33 +47,58 @@ def _redis_key(key: str) -> str:
     return f"verdict:{key[:16]}"
 
 
-# ── Redis ops ─────────────────────────────────────────────────────────────────
+# ── Circuit breaker — stop hammering a dead Redis (each call would burn a full
+#    timeout otherwise; under an outage that adds seconds to every request) ─────
+_cb_failures = 0
+_cb_open_until = 0.0
+_CB_THRESHOLD = 3      # consecutive failures to trip the breaker
+_CB_COOLDOWN = 30.0    # seconds to skip Redis entirely after tripping
+
+
+def _redis_ok() -> bool:
+    return _redis_available() and time.time() >= _cb_open_until
+
+
+def _cb_fail() -> None:
+    global _cb_failures, _cb_open_until
+    _cb_failures += 1
+    if _cb_failures >= _CB_THRESHOLD:
+        _cb_open_until = time.time() + _CB_COOLDOWN
+        logger.warning(f"Redis circuit OPEN {_CB_COOLDOWN}s after {_cb_failures} fails")
+
+
+def _cb_ok() -> None:
+    global _cb_failures
+    _cb_failures = 0
+
+
+# ── Redis ops (shared pooled client) ──────────────────────────────────────────
 
 async def _redis_get(key: str) -> dict | None:
     try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.get(
-                f"{_redis_url()}/get/{_redis_key(key)}",
-                headers=_redis_headers(),
-            )
-            data = r.json()
-            if data.get("result"):
-                return json.loads(data["result"])
+        r = await get_client().get(f"{_redis_url()}/get/{_redis_key(key)}",
+                                   headers=_redis_headers(), timeout=3)
+        _cb_ok()
+        data = r.json()
+        if data.get("result"):
+            return json.loads(data["result"])
     except Exception as e:
+        _cb_fail()
         logger.warning(f"Redis GET failed: {e}")
     return None
+
 
 async def _redis_set_proper(key: str, value: dict, ttl: int) -> None:
     """Pipeline SET with EX — stores only the JSON payload, not the command array."""
     try:
         payload = json.dumps(value, ensure_ascii=False)
-        async with httpx.AsyncClient(timeout=3) as client:
-            await client.post(
-                f"{_redis_url()}/pipeline",
-                headers={**_redis_headers(), "Content-Type": "application/json"},
-                json=[["SET", _redis_key(key), payload, "EX", str(ttl)]],
-            )
+        await get_client().post(
+            f"{_redis_url()}/pipeline",
+            headers={**_redis_headers(), "Content-Type": "application/json"},
+            json=[["SET", _redis_key(key), payload, "EX", str(ttl)]], timeout=3)
+        _cb_ok()
     except Exception as e:
+        _cb_fail()
         logger.warning(f"Redis SET failed: {e}")
 
 
@@ -98,18 +124,18 @@ def _mem_set(key: str, result: dict, ttl: int) -> None:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 async def get_cached(key: str) -> dict | None:
-    if _redis_available():
+    # Try Redis (L2) when healthy; always fall through to the in-memory L1 cache
+    if _redis_ok():
         result = await _redis_get(key)
         if result and isinstance(result, dict):
             result["cached"] = True
             return result
-        return None
     return _mem_get(key)
 
 
 async def set_cached(key: str, result: dict) -> None:
     ttl = _ttl_for(result.get("verdict", ""))
-    if _redis_available():
+    if _redis_ok():
         await _redis_set_proper(key, result, ttl)
     _mem_set(key, result, ttl)  # always write mem as local L1
 
@@ -122,25 +148,21 @@ async def check_rate_limit(ip: str, limit: int, endpoint: str = "", window: int 
     """True = allowed. Uses Redis INCR+EXPIRE sliding window when available, else in-memory."""
     ip_part = hashlib.md5(ip.encode()).hexdigest()[:12]
     key = f"rl:{endpoint}:{ip_part}" if endpoint else f"rl:{ip_part}:{limit}"
-    if _redis_available():
+    if _redis_ok():
         try:
-            async with httpx.AsyncClient(timeout=2) as client:
-                # INCR returns new count; set TTL only on first request (NX)
-                r = await client.post(
-                    f"{_redis_url()}",
-                    headers={**_redis_headers(), "Content-Type": "application/json"},
-                    json=["INCR", key],
-                )
-                count = r.json().get("result", 1)
-                if count == 1:
-                    # First request — set expiry
-                    await client.post(
-                        f"{_redis_url()}",
-                        headers={**_redis_headers(), "Content-Type": "application/json"},
-                        json=["EXPIRE", key, str(window)],
-                    )
-                return int(count) <= limit
+            client = get_client()
+            r = await client.post(f"{_redis_url()}",
+                                  headers={**_redis_headers(), "Content-Type": "application/json"},
+                                  json=["INCR", key], timeout=2)
+            count = r.json().get("result", 1)
+            if count == 1:
+                await client.post(f"{_redis_url()}",
+                                  headers={**_redis_headers(), "Content-Type": "application/json"},
+                                  json=["EXPIRE", key, str(window)], timeout=2)
+            _cb_ok()
+            return int(count) <= limit
         except Exception as e:
+            _cb_fail()
             logger.warning(f"Redis rate limit failed, falling back to mem: {e}")
     # In-memory fallback
     now = time.time()
@@ -161,14 +183,10 @@ async def check_health() -> dict:
     if not _redis_available():
         return {"status": "disabled", "reason": "env vars not set", "mem_entries": len(_mem)}
     try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.get(
-                f"{_redis_url()}/ping",
-                headers=_redis_headers(),
-            )
-            data = r.json()
-            if data.get("result") == "PONG":
-                return {"status": "ok", "mem_entries": len(_mem)}
-            return {"status": "error", "response": str(data)[:80]}
+        r = await get_client().get(f"{_redis_url()}/ping", headers=_redis_headers(), timeout=3)
+        data = r.json()
+        if data.get("result") == "PONG":
+            return {"status": "ok", "mem_entries": len(_mem)}
+        return {"status": "error", "response": str(data)[:80]}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:80]}

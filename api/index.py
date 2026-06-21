@@ -76,11 +76,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"OpenPhish preload failed (will retry on first request): {e}")
     yield
+    # Shutdown: close the shared pooled HTTP client
+    from .utils.http import aclose
+    await aclose()
 
 
 app = FastAPI(title="Qalqan AI", version="5.1.0",
               description="AI-powered cybersecurity research platform — PhD-grade threat detection",
               lifespan=lifespan)
+
+# gzip large HTML/JSON responses (landing, dashboard, graph are 30KB+ each)
+from fastapi.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # --- CORS: extension + localhost only (not wildcard) ---
 _ALLOWED_ORIGINS = [
