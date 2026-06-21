@@ -7,6 +7,8 @@ import re
 import logging
 import asyncio
 import httpx
+
+from ..utils.http import get_client
 from datetime import datetime, timezone
 
 logger = logging.getLogger("qalqan")
@@ -32,9 +34,8 @@ async def _tg(method: str, payload: dict) -> dict:
         logger.warning("TELEGRAM_BOT_TOKEN not set")
         return {}
     try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            res = await client.post(f"{TG_API}{token}/{method}", json=payload)
-            return res.json()
+        res = await get_client().post(f"{TG_API}{token}/{method}", json=payload, timeout=8)
+        return res.json()
     except Exception as e:
         logger.error(f"Telegram API error ({method}): {e}")
         return {}

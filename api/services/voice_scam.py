@@ -7,6 +7,8 @@ import re
 import logging
 import httpx
 
+from ..utils.http import get_client
+
 logger = logging.getLogger("qalqan")
 
 _GROQ_TRANSCRIBE = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -50,18 +52,18 @@ async def transcribe_audio(audio: bytes, filename: str = "audio.ogg") -> str | N
     if not audio or len(audio) > MAX_AUDIO_BYTES:
         return None
     try:
-        async with httpx.AsyncClient(timeout=40) as client:
-            res = await client.post(
-                _GROQ_TRANSCRIBE,
-                headers={"Authorization": f"Bearer {key}"},
-                files={"file": (filename, audio, "application/octet-stream")},
-                data={"model": _WHISPER_MODEL, "temperature": "0",
-                      "response_format": "json"},
-            )
-            if res.status_code != 200:
-                logger.warning(f"Groq transcription failed: {res.status_code} {res.text[:120]}")
-                return None
-            return (res.json().get("text") or "").strip()
+        res = await get_client().post(
+            _GROQ_TRANSCRIBE,
+            headers={"Authorization": f"Bearer {key}"},
+            files={"file": (filename, audio, "application/octet-stream")},
+            data={"model": _WHISPER_MODEL, "temperature": "0",
+                  "response_format": "json"},
+            timeout=40,
+        )
+        if res.status_code != 200:
+            logger.warning(f"Groq transcription failed: {res.status_code} {res.text[:120]}")
+            return None
+        return (res.json().get("text") or "").strip()
     except Exception as e:
         logger.error(f"transcribe_audio error: {e}")
         return None

@@ -6,6 +6,8 @@
 import asyncio
 import logging
 import httpx
+
+from ..utils.http import get_client
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 
@@ -208,12 +210,12 @@ async def check_tender_by_number(tender_number: str) -> dict:
     tender_data: dict = {}
 
     try:
-        async with httpx.AsyncClient(timeout=8, follow_redirects=True) as client:
-            # Try public v3 API
-            url = f"{_GOSZAKUP_API}/tenders/{tender_number}"
-            res = await client.get(url, headers={"Accept": "application/json"})
-            if res.status_code == 200:
-                tender_data = res.json()
+        # Try public v3 API
+        url = f"{_GOSZAKUP_API}/tenders/{tender_number}"
+        res = await get_client().get(url, headers={"Accept": "application/json"},
+                                     follow_redirects=True, timeout=8)
+        if res.status_code == 200:
+            tender_data = res.json()
     except Exception as e:
         logger.debug(f"Goszakup API error for {tender_number}: {e}")
 
@@ -240,11 +242,11 @@ async def check_supplier_by_bin(bin_number: str) -> dict:
     supplier_data: dict = {}
 
     try:
-        async with httpx.AsyncClient(timeout=8, follow_redirects=True) as client:
-            url = f"{_GOSZAKUP_API}/subjects/{bin_number}"
-            res = await client.get(url, headers={"Accept": "application/json"})
-            if res.status_code == 200:
-                supplier_data = res.json()
+        url = f"{_GOSZAKUP_API}/subjects/{bin_number}"
+        res = await get_client().get(url, headers={"Accept": "application/json"},
+                                     follow_redirects=True, timeout=8)
+        if res.status_code == 200:
+            supplier_data = res.json()
     except Exception as e:
         logger.debug(f"Goszakup supplier API error for {bin_number}: {e}")
 
