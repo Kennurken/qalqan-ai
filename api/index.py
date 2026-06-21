@@ -55,10 +55,11 @@ def _get_client_ip(req: Request) -> str:
 
 
 def _get_geo(req: Request) -> tuple[str | None, str | None]:
-    """(country, region) from Vercel edge geo headers. None when not behind Vercel."""
+    """(country, region) from edge geo headers — Vercel, or Cloudflare when the
+    backend runs on a VPS behind CF. None when no edge geo is available."""
     h = req.headers
-    country = h.get("x-vercel-ip-country")
-    region = h.get("x-vercel-ip-country-region")
+    country = h.get("x-vercel-ip-country") or h.get("cf-ipcountry")
+    region = h.get("x-vercel-ip-country-region") or h.get("cf-region-code")
     return (country or None, region or None)
 
 # --- Logging ---

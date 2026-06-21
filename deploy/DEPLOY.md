@@ -13,9 +13,18 @@ stay on their managed free tiers. Landing page can stay on Vercel (optional).
 - A domain (or subdomain) you control, e.g. `api.qalqan.kz`.
 - Your filled-in `.env` (copy from `.env.example`) with **all** secrets, plus:
   - `DOMAIN=api.qalqan.kz`
+  - `QALQAN_API_URL=https://api.qalqan.kz` (self-reference for bot self-calls)
   - `CRON_SECRET=$(openssl rand -hex 32)`
   - `ADMIN_SECRET=$(openssl rand -hex 16)`
-  - `SUPABASE_DB_URL=...` (for backups)
+  - `SUPABASE_DB_URL=...` (for nightly backups)
+  - `QALQAN_EXTENSION_IDS=<id1>,<id2>` (once published — pins CORS to your extension)
+  - `QALQAN_API_KEYS=key:Partner,...` (optional — B2G partner API keys)
+
+## 0.5 Database migration (once)
+In **Supabase → SQL Editor**, run the contents of
+[`migrations/001_performance_indexes.sql`](../migrations/001_performance_indexes.sql)
+— adds indexes (faster `/dashboard`, `/trends`, `/community` at scale) and the
+`country`/`region` columns the KZ threat map needs.
 
 ## 1. Create the server
 1. Hetzner Cloud → **CX22**, image **Ubuntu 24.04**, add your SSH key.
@@ -63,8 +72,14 @@ crontab -l
 - **Telegram webhook:** `https://api.qalqan.kz/telegram/set-webhook?secret=<TELEGRAM_WEBHOOK_SECRET>`
 - **Extension:** set the API base to `https://api.qalqan.kz` in
   `extension/src/config.js` (+ `extension-firefox`), rebuild, reload.
-- **Landing/CORS:** once the extension is published, pin its ID in
-  `api/index.py` `_cors_origin_allowed` instead of allowing every `chrome-extension://`.
+- **CORS:** once the extension is published, set `QALQAN_EXTENSION_IDS=<id>` in
+  `.env` (no code edit needed) — restricts the API to your extension.
+
+> **Geo / KZ map note:** the regional threat map reads Vercel edge headers
+> (`x-vercel-ip-country*`). Behind Caddy on a VPS those don't exist, so live
+> region capture stops (demo map still renders). To restore it: put **Cloudflare**
+> in front (free) and read `CF-IPCountry` / `CF-Region`, or add a MaxMind GeoLite2
+> lookup on the resolved IP in `_get_geo()`. Follow-up, not blocking.
 
 ## 7. Updates
 ```bash
