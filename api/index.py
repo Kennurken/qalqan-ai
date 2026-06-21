@@ -68,15 +68,15 @@ logger = logging.getLogger("qalqan")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: preload OpenPhish feed to avoid cold-start latency on first request."""
+    """Startup: kick off feed loading in the background so cold start isn't blocked
+    by the multi-second URLhaus/OpenPhish fetch (check_openphish lazy-loads on first
+    use too). Shutdown: close the shared pooled HTTP client."""
     from .services.threat_db import load_openphish_feed
     try:
-        await load_openphish_feed()
-        logger.info("OpenPhish feed preloaded at startup")
+        asyncio.create_task(load_openphish_feed())
     except Exception as e:
-        logger.warning(f"OpenPhish preload failed (will retry on first request): {e}")
+        logger.warning(f"feed preload kickoff failed (lazy-loads on first check): {e}")
     yield
-    # Shutdown: close the shared pooled HTTP client
     from .utils.http import aclose
     await aclose()
 
