@@ -5,6 +5,8 @@ import json
 import logging
 import httpx
 
+from .http import get_client
+
 logger = logging.getLogger("qalqan")
 
 _WHITELIST: set[str] | None = None
@@ -52,20 +54,20 @@ async def log_report(domain: str, url: str, category: str, comment: str,
     if not _available():
         return False
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.post(
-                f"{_url()}/rest/v1/reports",
-                headers=_headers(),
-                json={
-                    "domain": domain,
-                    "url_hash": _hash(url),
-                    "category": category,
-                    "comment": comment[:500] if comment else None,
-                    "lang": lang,
-                    "reporter_ip_hash": _hash(reporter_ip),
-                }
-            )
-            return r.status_code in (200, 201)
+        client = get_client()
+        r = await client.post(
+            f"{_url()}/rest/v1/reports",
+            headers=_headers(),
+            json={
+                "domain": domain,
+                "url_hash": _hash(url),
+                "category": category,
+                "comment": comment[:500] if comment else None,
+                "lang": lang,
+                "reporter_ip_hash": _hash(reporter_ip),
+            }
+        )
+        return r.status_code in (200, 201)
     except Exception as e:
         logger.warning(f"Supabase log_report failed: {e}")
         return False
@@ -75,17 +77,17 @@ async def log_appeal(domain: str, verdict_received: str, reason: str) -> bool:
     if not _available():
         return False
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.post(
-                f"{_url()}/rest/v1/appeals",
-                headers=_headers(),
-                json={
-                    "domain": domain,
-                    "verdict_received": verdict_received,
-                    "reason": reason[:500] if reason else None,
-                }
-            )
-            return r.status_code in (200, 201)
+        client = get_client()
+        r = await client.post(
+            f"{_url()}/rest/v1/appeals",
+            headers=_headers(),
+            json={
+                "domain": domain,
+                "verdict_received": verdict_received,
+                "reason": reason[:500] if reason else None,
+            }
+        )
+        return r.status_code in (200, 201)
     except Exception as e:
         logger.warning(f"Supabase log_appeal failed: {e}")
         return False
@@ -116,12 +118,12 @@ async def log_check(domain: str, verdict: str, score: int, top_source: str,
     if region:
         geo["region"] = region
     try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(),
-                                  json={**base, **geo})
-            # country/region columns may not exist yet — retry without geo so logging never breaks
-            if r.status_code >= 400 and geo:
-                await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(), json=base)
+        client = get_client()
+        r = await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(),
+                              json={**base, **geo})
+        # country/region columns may not exist yet — retry without geo so logging never breaks
+        if r.status_code >= 400 and geo:
+            await client.post(f"{_url()}/rest/v1/check_logs", headers=_headers(), json=base)
     except Exception as e:
         logger.warning(f"Supabase log_check failed: {e}")
 
@@ -135,21 +137,21 @@ async def get_trends(days: int = 7) -> dict | None:
     if not _available():
         return None
     try:
-        async with httpx.AsyncClient(timeout=6) as client:
-            logs_r, rep_r = await asyncio.gather(
-                client.get(
-                    f"{_url()}/rest/v1/check_logs"
-                    "?select=domain,verdict,top_source,ai_used,ai_skipped,latency_ms"
-                    "&order=created_at.desc&limit=1000",
-                    headers=_headers(),
-                ),
-                client.get(
-                    f"{_url()}/rest/v1/reports"
-                    "?select=domain,category"
-                    "&order=created_at.desc&limit=500",
-                    headers=_headers(),
-                ),
-            )
+        client = get_client()
+        logs_r, rep_r = await asyncio.gather(
+            client.get(
+                f"{_url()}/rest/v1/check_logs"
+                "?select=domain,verdict,top_source,ai_used,ai_skipped,latency_ms"
+                "&order=created_at.desc&limit=1000",
+                headers=_headers(),
+            ),
+            client.get(
+                f"{_url()}/rest/v1/reports"
+                "?select=domain,category"
+                "&order=created_at.desc&limit=500",
+                headers=_headers(),
+            ),
+        )
 
         if logs_r.status_code != 200:
             return None
@@ -243,13 +245,13 @@ async def get_community_stats(domain: str) -> dict:
     if not _available() or not domain:
         return base
     try:
-        async with httpx.AsyncClient(timeout=4) as client:
-            r = await client.get(
-                f"{_url()}/rest/v1/reports",
-                headers=_headers(),
-                params={"domain": f"eq.{domain}",
-                        "select": "category,reporter_ip_hash", "limit": "2000"},
-            )
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports",
+            headers=_headers(),
+            params={"domain": f"eq.{domain}",
+                    "select": "category,reporter_ip_hash", "limit": "2000"},
+        )
         if r.status_code != 200:
             return base
         reports = confirms = disputes = 0
@@ -281,21 +283,21 @@ async def record_vote(domain: str, vote: str, reporter_ip: str) -> dict:
     cat = "vote:confirm" if vote == "confirm" else "vote:dispute"
     ip_hash = _hash(reporter_ip)
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            chk = await client.get(
-                f"{_url()}/rest/v1/reports", headers=_headers(),
-                params={"domain": f"eq.{domain}", "reporter_ip_hash": f"eq.{ip_hash}",
-                        "category": "in.(vote:confirm,vote:dispute)", "select": "id", "limit": "1"},
-            )
-            if chk.status_code == 200 and chk.json():
-                stats = await get_community_stats(domain)
-                return {"ok": False, "already_voted": True, "stats": stats}
-            r = await client.post(
-                f"{_url()}/rest/v1/reports", headers=_headers(),
-                json={"domain": domain, "url_hash": _hash(domain), "category": cat,
-                      "comment": None, "lang": "ru", "reporter_ip_hash": ip_hash},
-            )
-            ok = r.status_code in (200, 201)
+        client = get_client()
+        chk = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{domain}", "reporter_ip_hash": f"eq.{ip_hash}",
+                    "category": "in.(vote:confirm,vote:dispute)", "select": "id", "limit": "1"},
+        )
+        if chk.status_code == 200 and chk.json():
+            stats = await get_community_stats(domain)
+            return {"ok": False, "already_voted": True, "stats": stats}
+        r = await client.post(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            json={"domain": domain, "url_hash": _hash(domain), "category": cat,
+                  "comment": None, "lang": "ru", "reporter_ip_hash": ip_hash},
+        )
+        ok = r.status_code in (200, 201)
         stats = await get_community_stats(domain)
         return {"ok": ok, "stats": stats}
     except Exception as e:
@@ -311,19 +313,19 @@ async def get_dashboard_data(sample: int = 2000) -> dict | None:
         return None
     try:
         base = f"{_url()}/rest/v1/check_logs?order=created_at.desc&limit={sample}"
-        async with httpx.AsyncClient(timeout=8) as client:
+        client = get_client()
+        logs_r = await client.get(
+            base + "&select=domain,verdict,score,top_source,created_at,region,country",
+            headers=_headers())
+        if logs_r.status_code != 200:
+            # region/country columns may not exist yet — fall back to base columns
             logs_r = await client.get(
-                base + "&select=domain,verdict,score,top_source,created_at,region,country",
+                base + "&select=domain,verdict,score,top_source,created_at",
                 headers=_headers())
-            if logs_r.status_code != 200:
-                # region/country columns may not exist yet — fall back to base columns
-                logs_r = await client.get(
-                    base + "&select=domain,verdict,score,top_source,created_at",
-                    headers=_headers())
-            rep_r = await client.get(
-                f"{_url()}/rest/v1/reports"
-                "?select=domain,category,created_at&order=created_at.desc&limit=1000",
-                headers=_headers())
+        rep_r = await client.get(
+            f"{_url()}/rest/v1/reports"
+            "?select=domain,category,created_at&order=created_at.desc&limit=1000",
+            headers=_headers())
         if logs_r.status_code != 200:
             return None
         logs = logs_r.json()
@@ -432,12 +434,12 @@ async def get_federated_feed(limit: int = 500) -> list[dict] | None:
     if not _available():
         return None
     try:
-        async with httpx.AsyncClient(timeout=6) as client:
-            r = await client.get(
-                f"{_url()}/rest/v1/reports"
-                "?select=domain,category,created_at&category=ilike.federated*"
-                f"&order=created_at.desc&limit={limit}",
-                headers=_headers())
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports"
+            "?select=domain,category,created_at&category=ilike.federated*"
+            f"&order=created_at.desc&limit={limit}",
+            headers=_headers())
         if r.status_code != 200:
             return None
         agg: dict[str, dict] = {}
@@ -464,27 +466,27 @@ async def get_admin_data(limit: int = 100) -> dict | None:
     if not _available():
         return None
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            reports_r, appeals_r, logs_r = await asyncio.gather(
-                client.get(
-                    f"{_url()}/rest/v1/reports"
-                    "?select=id,domain,category,comment,lang,created_at"
-                    f"&order=created_at.desc&limit={limit}",
-                    headers=_headers(),
-                ),
-                client.get(
-                    f"{_url()}/rest/v1/appeals"
-                    "?select=id,domain,verdict_received,reason,created_at"
-                    f"&order=created_at.desc&limit={limit}",
-                    headers=_headers(),
-                ),
-                client.get(
-                    f"{_url()}/rest/v1/check_logs"
-                    "?select=id,domain,verdict,score,top_source,ai_used,latency_ms,created_at"
-                    f"&order=created_at.desc&limit={limit}",
-                    headers=_headers(),
-                ),
-            )
+        client = get_client()
+        reports_r, appeals_r, logs_r = await asyncio.gather(
+            client.get(
+                f"{_url()}/rest/v1/reports"
+                "?select=id,domain,category,comment,lang,created_at"
+                f"&order=created_at.desc&limit={limit}",
+                headers=_headers(),
+            ),
+            client.get(
+                f"{_url()}/rest/v1/appeals"
+                "?select=id,domain,verdict_received,reason,created_at"
+                f"&order=created_at.desc&limit={limit}",
+                headers=_headers(),
+            ),
+            client.get(
+                f"{_url()}/rest/v1/check_logs"
+                "?select=id,domain,verdict,score,top_source,ai_used,latency_ms,created_at"
+                f"&order=created_at.desc&limit={limit}",
+                headers=_headers(),
+            ),
+        )
         return {
             "reports": reports_r.json() if reports_r.status_code == 200 else [],
             "appeals": appeals_r.json() if appeals_r.status_code == 200 else [],
@@ -499,13 +501,13 @@ async def check_health() -> dict:
     if not _available():
         return {"status": "disabled", "reason": "env vars not set"}
     try:
-        async with httpx.AsyncClient(timeout=4) as client:
-            r = await client.get(
-                f"{_url()}/rest/v1/check_logs?select=id&limit=1",
-                headers=_headers(),
-            )
-            if r.status_code == 200:
-                return {"status": "ok"}
-            return {"status": "error", "code": r.status_code}
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/check_logs?select=id&limit=1",
+            headers=_headers(),
+        )
+        if r.status_code == 200:
+            return {"status": "ok"}
+        return {"status": "error", "code": r.status_code}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:80]}

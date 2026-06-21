@@ -5,6 +5,8 @@ import os
 import re
 import httpx
 
+from .http import get_client
+
 def _bot_token() -> str | None:
     return os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -21,11 +23,11 @@ async def _send(chat_id: str, text: str, parse_mode: str = "Markdown") -> bool:
     if not token or not chat_id:
         return False
     try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            r = await client.post(f"https://api.telegram.org/bot{token}/sendMessage",
-                                  json={"chat_id": chat_id, "text": text,
-                                        "parse_mode": parse_mode, "disable_web_page_preview": True})
-            return r.status_code == 200
+        client = get_client()
+        r = await client.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                              json={"chat_id": chat_id, "text": text,
+                                    "parse_mode": parse_mode, "disable_web_page_preview": True})
+        return r.status_code == 200
     except Exception:
         return False
 
@@ -77,11 +79,11 @@ async def send_appeal(url: str, reason: str) -> dict:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.post(api_url, json=payload)
-            if res.status_code == 200:
-                return {"status": "success", "message": "Апелляция Телеграмға жіберілді!"}
-            return {"status": "error", "message": f"Telegram қатесі: {res.status_code}"}
+        client = get_client()
+        res = await client.post(api_url, json=payload)
+        if res.status_code == 200:
+            return {"status": "success", "message": "Апелляция Телеграмға жіберілді!"}
+        return {"status": "error", "message": f"Telegram қатесі: {res.status_code}"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:100]}
 
@@ -98,8 +100,8 @@ async def notify_block(url: str, verdict: str, score: int, source: str):
     )
     api_url = f"https://api.telegram.org/bot{_bot_token()}/sendMessage"
     try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            await client.post(api_url, json={"chat_id": _chat_id(), "text": message, "parse_mode": "Markdown"})
+        client = get_client()
+        await client.post(api_url, json={"chat_id": _chat_id(), "text": message, "parse_mode": "Markdown"})
     except Exception:
         pass
     # Also broadcast to the public threat channel (best-effort, only if configured)
@@ -125,10 +127,10 @@ async def send_report(url: str, threat_type: str, reporter_note: str = "") -> di
     }
 
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.post(api_url, json=payload)
-            if res.status_code == 200:
-                return {"status": "success", "message": "Шағым жіберілді!"}
-            return {"status": "error", "message": f"Telegram қатесі: {res.status_code}"}
+        client = get_client()
+        res = await client.post(api_url, json=payload)
+        if res.status_code == 200:
+            return {"status": "success", "message": "Шағым жіберілді!"}
+        return {"status": "error", "message": f"Telegram қатесі: {res.status_code}"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:100]}
