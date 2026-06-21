@@ -9,6 +9,8 @@ import json
 import logging
 import httpx
 
+from ..utils.http import get_client
+
 logger = logging.getLogger("qalqan")
 
 # --- API Keys (runtime-да оқылады, import кезінде емес) ---
@@ -220,24 +222,23 @@ async def _call_groq(system_prompt: str, user_content: str, fast: bool = False) 
             "max_tokens": 512,
             "response_format": {"type": "json_object"}  # Force JSON output
         }
-        async with httpx.AsyncClient(timeout=15) as client:
-            res = await client.post(GROQ_URL, json=payload, headers={
-                "Authorization": f"Bearer {_groq_key()}",
-                "Content-Type": "application/json"
-            })
-            if res.status_code == 429 and not fast:
-                # 70b rate-limited → retry with 8b fast model
-                logger.warning(f"Groq 70b rate limited, falling back to 8b")
-                return await _call_groq(system_prompt, user_content, fast=True)
-            if res.status_code != 200:
-                logger.warning(f"Groq API error: {res.status_code} {res.text[:200]}")
-                return None
-            data = res.json()
-            raw_text = data["choices"][0]["message"]["content"]
-            parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "groq_ai"
-            parsed["model"] = model
-            return parsed
+        res = await get_client().post(GROQ_URL, json=payload, timeout=15, headers={
+            "Authorization": f"Bearer {_groq_key()}",
+            "Content-Type": "application/json"
+        })
+        if res.status_code == 429 and not fast:
+            # 70b rate-limited → retry with 8b fast model
+            logger.warning(f"Groq 70b rate limited, falling back to 8b")
+            return await _call_groq(system_prompt, user_content, fast=True)
+        if res.status_code != 200:
+            logger.warning(f"Groq API error: {res.status_code} {res.text[:200]}")
+            return None
+        data = res.json()
+        raw_text = data["choices"][0]["message"]["content"]
+        parsed = _parse_ai_json(raw_text)
+        parsed["source"] = "groq_ai"
+        parsed["model"] = model
+        return parsed
     except Exception as e:
         logger.warning(f"Groq exception: {e}")
         return None
@@ -256,17 +257,16 @@ async def _call_gemini(system_prompt: str, user_content: str) -> dict | None:
         payload = {
             "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_content}"}]}]
         }
-        async with httpx.AsyncClient(timeout=20) as client:
-            res = await client.post(url, json=payload)
-            if res.status_code != 200:
-                return None
-            data = res.json()
-            if "candidates" not in data or not data["candidates"]:
-                return None
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "gemini_ai"
-            return parsed
+        res = await get_client().post(url, json=payload, timeout=20)
+        if res.status_code != 200:
+            return None
+        data = res.json()
+        if "candidates" not in data or not data["candidates"]:
+            return None
+        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+        parsed = _parse_ai_json(raw_text)
+        parsed["source"] = "gemini_ai"
+        return parsed
     except Exception:
         return None
 
@@ -286,19 +286,18 @@ async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | N
                 ]
             }]
         }
-        async with httpx.AsyncClient(timeout=30) as client:
-            res = await client.post(url, json=payload)
-            if res.status_code != 200:
-                logger.warning(f"Gemini Vision error: {res.status_code} {res.text[:300]}")
-                return None
-            data = res.json()
-            if "candidates" not in data or not data["candidates"]:
-                logger.warning(f"Gemini Vision: no candidates in response")
-                return None
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            parsed = _parse_ai_json(raw_text)
-            parsed["source"] = "gemini_vision"
-            return parsed
+        res = await get_client().post(url, json=payload, timeout=30)
+        if res.status_code != 200:
+            logger.warning(f"Gemini Vision error: {res.status_code} {res.text[:300]}")
+            return None
+        data = res.json()
+        if "candidates" not in data or not data["candidates"]:
+            logger.warning(f"Gemini Vision: no candidates in response")
+            return None
+        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+        parsed = _parse_ai_json(raw_text)
+        parsed["source"] = "gemini_vision"
+        return parsed
     except Exception as e:
         logger.warning(f"Gemini Vision exception: {e}")
         return None
@@ -475,20 +474,19 @@ async def _call_groq_vision(system_prompt: str, image_base64: str) -> dict | Non
                 "temperature": 0.1,
                 "max_tokens": 500
             }
-            async with httpx.AsyncClient(timeout=30) as client:
-                res = await client.post(GROQ_URL, json=payload, headers={
-                    "Authorization": f"Bearer {_groq_key()}",
-                    "Content-Type": "application/json"
-                })
-                if res.status_code != 200:
-                    logger.warning(f"Groq Vision {model}: {res.status_code} {res.text[:200]}")
-                    continue
-                data = res.json()
-                raw_text = data["choices"][0]["message"]["content"]
-                parsed = _parse_ai_json(raw_text)
-                parsed["source"] = "groq_vision"
-                logger.info(f"Groq Vision success with model: {model}")
-                return parsed
+            res = await get_client().post(GROQ_URL, json=payload, timeout=30, headers={
+                "Authorization": f"Bearer {_groq_key()}",
+                "Content-Type": "application/json"
+            })
+            if res.status_code != 200:
+                logger.warning(f"Groq Vision {model}: {res.status_code} {res.text[:200]}")
+                continue
+            data = res.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "groq_vision"
+            logger.info(f"Groq Vision success with model: {model}")
+            return parsed
         except Exception as e:
             logger.warning(f"Groq Vision {model} exception: {e}")
             continue
@@ -530,25 +528,24 @@ async def _call_gemini_vision_with_detail(system_prompt: str, image_base64: str)
                     ]
                 }]
             }
-            async with httpx.AsyncClient(timeout=30) as client:
-                res = await client.post(api_url, json=payload)
-                if res.status_code == 404:
-                    last_error = f"{model}: 404 not found"
-                    logger.info(f"Gemini Vision: model {model} not found, trying next...")
-                    continue
-                if res.status_code != 200:
-                    last_error = f"{model}: {res.status_code}"
-                    logger.warning(f"Gemini Vision {model} error: {res.status_code} {res.text[:200]}")
-                    continue
-                data = res.json()
-                if "candidates" not in data or not data["candidates"]:
-                    last_error = f"{model}: no candidates"
-                    continue
-                raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-                parsed = _parse_ai_json(raw_text)
-                parsed["source"] = "gemini_vision"
-                logger.info(f"Gemini Vision success with model: {model}")
-                return parsed, ""
+            res = await get_client().post(api_url, json=payload, timeout=30)
+            if res.status_code == 404:
+                last_error = f"{model}: 404 not found"
+                logger.info(f"Gemini Vision: model {model} not found, trying next...")
+                continue
+            if res.status_code != 200:
+                last_error = f"{model}: {res.status_code}"
+                logger.warning(f"Gemini Vision {model} error: {res.status_code} {res.text[:200]}")
+                continue
+            data = res.json()
+            if "candidates" not in data or not data["candidates"]:
+                last_error = f"{model}: no candidates"
+                continue
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            parsed = _parse_ai_json(raw_text)
+            parsed["source"] = "gemini_vision"
+            logger.info(f"Gemini Vision success with model: {model}")
+            return parsed, ""
         except Exception as e:
             last_error = f"{model}: {str(e)[:80]}"
             logger.warning(f"Gemini Vision {model} exception: {e}")

@@ -8,6 +8,8 @@ import asyncio
 import httpx
 from urllib.parse import urlparse
 
+from ..utils.http import get_client
+
 def _phishtank_key() -> str:
     return os.getenv("PHISHTANK_API_KEY", "")
 
@@ -41,32 +43,29 @@ async def check_phishtank(url: str) -> dict | None:
     if not _phishtank_key():
         return None
     try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            data = {
-                "url": url,
-                "format": "json",
-                "app_key": _phishtank_key()
-            }
-            res = await client.post(
-                "https://checkurl.phishtank.com/checkurl/",
-                data=data
-            )
-            if res.status_code != 200:
-                return None
-            result = res.json()
-            results = result.get("results", {})
-            if results.get("in_database") and results.get("verified"):
-                return {
-                    "verdict": "DANGEROUS",
-                    "threat_score": 95,
-                    "threat_type": "phishing",
-                    "source": "phishtank",
-                    "reason_kk": "PhishTank базасында тіркелген фишинг сайт",
-                    "reason_ru": "Фишинговый сайт из базы PhishTank",
-                    "reason_en": "Verified phishing site in PhishTank database",
-                    "indicators": ["phishtank_verified"]
-                }
+        data = {
+            "url": url,
+            "format": "json",
+            "app_key": _phishtank_key()
+        }
+        res = await get_client().post(
+            "https://checkurl.phishtank.com/checkurl/", data=data, timeout=8)
+        if res.status_code != 200:
             return None
+        result = res.json()
+        results = result.get("results", {})
+        if results.get("in_database") and results.get("verified"):
+            return {
+                "verdict": "DANGEROUS",
+                "threat_score": 95,
+                "threat_type": "phishing",
+                "source": "phishtank",
+                "reason_kk": "PhishTank базасында тіркелген фишинг сайт",
+                "reason_ru": "Фишинговый сайт из базы PhishTank",
+                "reason_en": "Verified phishing site in PhishTank database",
+                "indicators": ["phishtank_verified"]
+            }
+        return None
     except Exception:
         return None
 
@@ -89,32 +88,31 @@ async def check_google_safe_browsing(url: str) -> dict | None:
                 "threatEntries": [{"url": url}]
             }
         }
-        async with httpx.AsyncClient(timeout=8) as client:
-            res = await client.post(api_url, json=payload)
-            if res.status_code != 200:
-                return None
-            data = res.json()
-            matches = data.get("matches", [])
-            if matches:
-                threat_type_map = {
-                    "MALWARE": "malware",
-                    "SOCIAL_ENGINEERING": "phishing",
-                    "UNWANTED_SOFTWARE": "malware",
-                    "POTENTIALLY_HARMFUL_APPLICATION": "malware"
-                }
-                goog_type = matches[0].get("threatType", "MALWARE")
-                mapped_type = threat_type_map.get(goog_type, "malware")
-                return {
-                    "verdict": "DANGEROUS",
-                    "threat_score": 90,
-                    "threat_type": mapped_type,
-                    "source": "google_safe_browsing",
-                    "reason_kk": f"Google Safe Browsing: {goog_type} анықталды",
-                    "reason_ru": f"Google Safe Browsing: обнаружен {goog_type}",
-                    "reason_en": f"Google Safe Browsing: {goog_type} detected",
-                    "indicators": [f"gsb_{goog_type.lower()}"]
-                }
+        res = await get_client().post(api_url, json=payload, timeout=8)
+        if res.status_code != 200:
             return None
+        data = res.json()
+        matches = data.get("matches", [])
+        if matches:
+            threat_type_map = {
+                "MALWARE": "malware",
+                "SOCIAL_ENGINEERING": "phishing",
+                "UNWANTED_SOFTWARE": "malware",
+                "POTENTIALLY_HARMFUL_APPLICATION": "malware"
+            }
+            goog_type = matches[0].get("threatType", "MALWARE")
+            mapped_type = threat_type_map.get(goog_type, "malware")
+            return {
+                "verdict": "DANGEROUS",
+                "threat_score": 90,
+                "threat_type": mapped_type,
+                "source": "google_safe_browsing",
+                "reason_kk": f"Google Safe Browsing: {goog_type} анықталды",
+                "reason_ru": f"Google Safe Browsing: обнаружен {goog_type}",
+                "reason_en": f"Google Safe Browsing: {goog_type} detected",
+                "indicators": [f"gsb_{goog_type.lower()}"]
+            }
+        return None
     except Exception:
         return None
 
@@ -122,27 +120,24 @@ async def check_google_safe_browsing(url: str) -> dict | None:
 async def check_urlhaus(url: str) -> dict | None:
     """URLhaus by abuse.ch — зиянды URL базасы (толық тегін, кілт қажет емес)."""
     try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            res = await client.post(
-                "https://urlhaus-api.abuse.ch/v1/url/",
-                data={"url": url}
-            )
-            if res.status_code != 200:
-                return None
-            data = res.json()
-            if data.get("query_status") == "listed":
-                threat = data.get("threat", "malware_download")
-                return {
-                    "verdict": "DANGEROUS",
-                    "threat_score": 92,
-                    "threat_type": "malware",
-                    "source": "urlhaus",
-                    "reason_kk": f"URLhaus базасында тіркелген: {threat}",
-                    "reason_ru": f"Найден в базе URLhaus: {threat}",
-                    "reason_en": f"Listed in URLhaus database: {threat}",
-                    "indicators": ["urlhaus_listed"]
-                }
+        res = await get_client().post(
+            "https://urlhaus-api.abuse.ch/v1/url/", data={"url": url}, timeout=8)
+        if res.status_code != 200:
             return None
+        data = res.json()
+        if data.get("query_status") == "listed":
+            threat = data.get("threat", "malware_download")
+            return {
+                "verdict": "DANGEROUS",
+                "threat_score": 92,
+                "threat_type": "malware",
+                "source": "urlhaus",
+                "reason_kk": f"URLhaus базасында тіркелген: {threat}",
+                "reason_ru": f"Найден в базе URLhaus: {threat}",
+                "reason_en": f"Listed in URLhaus database: {threat}",
+                "indicators": ["urlhaus_listed"]
+            }
+        return None
     except Exception:
         return None
 
@@ -154,7 +149,7 @@ async def load_openphish_feed():
 
 
 async def _fetch_feed(client: httpx.AsyncClient, url: str, cap: int | None = None) -> list[str]:
-    res = await client.get(url, headers={"User-Agent": "QalqanAI/1.0"})
+    res = await client.get(url, timeout=15)
     if res.status_code != 200:
         return []
     lines = [ln.strip() for ln in res.text.splitlines()
@@ -169,25 +164,25 @@ async def load_threat_feeds():
     op_urls: set[str] = set()
     domains: set[str] = set()
     counts: dict[str, int] = {}
-    async with httpx.AsyncClient(timeout=15) as client:
-        # OpenPhish (exact URLs, small)
-        try:
-            op = await _fetch_feed(client, "https://openphish.com/feed.txt")
-            op_urls = set(op)
-            op_doms = {extract_domain(u) for u in op_urls if extract_domain(u)}
-            domains |= op_doms
-            counts["openphish"] = len(op_doms)
-        except Exception:
-            pass
-        # URLhaus online bulk feed (large → domain set only, bounded)
-        try:
-            uh = await _fetch_feed(client, "https://urlhaus.abuse.ch/downloads/text_online/",
-                                   cap=_URLHAUS_FEED_CAP)
-            uh_doms = {extract_domain(u) for u in uh if extract_domain(u)}
-            domains |= uh_doms
-            counts["urlhaus"] = len(uh_doms)
-        except Exception:
-            pass
+    client = get_client()
+    # OpenPhish (exact URLs, small)
+    try:
+        op = await _fetch_feed(client, "https://openphish.com/feed.txt")
+        op_urls = set(op)
+        op_doms = {extract_domain(u) for u in op_urls if extract_domain(u)}
+        domains |= op_doms
+        counts["openphish"] = len(op_doms)
+    except Exception:
+        pass
+    # URLhaus online bulk feed (large → domain set only, bounded)
+    try:
+        uh = await _fetch_feed(client, "https://urlhaus.abuse.ch/downloads/text_online/",
+                               cap=_URLHAUS_FEED_CAP)
+        uh_doms = {extract_domain(u) for u in uh if extract_domain(u)}
+        domains |= uh_doms
+        counts["urlhaus"] = len(uh_doms)
+    except Exception:
+        pass
     if op_urls or domains:
         _openphish_urls = op_urls
         _feed_domains = domains

@@ -12,6 +12,8 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from ..utils.http import get_client
+
 logger = logging.getLogger("qalqan")
 
 # IANA RDAP bootstrap — TLD-specific servers for better accuracy
@@ -90,11 +92,10 @@ async def _ip_intel(domain: str) -> dict | None:
     try:
         loop = asyncio.get_running_loop()
         ip = await loop.run_in_executor(None, socket.gethostbyname, domain)
-        async with httpx.AsyncClient(timeout=4) as client:
-            r = await client.get(
-                f"http://ip-api.com/json/{ip}"
-                "?fields=status,country,countryCode,as,org,isp,hosting,proxy,query")
-            d = r.json()
+        r = await get_client().get(
+            f"http://ip-api.com/json/{ip}"
+            "?fields=status,country,countryCode,as,org,isp,hosting,proxy,query", timeout=4)
+        d = r.json()
         if d.get("status") != "success":
             return None
         return {
@@ -207,32 +208,32 @@ async def _get_domain_age_rdap(domain: str) -> int | None:
     if primary != _RDAP_FALLBACK:
         urls_to_try.append(_RDAP_FALLBACK + domain)
 
-    async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
-        for rdap_url in urls_to_try:
-            try:
-                url = rdap_url if rdap_url.endswith(domain) else f"{rdap_url}{domain}"
-                res = await client.get(url)
-                if res.status_code != 200:
-                    continue
-                data = res.json()
-
-                # Prefer "registration", fallback to "last changed" or "expiration" for age calc
-                reg_date = None
-                for action in ("registration", "last changed"):
-                    for event in data.get("events", []):
-                        if event.get("eventAction") == action:
-                            reg_date = event.get("eventDate")
-                            break
-                    if reg_date:
-                        break
-
-                if reg_date:
-                    dt = datetime.fromisoformat(reg_date.replace("Z", "+00:00"))
-                    age = (datetime.now(timezone.utc) - dt).days
-                    return max(age, 0)
-            except Exception as e:
-                logger.debug(f"RDAP error ({rdap_url}): {e}")
+    client = get_client()
+    for rdap_url in urls_to_try:
+        try:
+            url = rdap_url if rdap_url.endswith(domain) else f"{rdap_url}{domain}"
+            res = await client.get(url, timeout=5, follow_redirects=True)
+            if res.status_code != 200:
                 continue
+            data = res.json()
+
+            # Prefer "registration", fallback to "last changed" or "expiration" for age calc
+            reg_date = None
+            for action in ("registration", "last changed"):
+                for event in data.get("events", []):
+                    if event.get("eventAction") == action:
+                        reg_date = event.get("eventDate")
+                        break
+                if reg_date:
+                    break
+
+            if reg_date:
+                dt = datetime.fromisoformat(reg_date.replace("Z", "+00:00"))
+                age = (datetime.now(timezone.utc) - dt).days
+                return max(age, 0)
+        except Exception as e:
+            logger.debug(f"RDAP error ({rdap_url}): {e}")
+            continue
     return None
 
 
