@@ -89,6 +89,9 @@ app = FastAPI(title="Qalqan AI", version="5.1.0",
 from fastapi.middleware.gzip import GZipMiddleware
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
+# Static HTML shells — let the CDN serve them (data loads via AJAX, not cached)
+_HTML_CACHE = {"Cache-Control": "public, max-age=300, s-maxage=600"}
+
 # --- CORS: extension + localhost only (not wildcard) ---
 _ALLOWED_ORIGINS = [
     "chrome-extension://",          # any Chrome extension (prefix match done below)
@@ -331,7 +334,7 @@ async def root(request: Request):
                 "gemini": "configured" if os.getenv("GEMINI_API_KEY") else "missing"
             }
         }
-    return HTMLResponse(content=LANDING_HTML)
+    return HTMLResponse(content=LANDING_HTML, headers=_HTML_CACHE)
 
 
 # (LANDING_HTML moved to templates.py)
@@ -1055,13 +1058,13 @@ async def dashboard_data(req: Request):
 async def dashboard_page():
     """Regulator-facing threat-landscape dashboard (KZ economic-cyber threats)."""
     from fastapi.responses import HTMLResponse
-    return HTMLResponse(DASHBOARD_HTML)
+    return HTMLResponse(DASHBOARD_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/app")
 async def mini_app():
     """Telegram Mini App (Web App): URL checker + AI advisor + KZ threat map."""
-    return HTMLResponse(MINIAPP_HTML)
+    return HTMLResponse(MINIAPP_HTML, headers=_HTML_CACHE)
 
 
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
@@ -1153,13 +1156,13 @@ async def pwa_manifest():
 # --- Installation guide page ---
 @app.get("/install")
 async def install_page():
-    return HTMLResponse(content=INSTALL_HTML)
+    return HTMLResponse(content=INSTALL_HTML, headers=_HTML_CACHE)
 
 
 # --- Mobile PWA (installable, offline-capable app shell) ---
 @app.get("/m")
 async def mobile_app():
-    return HTMLResponse(content=MOBILE_HTML)
+    return HTMLResponse(content=MOBILE_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/sw.js")
@@ -1703,7 +1706,7 @@ async def goszakup_graph_demo():
 @app.get("/goszakup/graph")
 async def goszakup_graph_page():
     from fastapi.responses import HTMLResponse
-    return HTMLResponse(GRAPH_HTML)
+    return HTMLResponse(GRAPH_HTML, headers=_HTML_CACHE)
 
 
 # ── KZ Threat Report ──────────────────────────────────────────────────────────
@@ -1929,7 +1932,7 @@ async def api_v1_phone(request: PhoneRequest, req: Request):
 @app.get("/partners")
 async def partners_docs():
     from fastapi.responses import HTMLResponse
-    return HTMLResponse(PARTNERS_HTML)
+    return HTMLResponse(PARTNERS_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/offline-db")
