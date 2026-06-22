@@ -24,381 +24,316 @@ LANDING_HTML = """<!DOCTYPE html>
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="/favicon.ico">
-<meta name="theme-color" content="#0a0e1a">
+<meta name="theme-color" content="#0a0e16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Qalqan AI","applicationCategory":"SecurityApplication","operatingSystem":"Web, Chrome, Firefox, Android, iOS","offers":{"@type":"Offer","price":"0","priceCurrency":"KZT"},"inLanguage":["kk","ru","en"],"url":"https://qalqan-ai-nu.vercel.app","description":"AI cybersecurity for Kazakhstan: phishing, phone scam, financial pyramids, gambling and procurement-fraud detection."}
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--cyan:#00d4ff;--cyan2:#00b8d9;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--bg:#0a0e1a;--bg2:#0f1629;--card:#131d35;--border:#1e2d4a;--text:#e2e8f0;--muted:#64748b}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
-a{color:var(--cyan);text-decoration:none}
-/* SCANLINE */
-body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.015) 2px,rgba(0,212,255,.015) 4px);pointer-events:none;z-index:0}
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,14,26,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--cyan)}
-.nav-logo svg{width:28px;height:28px}
-.nav-links{display:flex;gap:20px;font-size:14px}
-.nav-links a{color:var(--muted);transition:color .2s}
-.nav-links a:hover{color:var(--cyan)}
-.nav-cta{background:var(--cyan);color:#0a0e1a;padding:7px 16px;border-radius:6px;font-weight:600;font-size:13px;transition:opacity .2s}
-.nav-cta:hover{opacity:.85}
-/* HERO */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:100px 24px 60px}
-.hero-glow{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(ellipse,rgba(0,212,255,.12) 0%,transparent 70%);pointer-events:none}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--cyan);margin-bottom:24px;letter-spacing:.5px}
-.hero-badge span{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
-h1{font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1.1;margin-bottom:20px;background:linear-gradient(135deg,#fff 30%,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.6}
-/* CHECKER */
-.checker{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:600px;margin:0 auto;position:relative}
-.checker-title{font-size:13px;color:var(--muted);margin-bottom:14px;text-align:left;text-transform:uppercase;letter-spacing:1px}
-.checker-row{display:flex;gap:10px}
-.checker-input{flex:1;background:#0a0e1a;border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s}
-.checker-input:focus{border-color:var(--cyan)}
-.checker-input::placeholder{color:var(--muted)}
-.checker-btn{background:var(--cyan);color:#0a0e1a;border:none;border-radius:8px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s;white-space:nowrap}
-.checker-btn:hover{opacity:.85}
-.checker-btn:disabled{opacity:.5;cursor:not-allowed}
-.result-box{margin-top:16px;padding:16px;border-radius:10px;border:1px solid;display:none;text-align:left;animation:fadeUp .2s ease}
-.result-box.safe{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
-.result-box.danger{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
-.result-box.suspicious{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
-.result-verdict{font-size:18px;font-weight:700;margin-bottom:4px}
-.result-detail{font-size:13px;color:var(--muted);line-height:1.5}
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;max-width:900px;margin:60px auto 0;padding:0 24px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center}
-.stat-num{font-size:32px;font-weight:800;color:var(--cyan);font-variant-numeric:tabular-nums}
-.stat-label{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
-/* FEATURES */
-.section{padding:80px 24px;max-width:1100px;margin:0 auto}
-.section-label{font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
-.section-title{font-size:clamp(24px,4vw,40px);font-weight:700;margin-bottom:16px}
-.section-sub{color:var(--muted);font-size:16px;max-width:500px;line-height:1.6}
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px}
-.feat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;transition:border-color .2s,transform .2s}
-.feat-card:hover{border-color:rgba(0,212,255,.35);transform:translateY(-2px)}
-.feat-icon{width:40px;height:40px;border-radius:10px;background:rgba(0,212,255,.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-.feat-icon svg{width:20px;height:20px;stroke:var(--cyan);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.feat-title{font-size:15px;font-weight:600;margin-bottom:8px}
-.feat-desc{font-size:13px;color:var(--muted);line-height:1.6}
-.demo-link{display:block;text-decoration:none;color:inherit}
-.demo-link .feat-title{color:var(--cyan)}
-.demo-arrow{font-size:12px;color:var(--cyan);margin-top:12px;font-weight:600}
-/* PIPELINE */
-.pipeline{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 24px}
-.pipeline-inner{max-width:900px;margin:0 auto}
-.pipeline-steps{display:flex;flex-wrap:wrap;gap:0;margin-top:40px}
-.pipe-step{flex:1;min-width:120px;position:relative;padding:20px 16px;text-align:center}
-.pipe-step:not(:last-child)::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--cyan);font-size:18px}
-.pipe-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--cyan);color:var(--cyan);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
-.pipe-name{font-size:12px;color:var(--muted);font-weight:500}
-/* TELEGRAM */
-.tg-section{padding:80px 24px;text-align:center}
-.tg-card{max-width:500px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px}
-.tg-icon{width:60px;height:60px;background:rgba(0,212,255,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
-.tg-icon svg{width:30px;height:30px;fill:var(--cyan)}
-.tg-title{font-size:22px;font-weight:700;margin-bottom:10px}
-.tg-sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px}
-.tg-btn{display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#0a0e1a;padding:13px 28px;border-radius:10px;font-weight:700;font-size:15px;transition:opacity .2s}
-.tg-btn:hover{opacity:.85;color:#0a0e1a}
-/* TECH STACK */
-.stack-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}
-.stack-tag{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;color:var(--muted);font-family:monospace}
-/* FOOTER */
-footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24px;text-align:center}
-.footer-logo{font-size:20px;font-weight:700;color:var(--cyan);margin-bottom:8px}
-.footer-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
-.footer-links{display:flex;justify-content:center;gap:20px;font-size:13px;flex-wrap:wrap}
-/* ANIMATIONS */
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-/* RESPONSIVE */
-@media(max-width:600px){
-  .nav-links{display:none}
-  .checker-row{flex-direction:column}
-  .pipe-step:not(:last-child)::after{display:none}
+:root{
+  --bg:#0a0e16; --bg2:#0b1019;
+  --surface:rgba(255,255,255,.025); --surface2:rgba(255,255,255,.045);
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14);
+  --text:#e7ebf3; --text2:#aab3c6; --muted:#6f7a8f;
+  --accent:#7aa2f7; --accent2:#6ee7d3; --accent3:#bb9af7;
+  --soft:rgba(122,162,247,.12);
+  --danger:#f7768e; --warn:#e0af68; --ok:#9ece6a;
+  --radius:18px; --maxw:1140px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.aurora{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(1200px 800px at 50% -10%, #101725 0%, var(--bg) 60%)}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+.b1{width:560px;height:560px;background:radial-gradient(circle, rgba(122,162,247,.42), transparent 70%);top:-160px;left:-80px;animation:drift1 26s var(--ease) infinite alternate}
+.b2{width:520px;height:520px;background:radial-gradient(circle, rgba(110,231,211,.30), transparent 70%);top:120px;right:-120px;animation:drift2 30s var(--ease) infinite alternate}
+.b3{width:480px;height:480px;background:radial-gradient(circle, rgba(187,154,247,.26), transparent 70%);top:640px;left:30%;animation:drift3 34s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate(120px,80px) scale(1.1)}}
+@keyframes drift2{to{transform:translate(-100px,60px) scale(1.05)}}
+@keyframes drift3{to{transform:translate(80px,-70px) scale(1.12)}}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+nav{position:fixed;top:14px;left:0;right:0;z-index:50}
+.navbar{max-width:var(--maxw);margin:0 auto;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,18,28,.55);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px}
+.brand svg{width:24px;height:24px}
+.nav-links{display:flex;gap:26px;font-size:14px;color:var(--text2)}
+.nav-links a{transition:color .2s var(--ease)}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:linear-gradient(135deg,var(--accent),#5b87e8);color:#06101f;font-weight:600;font-size:14px;padding:9px 16px;border-radius:11px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(122,162,247,.35)}
+@media(max-width:780px){.nav-links{display:none}}
+.hero{padding:170px 0 80px;text-align:center;position:relative}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(158,206,106,.18)}
+h1{font-size:clamp(40px,7vw,76px);font-weight:800;line-height:1.04;letter-spacing:-.035em;margin-bottom:22px}
+h1 .grad{background:linear-gradient(120deg,var(--accent) 0%,var(--accent2) 55%,var(--accent3) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:clamp(16px,2.2vw,20px);color:var(--text2);max-width:620px;margin:0 auto 38px;line-height:1.6}
+.checker{max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;gap:9px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);transition:border-color .3s var(--ease)}
+.checker:focus-within{border-color:var(--border2)}
+.checker input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:15.5px;padding:13px 16px;font-family:inherit}
+.checker input::placeholder{color:var(--muted)}
+.checker button{background:linear-gradient(135deg,var(--accent),#5b87e8);color:#06101f;border:none;font-weight:700;font-size:14.5px;padding:0 24px;border-radius:12px;cursor:pointer;font-family:inherit;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.checker button:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(122,162,247,.35)}
+.checker button:disabled{opacity:.6;cursor:default;transform:none}
+.result{max-width:560px;margin:16px auto 0;border-radius:14px;border:1px solid var(--border);padding:16px 18px;text-align:left;display:none;animation:rise .5s var(--ease)}
+.result.show{display:block}
+.result.DANGEROUS{border-color:rgba(247,118,142,.4);background:rgba(247,118,142,.06)}
+.result.SUSPICIOUS{border-color:rgba(224,175,104,.4);background:rgba(224,175,104,.06)}
+.result.SAFE{border-color:rgba(158,206,106,.4);background:rgba(158,206,106,.06)}
+.result .rv{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px}
+.result.DANGEROUS .rv{color:var(--danger)}.result.SUSPICIOUS .rv{color:var(--warn)}.result.SAFE .rv{color:var(--ok)}
+.result .rd{font-size:13.5px;color:var(--text2);margin-top:6px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stats{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:48px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 26px;min-width:140px}
+.stat .n{font-size:28px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat .l{font-size:12.5px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+section{position:relative}
+.sec{padding:90px 0}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px}
+.stitle{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:14px}
+.ssub{color:var(--text2);font-size:16px;max-width:560px;margin-bottom:46px}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;position:relative;overflow:hidden;transition:transform .4s var(--ease),border-color .4s var(--ease),background .4s var(--ease)}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0;background:radial-gradient(440px circle at var(--mx,50%) var(--my,0%),rgba(122,162,247,.12),transparent 45%);transition:opacity .4s var(--ease);pointer-events:none}
+.card:hover{border-color:var(--border2);background:var(--surface2)}
+.card:hover::before{opacity:1}
+.card.span3{grid-column:span 3}.card.span2{grid-column:span 2}.card.span6{grid-column:span 6}
+.ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--soft);border:1px solid var(--border);margin-bottom:16px}
+.ic svg{width:22px;height:22px;stroke:var(--accent);fill:none;stroke-width:1.8}
+.card h3{font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+.card p{font-size:14px;color:var(--text2);line-height:1.6}
+.card .arrow{margin-top:16px;font-size:13px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:5px}
+a.card{display:block}
+@media(max-width:900px){.bento{grid-template-columns:repeat(2,1fr)}.card.span3,.card.span2,.card.span6{grid-column:span 1}}
+@media(max-width:560px){.bento{grid-template-columns:1fr}}
+.pipe{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.pstep{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:center;position:relative;transition:transform .4s var(--ease),border-color .4s var(--ease)}
+.pstep:hover{transform:translateY(-3px);border-color:var(--border2)}
+.pstep .pn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin:0 auto 10px;font-weight:700;font-size:14px;color:#06101f;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.pstep .pnm{font-size:13.5px;color:var(--text2);font-weight:500}
+.tg{background:linear-gradient(135deg,rgba(122,162,247,.1),rgba(110,231,211,.06));border:1px solid var(--border);border-radius:24px;padding:54px 32px;text-align:center}
+.tg h3{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+.tg p{color:var(--text2);max-width:440px;margin:0 auto 26px}
+.tg-btn{display:inline-flex;align-items:center;gap:9px;background:#fff;color:#0a0e16;font-weight:700;font-size:15px;padding:14px 26px;border-radius:13px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.tg-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(255,255,255,.16)}
+.pills{display:flex;flex-wrap:wrap;gap:10px}
+.pill{font-size:13px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:8px 15px;border-radius:999px;transition:border-color .3s var(--ease),color .3s var(--ease)}
+.pill:hover{border-color:var(--border2);color:var(--text)}
+footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;text-align:center}
+.flinks{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;font-size:14px;color:var(--text2);margin:18px 0}
+.flinks a{transition:color .2s var(--ease)}.flinks a:hover{color:var(--accent)}
+.fnote{color:var(--muted);font-size:13px;line-height:1.7}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important}
+  .reveal{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+  .card,.pstep{transition:border-color .2s}
 }
 </style>
 </head>
 <body>
-
-<!-- NAV -->
+<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="grain"></div>
 <nav>
-  <div class="nav-logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <polyline points="9 12 11 14 15 10"/>
-    </svg>
-    Qalqan AI
+  <div class="navbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z" stroke="url(#g)" stroke-width="1.6" fill="rgba(122,162,247,.12)"/><defs><linearGradient id="g" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#7aa2f7"/><stop offset="1" stop-color="#6ee7d3"/></linearGradient></defs></svg>
+      Qalqan AI
+    </div>
+    <div class="nav-links">
+      <a href="#features">Функции</a>
+      <a href="#pipeline">Архитектура</a>
+      <a href="#demo">Демо</a>
+      <a href="#tech">Технологии</a>
+    </div>
+    <a class="nav-cta" href="/install">Орнату</a>
   </div>
-  <div class="nav-links">
-    <a href="#features">Функции</a>
-    <a href="#pipeline">Pipeline</a>
-    <a href="#demo">Демо</a>
-    <a href="#telegram">Telegram</a>
-    <a href="#tech">Технологии</a>
-  </div>
-  <a class="nav-cta" href="/install">Орнату</a>
 </nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-glow"></div>
-  <div style="position:relative;z-index:1">
-    <div class="hero-badge"><span></span>v5.1.0 · Қазақстан үшін</div>
-    <h1>Фишингтен<br>AI Қорғанысы</h1>
-    <p class="hero-sub">Qalqan AI — Chrome кеңейтімі, ол барған сайын автоматты тексереді. Фишинг, пирамидалар, гемблинг — бет жүктелмей бұрын бұғаттайды.</p>
-
-    <!-- LIVE CHECKER -->
-    <div class="checker">
-      <div class="checker-title">Сайтты тексеру / Проверить сайт</div>
-      <div class="checker-row">
-        <input class="checker-input" id="urlInput" type="text" placeholder="kaspi-bonus123.kz немесе https://..." autocomplete="off">
-        <button class="checker-btn" id="checkBtn" onclick="checkUrl()">Тексеру</button>
+<header class="hero">
+  <div class="wrap">
+    <div class="badge reveal"><span class="dot"></span>v5.1 · Қазақстан үшін · Open source</div>
+    <h1 class="reveal">Алаяқтықтан<br><span class="grad">AI қорғанысы</span></h1>
+    <p class="lead reveal">Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.</p>
+    <div class="checker reveal">
+      <input id="urlInput" type="text" inputmode="url" placeholder="kaspi-bonus.kz немесе https://..." autocomplete="off" aria-label="URL тексеру">
+      <button id="checkBtn">Тексеру</button>
+    </div>
+    <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
+    <div class="stats reveal">
+      <div class="stat"><div class="n" id="statChecked" data-to="0">—</div><div class="l">Тексерілді</div></div>
+      <div class="stat"><div class="n" id="statBlocked" data-to="0">—</div><div class="l">Бұғатталды</div></div>
+      <div class="stat"><div class="n" id="statDomains" data-to="390" data-suffix="+">390+</div><div class="l">Офлайн база</div></div>
+      <div class="stat"><div class="n" data-to="6">6</div><div class="l">Деңгей</div></div>
+    </div>
+  </div>
+</header>
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="eyebrow reveal">Функционал</div>
+    <h2 class="stitle reveal">Не қорғайды</h2>
+    <p class="ssub reveal">6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.</p>
+    <div class="bento">
+      <div class="card span3 tilt reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>Фишинг сайттары</h3><p>Kaspi, eGov, Halyk Bank клондарын анықтайды — homoglyph (кириллица әріптерін) және typosquat шабуылдарын қоса. Бет жүктелуіне дейін бұғаттайды.</p>
       </div>
-      <div class="result-box" id="resultBox">
-        <div class="result-verdict" id="resultVerdict"></div>
-        <div class="result-detail" id="resultDetail"></div>
+      <div class="card span3 tilt reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 18a9 9 0 0 1 18 0"/><path d="M12 3v3M5 9 7 11M19 9l-2 2"/><circle cx="12" cy="18" r="1.5"/></svg></div>
+        <h3>Телефон алаяқтығы</h3><p>Дауыстық хабарламаны Whisper арқылы транскрипциялап, ҚР скам-паттерндерін табады. #1 қауіп — енді одан қорғаныс бар.</p>
+      </div>
+      <div class="card span2 tilt reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9"/></svg></div>
+        <h3>Қаржылық пирамидалар</h3><p>АФМ реестрі бойынша атау тексеру + Finiko, MMM, HYIP базасы.</p>
+      </div>
+      <div class="card span2 tilt reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></div>
+        <h3>Нелегал гемблинг</h3><p>80+ ҚР-да тыйым салынған сайт. 1xBet, Mostbet — браузерде ашылмайды.</p>
+      </div>
+      <div class="card span2 tilt reveal">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>
+        <h3>Госзакуп фроды</h3><p>Заказчик↔поставщик↔учредитель граф: аффилированность, сговор, картель.</p>
       </div>
     </div>
-
-    <!-- STATS -->
-    <div class="stats" id="statsRow">
-      <div class="stat-card"><div class="stat-num" id="statChecked">—</div><div class="stat-label">Тексерілді</div></div>
-      <div class="stat-card"><div class="stat-num" id="statBlocked">—</div><div class="stat-label">Бұғатталды</div></div>
-      <div class="stat-card"><div class="stat-num" id="statDomains">390+</div><div class="stat-label">Офлайн база</div></div>
-      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Анықтау деңгейі</div></div>
+  </div>
+</section>
+<section class="sec" id="pipeline">
+  <div class="wrap">
+    <div class="eyebrow reveal">Архитектура</div>
+    <h2 class="stitle reveal">6-деңгейлі анықтау</h2>
+    <p class="ssub reveal">Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.</p>
+    <div class="pipe">
+      <div class="pstep reveal"><div class="pn">1</div><div class="pnm">Ақ тізім</div></div>
+      <div class="pstep reveal"><div class="pn">2</div><div class="pnm">Redis кэш</div></div>
+      <div class="pstep reveal"><div class="pn">3</div><div class="pnm">Офлайн DB</div></div>
+      <div class="pstep reveal"><div class="pn">4</div><div class="pnm">KZ Intel</div></div>
+      <div class="pstep reveal"><div class="pn">5</div><div class="pnm">Сыртқы DB + домен</div></div>
+      <div class="pstep reveal"><div class="pn">6</div><div class="pnm">Groq / Gemini AI</div></div>
     </div>
   </div>
 </section>
-
-<!-- FEATURES -->
-<section class="section" id="features">
-  <div class="section-label">Функционал</div>
-  <div class="section-title">Не қорғайды?</div>
-  <p class="section-sub">6 деңгейлі pipeline — 1 мс кеш-тексеруден AI анализіне дейін</p>
-
-  <div class="features-grid">
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-      <div class="feat-title">Фишинг сайттары</div>
-      <div class="feat-desc">Kaspi, eGov, Halyk Bank клондарын анықтайды. Беттің жүктелуіне дейін бұғаттайды.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-      <div class="feat-title">Қаржылық пирамидалар</div>
-      <div class="feat-desc">166+ белгілі пирамида схемасы базасы. Finiko, МММ, HYIP сайттарын автоматты анықтайды.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
-      <div class="feat-title">Нелегал гемблинг</div>
-      <div class="feat-desc">80+ ҚР-да тыйым салынған сайт. 1xbet, Mostbet, Pin-Up — браузерде ашылмайды.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
-      <div class="feat-title">Скриншот анализі</div>
-      <div class="feat-desc">Vision AI арқылы бет скриншотын тексереді. Жасырын алаяқтық элементтерін анықтайды.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-      <div class="feat-title">SMS / Хабарлама тексеру</div>
-      <div class="feat-desc">Алынған SMS немесе хабарламадағы алаяқтық сілтемелерді AI арқылы анализдейді.</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-      <div class="feat-title">Goszakup тендер тексеру</div>
-      <div class="feat-desc">goszakup.gov.kz тендерлерінде алаяқтық белгілерін 10 ереже бойынша анықтайды.</div>
+<section class="sec" id="demo">
+  <div class="wrap">
+    <div class="eyebrow reveal">Демо</div>
+    <h2 class="stitle reveal">Бәрі тірі — ашып көріңіз</h2>
+    <p class="ssub reveal">Жұмыс істеп тұрған платформалар мен панельдер.</p>
+    <div class="bento">
+      <a class="card span2 tilt reveal" href="/dashboard?demo=1">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg></div>
+        <h3>Реттеуші панелі</h3><p>Облыстар бойынша қауіп картасы, динамика, топ домендер.</p><span class="arrow">Ашу →</span>
+      </a>
+      <a class="card span2 tilt reveal" href="/goszakup/graph">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 7l3 9M17 9l-3 7"/></svg></div>
+        <h3>Госзакуп графы</h3><p>Аффилированность, сговор, картель — байланыс графы.</p><span class="arrow">Ашу →</span>
+      </a>
+      <a class="card span2 tilt reveal" href="/m">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></div>
+        <h3>Мобиль қосымша</h3><p>Офлайн жұмыс істейді, телефонға орнатылады (PWA).</p><span class="arrow">Ашу →</span>
+      </a>
+      <a class="card span2 tilt reveal" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 5 3 12l5 2 2 5 3-4 4 3z"/></svg></div>
+        <h3>Telegram бот</h3><p>Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.</p><span class="arrow">Ашу →</span>
+      </a>
+      <a class="card span2 tilt reveal" href="/stats">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <h3>Тірі статистика</h3><p>Нақты деректер: тексерулер, вердиктер, трендтер.</p><span class="arrow">Ашу →</span>
+      </a>
+      <a class="card span2 tilt reveal" href="/feed/kz">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg></div>
+        <h3>KZ Threat Feed</h3><p>Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.</p><span class="arrow">Ашу →</span>
+      </a>
     </div>
   </div>
 </section>
-
-<!-- PIPELINE -->
-<section class="pipeline" id="pipeline">
-  <div class="pipeline-inner">
-    <div class="section-label">Архитектура</div>
-    <div class="section-title">6-деңгейлі анықтау</div>
-    <div class="pipeline-steps">
-      <div class="pipe-step"><div class="pipe-num">1</div><div class="pipe-name">Ақ тізім</div></div>
-      <div class="pipe-step"><div class="pipe-num">2</div><div class="pipe-name">Redis кэш</div></div>
-      <div class="pipe-step"><div class="pipe-num">3</div><div class="pipe-name">Офлайн DB</div></div>
-      <div class="pipe-step"><div class="pipe-num">4</div><div class="pipe-name">KZ Intel</div></div>
-      <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-name">Сыртқы DB + домен</div></div>
-      <div class="pipe-step"><div class="pipe-num">6</div><div class="pipe-name">Groq / Gemini AI</div></div>
+<section class="sec">
+  <div class="wrap">
+    <div class="tg reveal">
+      <h3>Telegram-да тексер</h3>
+      <p>Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.</p>
+      <a class="tg-btn" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0a0e16"><path d="M21 5 3 12l5 2 2 5 3-4 4 3z"/></svg>@QalqanAI_bot ашу
+      </a>
     </div>
   </div>
 </section>
-
-<!-- DEMO / PLATFORMS -->
-<section class="section" id="demo">
-  <div class="section-label">Демо</div>
-  <div class="section-title">Бәрі тірі — ашып көріңіз</div>
-  <p class="section-sub">Жұмыс істеп тұрған платформалар мен панельдер</p>
-  <div class="features-grid">
-    <a class="feat-card demo-link" href="/dashboard?demo=1">
-      <div class="feat-title">📊 Реттеуші панелі</div>
-      <div class="feat-desc">Облыстар бойынша қауіп картасы, динамика, топ қауіпті домендер.</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-    <a class="feat-card demo-link" href="/goszakup/graph">
-      <div class="feat-title">🕸️ Госзакуп фрод графы</div>
-      <div class="feat-desc">Аффилированность, сговор, картель — байланыс графы.</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-    <a class="feat-card demo-link" href="/m">
-      <div class="feat-title">📱 Мобиль қосымша</div>
-      <div class="feat-desc">Офлайн жұмыс істейді, телефон экранына орнатылады (PWA).</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-    <a class="feat-card demo-link" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
-      <div class="feat-title">🤖 Telegram бот</div>
-      <div class="feat-desc">Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-    <a class="feat-card demo-link" href="/stats">
-      <div class="feat-title">📈 Тірі статистика</div>
-      <div class="feat-desc">Нақты деректер: тексерулер, вердиктер, трендтер.</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-    <a class="feat-card demo-link" href="/feed/kz">
-      <div class="feat-title">🌐 KZ Threat Feed</div>
-      <div class="feat-desc">Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.</div>
-      <div class="demo-arrow">Ашу →</div>
-    </a>
-  </div>
-</section>
-
-<!-- TELEGRAM -->
-<section class="tg-section" id="telegram">
-  <div class="tg-card">
-    <div class="tg-icon">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.26 13.561l-2.94-.916c-.64-.203-.654-.64.135-.954l11.566-4.461c.537-.194 1.006.131.873.991z"/>
-      </svg>
+<section class="sec" id="tech">
+  <div class="wrap">
+    <div class="eyebrow reveal">Технологиялар</div>
+    <h2 class="stitle reveal">Стек</h2>
+    <div class="pills reveal">
+      <span class="pill">Python · FastAPI</span><span class="pill">React 19</span><span class="pill">Chrome MV3</span>
+      <span class="pill">Groq llama-3.3-70b</span><span class="pill">Gemini 2.5-flash</span><span class="pill">Whisper</span>
+      <span class="pill">30+ URL features</span><span class="pill">Upstash Redis</span><span class="pill">Supabase</span>
+      <span class="pill">PhishTank · URLhaus</span><span class="pill">Google Safe Browsing</span>
     </div>
-    <div class="tg-title">Telegram Bot</div>
-    <div class="tg-sub">Telegram арқылы кез-келген сілтемені тексер. Пәрмендер: /check, /report, /stats</div>
-    <a class="tg-btn" href="https://t.me/QalqanAI_bot" target="_blank">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="#0a0e1a"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.26 13.561l-2.94-.916c-.64-.203-.654-.64.135-.954l11.566-4.461c.537-.194 1.006.131.873.991z"/></svg>
-      @QalqanAI_bot ашу
-    </a>
   </div>
 </section>
-
-<!-- TECH STACK -->
-<section class="section" id="tech">
-  <div class="section-label">Технологиялар</div>
-  <div class="section-title">Технологиялық стек</div>
-  <div class="stack-grid">
-    <span class="stack-tag">Python 3.11</span>
-    <span class="stack-tag">FastAPI</span>
-    <span class="stack-tag">React 19</span>
-    <span class="stack-tag">Chrome MV3</span>
-    <span class="stack-tag">Groq llama-3.3-70b</span>
-    <span class="stack-tag">Gemini 2.5-flash</span>
-    <span class="stack-tag">30+ URL lexical features</span>
-    <span class="stack-tag">Upstash Redis</span>
-    <span class="stack-tag">Supabase / PostgreSQL</span>
-    <span class="stack-tag">Vercel Serverless</span>
-    <span class="stack-tag">PhishTank API</span>
-    <span class="stack-tag">Google Safe Browsing</span>
-  </div>
-</section>
-
-<!-- FOOTER -->
 <footer>
-  <div class="footer-logo">🛡 Qalqan AI</div>
-  <div class="footer-sub">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1.0</div>
-  <div class="footer-links">
-    <a href="https://github.com/Kennurken/qalqan-ai" target="_blank">GitHub</a>
-    <a href="/m">📱 Мобиль қосымша</a>
-    <a href="/docs">API Docs</a>
-    <a href="/stats">Statistics</a>
-    <a href="/dashboard">Панель регулятора</a>
-    <a href="/goszakup/graph">Граф госзакупок</a>
-    <a href="/partners">API для партнёров</a>
-    <a href="/health">Health</a>
-  </div>
-  <div style="margin-top:16px;font-size:12px;color:var(--muted)">
-    Разработчик: Қыдырбек Елдос Нүркенұлы · Кызылординский университет имени Коркыт ата<br>
-    ДЭР по Кызылординской области · 2026
+  <div class="wrap">
+    <div class="brand" style="justify-content:center">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z" stroke="url(#g2)" stroke-width="1.6" fill="rgba(122,162,247,.12)"/><defs><linearGradient id="g2" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#7aa2f7"/><stop offset="1" stop-color="#6ee7d3"/></linearGradient></defs></svg>
+      Qalqan AI
+    </div>
+    <div class="flinks">
+      <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
+      <a href="/m">Мобилка</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+    </div>
+    <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
 </footer>
-
 <script>
-async function checkUrl() {
-  const input = document.getElementById('urlInput');
-  const btn = document.getElementById('checkBtn');
-  const box = document.getElementById('resultBox');
-  const verdict = document.getElementById('resultVerdict');
-  const detail = document.getElementById('resultDetail');
-
-  let url = input.value.trim();
-  if (!url) return;
-  if (!url.startsWith('http')) url = 'https://' + url;
-
-  btn.disabled = true;
-  btn.textContent = '...';
-  box.style.display = 'none';
-
-  try {
-    const res = await fetch('/check', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({url, lang:'ru'})
+const $=s=>document.querySelector(s);
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%6,5)*60)+'ms';io.observe(el)});
+function countUp(el){
+  const to=+el.dataset.to||0, suf=el.dataset.suffix||'';
+  if(reduce||!to){el.textContent=to.toLocaleString('ru-RU')+suf;return}
+  const dur=1100, t0=performance.now();
+  (function tick(t){const p=Math.min((t-t0)/dur,1);const e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(to*e).toLocaleString('ru-RU')+suf;
+    if(p<1)requestAnimationFrame(tick)})(t0);
+}
+const statIO=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){countUp(e.target);statIO.unobserve(e.target)}})},{threshold:.5});
+document.querySelectorAll('.stat .n[data-to]').forEach(el=>statIO.observe(el));
+if(!reduce){
+  document.querySelectorAll('.tilt').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      card.style.transform=`perspective(900px) rotateX(${(py-.5)*-5}deg) rotateY(${(px-.5)*5}deg) translateY(-4px)`;
+      card.style.setProperty('--mx',px*100+'%');card.style.setProperty('--my',py*100+'%');
     });
-    const data = await res.json();
-
-    box.className = 'result-box';
-    const v = data.verdict || 'UNKNOWN';
-    const score = data.threat_score || 0;
-
-    if (v === 'SAFE') {
-      box.classList.add('safe');
-      verdict.textContent = '✓ БЕЗОПАСНО (' + score + '/100)';
-      verdict.style.color = '#22c55e';
-    } else if (v === 'DANGEROUS') {
-      box.classList.add('danger');
-      verdict.textContent = '✗ ОПАСНО (' + score + '/100)';
-      verdict.style.color = '#ef4444';
-    } else {
-      box.classList.add('suspicious');
-      verdict.textContent = '⚠ ПОДОЗРИТЕЛЬНО (' + score + '/100)';
-      verdict.style.color = '#f59e0b';
-    }
-
-    detail.textContent = data.detail_ru || data.detail || data.detail_kk || '';
-    box.style.display = 'block';
-  } catch(e) {
-    box.className = 'result-box suspicious';
-    box.style.display = 'block';
-    verdict.textContent = 'Ошибка соединения';
-    verdict.style.color = '#f59e0b';
-    detail.textContent = e.message;
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Тексеру';
+    card.addEventListener('mouseleave',()=>{card.style.transform=''});
+  });
 }
-
-document.getElementById('urlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') checkUrl();
-});
-
-// Load stats
-async function loadStats() {
-  try {
-    const res = await fetch('/stats');
-    const data = await res.json();
-    const t = data.today || {};
-    const el = id => document.getElementById(id);
-    if (t.total_checks) el('statChecked').textContent = t.total_checks.toLocaleString();
-    if (t.dangerous_blocked) el('statBlocked').textContent = t.dangerous_blocked.toLocaleString();
-  } catch {}
+const box=$('#resultBox'),verdict=$('#resultVerdict'),detail=$('#resultDetail'),btn=$('#checkBtn'),input=$('#urlInput');
+async function runCheck(){
+  const url=input.value.trim(); if(!url)return;
+  btn.disabled=true; const old=btn.textContent; btn.textContent='...';
+  try{
+    const res=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:'kk'})});
+    const d=await res.json();
+    box.className='result show '+(d.verdict||'SUSPICIOUS');
+    const ic=d.verdict==='DANGEROUS'?'⛔':d.verdict==='SUSPICIOUS'?'⚠':'✓';
+    verdict.textContent=ic+'  '+(d.verdict||'')+' · '+(d.threat_score||0)+'/100';
+    detail.textContent=d.detail||d.detail_kk||'';
+  }catch(e){box.className='result show SUSPICIOUS';verdict.textContent='⚠  Қате';detail.textContent='Кейінірек қайталаңыз';}
+  btn.disabled=false; btn.textContent=old;
 }
-loadStats();
+btn.addEventListener('click',runCheck);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')runCheck()});
+fetch('/stats').then(r=>r.json()).then(t=>{
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null){el.dataset.to=v;countUp(el)}};
+  set('statChecked',t.total_checks); set('statBlocked',t.dangerous_blocked??t.dangerous);
+}).catch(()=>{});
 </script>
 </body>
 </html>"""
