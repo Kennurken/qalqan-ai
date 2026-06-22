@@ -346,7 +346,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Панель регулятора</title>
 <style>
-:root{--bg:#0a0e1a;--panel:#111827;--panel2:#0d1424;--cyan:#00d4ff;--red:#ff3b5c;--amber:#ffb020;--green:#22c55e;--tx:#e6edf6;--mut:#7d8aa0;--bd:#1e293b}
+:root{--bg:#0a0e16;--panel:#111827;--panel2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:24px;max-width:1280px;margin:0 auto}
 a{color:var(--cyan);text-decoration:none}
@@ -382,7 +382,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .kzt b{font-size:13px;font-variant-numeric:tabular-nums}
 .kzt .rn{font-size:9px;white-space:nowrap;opacity:.85}
 .maplegend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:10px}
-.maplegend .grad{height:10px;width:120px;border-radius:5px;background:linear-gradient(90deg,#0d1424,#ff3b5c)}
+.maplegend .grad{height:10px;width:120px;border-radius:5px;background:linear-gradient(90deg,#0d1424,#f7768e)}
 @media(max-width:820px){.grid{grid-template-columns:1fr}.kzmap{grid-template-rows:repeat(5,40px)}}
 </style>
 </head>
@@ -408,7 +408,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
     <div class="card">
       <h3>Динамика проверок и угроз (30 дней)</h3>
       <svg id="line" viewBox="0 0 640 220" style="width:100%;height:auto"></svg>
-      <div class="legend"><span><span class="dot" style="background:#00d4ff"></span>Всего проверок</span><span><span class="dot" style="background:#ff3b5c"></span>Угрозы (опасн.+подозр.)</span></div>
+      <div class="legend"><span><span class="dot" style="background:#7aa2f7"></span>Всего проверок</span><span><span class="dot" style="background:#f7768e"></span>Угрозы (опасн.+подозр.)</span></div>
     </div>
     <div class="card">
       <h3>🔴 Топ опасных доменов</h3>
@@ -457,13 +457,13 @@ function renderLine(series){
   const path=arr=>arr.map((s,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(s).toFixed(1)}`).join(' ');
   const grid=[0,.25,.5,.75,1].map(f=>`<line x1="${pad}" y1="${H-pad-f*(H-2*pad)}" x2="${W-pad}" y2="${H-pad-f*(H-2*pad)}" stroke="#1e293b" stroke-width="1"/>`).join('');
   $('line').innerHTML = grid +
-    `<path d="${path(series.map(s=>s.total))}" fill="none" stroke="#00d4ff" stroke-width="2.5"/>`+
-    `<path d="${path(series.map(s=>s.threats))}" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>`+
+    `<path d="${path(series.map(s=>s.total))}" fill="none" stroke="#7aa2f7" stroke-width="2.5"/>`+
+    `<path d="${path(series.map(s=>s.threats))}" fill="none" stroke="#f7768e" stroke-width="2.5"/>`+
     `<text x="${pad}" y="14" fill="#7d8aa0" font-size="11">${fmt(mx)}</text>`;
 }
 
 function renderDonut(vd){
-  const order=[['DANGEROUS','#ff3b5c'],['SUSPICIOUS','#ffb020'],['SAFE','#22c55e']];
+  const order=[['DANGEROUS','#f7768e'],['SUSPICIOUS','#e0af68'],['SAFE','#9ece6a']];
   const total=Object.values(vd||{}).reduce((a,b)=>a+b,0)||1;
   let a0=-Math.PI/2, svg='', leg='';
   for(const [k,c] of order){
@@ -498,7 +498,7 @@ function renderMap(regions){
   for(const [name,p] of Object.entries(KZ_LAYOUT)){
     const r=regions[name]||{total:0,threats:0};
     const frac=Math.min(1,(r.threats||0)/mx);
-    const col=frac>0.45?'#fff':'#e6edf6';
+    const col=frac>0.45?'#fff':'#e7ebf3';
     html+=`<div class="kzt" style="grid-column:${p.c};grid-row:${p.r};background:${heat(frac)};color:${col}" title="${name}: ${r.threats} қауіп / ${r.total} тексеру"><span class="rn">${name}</span><b>${r.threats||0}</b></div>`;
   }
   $('kzmap').innerHTML=html;
@@ -535,27 +535,27 @@ INSTALL_HTML = """<!DOCTYPE html>
 <meta property="og:description" content="Пошаговая инструкция установки Qalqan AI в Chrome и Firefox">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0e1a;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+body{background:#0a0e16;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
 .navbar{background:rgba(10,14,26,.95);border-bottom:1px solid #1e2d4a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
-.logo{color:#00d4ff;font-weight:700;font-size:18px;text-decoration:none}
-a{color:#00d4ff}
+.logo{color:#7aa2f7;font-weight:700;font-size:18px;text-decoration:none}
+a{color:#7aa2f7}
 .page{max-width:800px;margin:0 auto;padding:48px 24px}
 h1{font-size:32px;font-weight:800;margin-bottom:8px}
 .subtitle{color:#64748b;margin-bottom:48px}
 .tab-bar{display:flex;gap:4px;margin-bottom:32px;background:#0f1629;border-radius:10px;padding:4px}
 .tab{flex:1;text-align:center;padding:10px;border-radius:7px;cursor:pointer;font-size:14px;font-weight:600;color:#64748b;transition:all .2s}
-.tab.active{background:#131d35;color:#00d4ff}
+.tab.active{background:#131d35;color:#7aa2f7}
 .panel{display:none}
 .panel.active{display:block}
 .step{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start}
-.step-num{width:36px;height:36px;border-radius:50%;background:rgba(0,212,255,.1);border:2px solid rgba(0,212,255,.3);color:#00d4ff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-num{width:36px;height:36px;border-radius:50%;background:rgba(122,162,247,.1);border:2px solid rgba(122,162,247,.3);color:#7aa2f7;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
 .step-body h3{font-size:15px;font-weight:600;margin-bottom:6px}
 .step-body p{font-size:14px;color:#94a3b8;line-height:1.6}
-code{background:#131d35;border:1px solid #1e2d4a;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:13px;color:#00d4ff}
-.dl-btn{display:inline-flex;align-items:center;gap:8px;background:#00d4ff;color:#0a0e1a;padding:13px 28px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;margin:12px 0}
+code{background:#131d35;border:1px solid #1e2d4a;border-radius:4px;padding:2px 7px;font-family:monospace;font-size:13px;color:#7aa2f7}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;background:#7aa2f7;color:#0a0e16;padding:13px 28px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;margin:12px 0}
 .dl-btn:hover{opacity:.85}
-.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#f59e0b;margin:16px 0}
-.note{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8;margin:16px 0}
+.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#e0af68;margin:16px 0}
+.note{background:rgba(122,162,247,.06);border:1px solid rgba(122,162,247,.15);border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8;margin:16px 0}
 </style></head>
 <body>
 <div class="navbar">
@@ -661,7 +661,7 @@ MINIAPP_HTML = """<!DOCTYPE html>
 <title>Qalqan AI</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{--bg:#0a0e1a;--card:#111827;--card2:#0d1424;--cyan:#00d4ff;--red:#ff3b5c;--amber:#ffb020;--green:#22c55e;--tx:#e6edf6;--mut:#7d8aa0;--bd:#1e293b}
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:14px;min-height:100vh}
 .hd{display:flex;align-items:center;gap:8px;margin-bottom:14px}
@@ -784,7 +784,7 @@ async function loadMap(){
     $('#kzmap').innerHTML=top.map(([nm,r])=>{
       const f=Math.min(1,(r.threats||0)/mx);
       const c=`rgb(${Math.round(13+(255-13)*f)},${Math.round(20+(59-20)*f)},${Math.round(36+(92-36)*f)})`;
-      return `<div class="kzt" style="background:${c};color:${f>.45?'#fff':'#e6edf6'}">${nm}<b>${r.threats||0}</b></div>`;
+      return `<div class="kzt" style="background:${c};color:${f>.45?'#fff':'#e7ebf3'}">${nm}<b>${r.threats||0}</b></div>`;
     }).join('');
   }catch(e){ $('#kzmap').innerHTML='<div class="spin">Қате</div>'; }
 }
@@ -797,7 +797,7 @@ GRAPH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Граф госзакупок</title>
 <style>
-:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#7d8aa0;--cyan:#00d4ff;--red:#ef4444}
+:root{--bg:#0a0e16;--panel:#111827;--bd:#1e293b;--tx:#e7ebf3;--mut:#7d8aa0;--cyan:#7aa2f7;--red:#f7768e}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px;max-width:1280px;margin:0 auto}
 a{color:var(--cyan);text-decoration:none}
@@ -811,7 +811,7 @@ svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .risk{font-size:15px;margin-bottom:12px}
 .risk b{color:var(--red);font-size:20px}
-.DANGEROUS{color:var(--red);font-weight:800}.SUSPICIOUS{color:#f59e0b;font-weight:800}.SAFE{color:#22c55e;font-weight:800}
+.DANGEROUS{color:var(--red);font-weight:800}.SUSPICIOUS{color:#e0af68;font-weight:800}.SAFE{color:#9ece6a;font-weight:800}
 .finding{font-size:13px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
 .finding .sc{color:var(--red);font-weight:800;font-variant-numeric:tabular-nums}
 .foot{color:var(--mut);font-size:12px;margin-top:20px;text-align:center}
@@ -826,19 +826,19 @@ svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
   <div class="card">
     <svg id="graph" viewBox="0 0 900 600"></svg>
     <div class="legend">
-      <span><span class="dot" style="background:#00d4ff"></span>Заказчик</span>
-      <span><span class="dot" style="background:#a855f7"></span>Поставщик</span>
-      <span><span class="dot" style="background:#f59e0b"></span>Учредитель</span>
-      <span><span class="dot" style="background:#22c55e"></span>Адрес</span>
-      <span><span class="dot" style="background:#ef4444"></span>Чиновник</span>
-      <span><span class="dot" style="background:#ef4444"></span>— красная связь = подозрение</span>
+      <span><span class="dot" style="background:#7aa2f7"></span>Заказчик</span>
+      <span><span class="dot" style="background:#bb9af7"></span>Поставщик</span>
+      <span><span class="dot" style="background:#e0af68"></span>Учредитель</span>
+      <span><span class="dot" style="background:#9ece6a"></span>Адрес</span>
+      <span><span class="dot" style="background:#f7768e"></span>Чиновник</span>
+      <span><span class="dot" style="background:#f7768e"></span>— красная связь = подозрение</span>
     </div>
   </div>
   <div class="card"><h3 style="font-size:14px;margin-bottom:12px">🚩 Найденные схемы</h3><div id="findings"></div></div>
 </div>
 <div class="foot">Qalqan AI · граф строится из данных закупок (заказчик↔поставщик↔учредитель↔адрес↔чиновник)</div>
 <script>
-const COL={customer:'#00d4ff',supplier:'#a855f7',founder:'#f59e0b',address:'#22c55e',official:'#ef4444'};
+const COL={customer:'#7aa2f7',supplier:'#bb9af7',founder:'#e0af68',address:'#9ece6a',official:'#f7768e'};
 fetch('/goszakup/graph/demo').then(r=>r.json()).then(render).catch(()=>{document.getElementById('findings').textContent='Ошибка загрузки';});
 function render(g){
   document.getElementById('src').textContent = (g._source==='demo'?'демо-сценарий':'данные');
@@ -853,11 +853,11 @@ function render(g){
     nodes.forEach(n=>{n.vx+=(W/2-n.x)*0.002;n.vy+=(H/2-n.y)*0.002;n.x+=Math.max(-8,Math.min(8,n.vx));n.y+=Math.max(-8,Math.min(8,n.vy));n.vx*=0.84;n.vy*=0.84;n.x=Math.max(40,Math.min(W-40,n.x));n.y=Math.max(34,Math.min(H-24,n.y));});
   }
   let s='';
-  edges.forEach(e=>{const a=by[e.source],b=by[e.target];if(!a||!b)return;const c=e.risk?'#ef4444':'#334155';
+  edges.forEach(e=>{const a=by[e.source],b=by[e.target];if(!a||!b)return;const c=e.risk?'#f7768e':'#334155';
     s+=`<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${c}" stroke-width="${e.risk?2.6:1}" ${e.risk?'stroke-dasharray="5 3"':''}/>`;});
   nodes.forEach(n=>{const c=COL[n.type]||'#888',r=(n.type==='customer'||n.type==='supplier')?13:8;
-    s+=`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}" fill="${c}" stroke="${n.risk?'#ef4444':'#0a0e1a'}" stroke-width="${n.risk?3:1.5}"/>`;
-    s+=`<text x="${n.x.toFixed(1)}" y="${(n.y-r-5).toFixed(1)}" fill="#e6edf6" font-size="10" text-anchor="middle">${(n.label||'').slice(0,22)}</text>`;});
+    s+=`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}" fill="${c}" stroke="${n.risk?'#f7768e':'#0a0e16'}" stroke-width="${n.risk?3:1.5}"/>`;
+    s+=`<text x="${n.x.toFixed(1)}" y="${(n.y-r-5).toFixed(1)}" fill="#e7ebf3" font-size="10" text-anchor="middle">${(n.label||'').slice(0,22)}</text>`;});
   document.getElementById('graph').innerHTML=s;
   let f=`<div class="risk">Риск: <b>${g.risk_score}/100</b> · <span class="${g.verdict}">${g.verdict}</span></div>`;
   f+=(g.findings||[]).map(x=>`<div class="finding"><span class="sc">+${x.score}</span><span>${x.ru}</span></div>`).join('');
@@ -873,12 +873,12 @@ MOBILE_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Qalqan AI</title>
-<meta name="theme-color" content="#0a0e1a">
+<meta name="theme-color" content="#0a0e16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest">
 <style>
-:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#8194ad;--cyan:#00d4ff;--red:#ef4444;--amber:#f59e0b;--green:#22c55e}
+:root{--bg:#0a0e16;--panel:#111827;--bd:#1e293b;--tx:#e7ebf3;--mut:#8194ad;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
 header{position:sticky;top:0;z-index:10;background:rgba(10,14,26,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between}
@@ -983,7 +983,7 @@ addEventListener('online',netState);addEventListener('offline',netState);netStat
 // history
 function getHist(){try{return JSON.parse(localStorage.getItem('qh')||'[]')}catch(e){return[]}}
 function pushHist(u,v,s){const h=getHist();h.unshift({u,v,s,t:Date.now()});localStorage.setItem('qh',JSON.stringify(h.slice(0,30)));}
-function vcolor(v){return v==='DANGEROUS'?'#ef4444':v==='SUSPICIOUS'?'#f59e0b':'#22c55e'}
+function vcolor(v){return v==='DANGEROUS'?'#f7768e':v==='SUSPICIOUS'?'#e0af68':'#9ece6a'}
 function renderHist(){const h=getHist();$('#hist').innerHTML=h.length?h.map(x=>`<div class="hist"><span class="u">${x.u}</span><span style="display:flex;gap:7px;align-items:center"><b style="color:${vcolor(x.v)}">${x.s}</b><span class="dot2" style="background:${vcolor(x.v)}"></span></span></div>`).join(''):'<div class="muted">Тексерулер әзірге жоқ</div>';}
 
 function showRes(el,v,score,detail,flags){
@@ -1085,7 +1085,7 @@ PARTNERS_HTML = """<!DOCTYPE html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Партнёрский API (B2G)</title>
 <style>
-:root{--bg:#0a0e1a;--panel:#111827;--bd:#1e293b;--tx:#e6edf6;--mut:#8194ad;--cyan:#00d4ff;--green:#22c55e}
+:root{--bg:#0a0e16;--panel:#111827;--bd:#1e293b;--tx:#e7ebf3;--mut:#8194ad;--cyan:#7aa2f7;--green:#9ece6a}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:24px;max-width:860px;margin:0 auto;line-height:1.6}
 a{color:var(--cyan);text-decoration:none}
