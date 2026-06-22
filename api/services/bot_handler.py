@@ -369,7 +369,7 @@ async def handle_check(chat_id: int, url: str, message_id: int | None = None):
             except Exception as e:
                 logger.debug(f"screenshot send failed: {e}")
     except Exception as e:
-        logger.error(f"Bot check error for {url}: {e}")
+        logger.error(f"Bot check error for {url.split('?')[0][:80]}: {e}")
         await send_message(chat_id,
             f"❌ Тексеру қатесі: <code>{_esc(str(e)[:100])}</code>",
             reply_to=message_id)

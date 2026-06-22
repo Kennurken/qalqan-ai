@@ -746,7 +746,7 @@ async def check_batch(request: BatchRequest, req: Request):
             await set_cached(key, r)
             return {**r, "url": url}
         except Exception as e:
-            logger.error(f"Batch check error for {url}: {e}")
+            logger.error(f"Batch check error for {extract_domain(url)}: {e}")
             return {"url": url, "verdict": "SUSPICIOUS", "threat_score": 50, "error": str(e)[:100]}
 
     results = await asyncio.gather(*[_check_one(u) for u in urls])
