@@ -1693,8 +1693,10 @@ async def goszakup_check_tender(tender_number: str, req: Request):
 
 
 class GraphRequest(BaseModel):
-    companies: list[dict] = Field(default_factory=list)
-    tenders: list[dict] = Field(default_factory=list)
+    # Bounded — build_fraud_graph has O(n²) pair/cartel loops; cap inputs to
+    # prevent a single huge request from pinning a worker.
+    companies: list[dict] = Field(default_factory=list, max_length=300)
+    tenders: list[dict] = Field(default_factory=list, max_length=1000)
 
 
 @app.post("/goszakup/graph")

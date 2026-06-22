@@ -46,3 +46,9 @@ def test_graph_endpoints():
     assert client.get("/goszakup/graph").status_code == 200
     r = client.post("/goszakup/graph", json={"companies": [], "tenders": []})
     assert r.status_code == 200 and r.json()["verdict"] == "SAFE"
+
+
+def test_graph_input_bounded():
+    # over the 300-company cap → 422 (DoS guard against O(n²) graph build)
+    big = {"companies": [{"bin": str(i)} for i in range(400)], "tenders": []}
+    assert client.post("/goszakup/graph", json=big).status_code == 422
