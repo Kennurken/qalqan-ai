@@ -80,6 +80,51 @@ def _result_keyboard(domain: str) -> dict | None:
     return {"inline_keyboard": rows} if rows else None
 
 
+def _main_menu() -> dict:
+    """Persistent reply keyboard — tappable menu under the input field."""
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    return {
+        "keyboard": [
+            [{"text": "🔍 Сілтеме тексеру"}, {"text": "📞 Телефон"}],
+            [{"text": "💬 SMS / мәтін"}, {"text": "🏛 Пирамида"}],
+            [{"text": "🎙 AI кеңесші"}, {"text": "📊 Статистика"}],
+            [{"text": "📱 Қосымша", "web_app": {"url": f"{base}/app"}}, {"text": "ℹ️ Көмек"}],
+        ],
+        "resize_keyboard": True, "is_persistent": True,
+        "input_field_placeholder": "Сілтеме жіберіңіз немесе мәзірден таңдаңыз",
+    }
+
+
+# Menu-button label → guiding prompt (user taps, bot tells what to send next)
+_MENU_PROMPTS = {
+    "🔍 Сілтеме тексеру": "🔍 Тексеретін сілтемені жіберіңіз:\n<code>kaspi-bonus.kz</code>",
+    "📞 Телефон": "📞 Нөмірді жіберіңіз:\n<code>/phone +7 777 123 45 67</code>",
+    "💬 SMS / мәтін": "💬 SMS мәтінін жіберіңіз:\n<code>/sms Сіз 1 000 000 ₸ ұтып алдыңыз...</code>",
+    "🏛 Пирамида": "🏛 Компания атауын жіберіңіз:\n<code>/pyramid Финико</code>",
+    "🎙 AI кеңесші": "🎙 Жағдайды сипаттаңыз:\n<code>/ask банктен қоңырау, SMS код сұрап жатыр</code>",
+}
+
+
+async def register_bot_ui() -> None:
+    """Register the / command menu + the blue Menu button (opens the Mini App).
+    Called once after set-webhook."""
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    await _tg("setMyCommands", {"commands": [
+        {"command": "check", "description": "URL тексеру"},
+        {"command": "phone", "description": "Телефон нөмірін тексеру"},
+        {"command": "sms", "description": "SMS алаяқтығын тексеру"},
+        {"command": "pyramid", "description": "Қаржы пирамидасын тексеру (АФМ)"},
+        {"command": "ask", "description": "AI-кеңесші"},
+        {"command": "tender", "description": "Тендер фрод тексеру"},
+        {"command": "report", "description": "Алаяқтықты хабарлау"},
+        {"command": "app", "description": "Қосымшаны ашу"},
+        {"command": "stats", "description": "Статистика"},
+        {"command": "help", "description": "Көмек"},
+    ]})
+    await _tg("setChatMenuButton", {"menu_button": {
+        "type": "web_app", "text": "Qalqan AI", "web_app": {"url": f"{base}/app"}}})
+
+
 async def _resolve_redirects(url: str, max_hops: int = 5) -> list[str]:
     """Follow redirects (short-link unmasking). Returns the hop chain incl. final URL."""
     chain: list[str] = []
@@ -303,7 +348,7 @@ async def handle_start(chat_id: int, first_name: str = ""):
         f"💡 Немесе жай URL жіберіңіз — автоматты тексереді!\n\n"
         f"<i>🇰🇿 Қазақстанды онлайн алаяқтықтан қорғаймыз</i>"
     )
-    await send_message(chat_id, text)
+    await send_message(chat_id, text, reply_markup=_main_menu())
 
 
 async def handle_help(chat_id: int):
@@ -764,6 +809,15 @@ async def dispatch(update: dict) -> None:
 
     if not text:
         return
+
+    # ── Reply-keyboard menu taps ──
+    if text in _MENU_PROMPTS:
+        await send_message(chat_id, _MENU_PROMPTS[text], reply_to=message_id)
+        return
+    if text == "📊 Статистика":
+        await handle_stats(chat_id); return
+    if text == "ℹ️ Көмек":
+        await handle_help(chat_id); return
 
     # ── Command routing ──
     if text.startswith("/start"):

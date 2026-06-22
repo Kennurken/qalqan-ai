@@ -1644,7 +1644,11 @@ async def set_telegram_webhook(req: Request):
             )
             data = res.json()
         logger.info(f"Telegram setWebhook: {data}")
-        return {"ok": data.get("ok"), "webhook_url": webhook_url, "telegram_response": data}
+        # Also register the / command menu + Menu button (Mini App)
+        from .services.bot_handler import register_bot_ui
+        await register_bot_ui()
+        return {"ok": data.get("ok"), "webhook_url": webhook_url,
+                "ui_registered": True, "telegram_response": data}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
