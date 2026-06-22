@@ -129,11 +129,11 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .flinks{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;font-size:14px;color:var(--text2);margin:18px 0}
 .flinks a{transition:color .2s var(--ease)}.flinks a:hover{color:var(--accent)}
 .fnote{color:var(--muted);font-size:13px;line-height:1.7}
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
-.reveal.in{opacity:1;transform:none}
+.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.js .reveal.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important}
-  .reveal{opacity:1;transform:none;transition:none}
+  .js .reveal{opacity:1;transform:none;transition:none}
   html{scroll-behavior:auto}
   .card,.pstep{transition:border-color .2s}
 }
@@ -289,6 +289,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
   </div>
 </footer>
 <script>
+document.documentElement.classList.add('js');
 const $=s=>document.querySelector(s);
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
