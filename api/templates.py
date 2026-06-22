@@ -169,6 +169,20 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .ibanner b{font-size:14px;display:block}.ibanner .it{font-size:12.5px;color:var(--text2)}
 .ibanner button{border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;padding:9px 15px;border-radius:10px}
 .ib-yes{background:var(--accent);color:#06101f}.ib-no{background:transparent;color:var(--muted)}
+.faq{max-width:760px}
+.fq{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .3s var(--ease)}
+.fq[open]{border-color:var(--border2)}
+.fq summary{list-style:none;cursor:pointer;padding:18px 22px;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.fq summary::-webkit-details-marker{display:none}
+.fq summary i{width:18px;height:18px;flex:0 0 auto;position:relative}
+.fq summary i::before,.fq summary i::after{content:"";position:absolute;background:var(--accent);border-radius:2px}
+.fq summary i::before{top:8px;left:0;width:18px;height:2px}
+.fq summary i::after{top:0;left:8px;width:2px;height:18px;transition:transform .3s var(--ease)}
+.fq[open] summary i::after{transform:scaleY(0)}
+.fa{padding:0 22px 20px;color:var(--text2);font-size:14px;line-height:1.65}
+.fq[open] .fa{animation:fadein .35s var(--ease)}
+@keyframes fadein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.fa code{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -187,6 +201,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#pipeline">Архитектура</a>
       <a href="#demo">Демо</a>
       <a href="#tech">Технологии</a>
+      <a href="#faq">FAQ</a>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <button class="theme-btn" id="themeBtn" aria-label="Тема ауыстыру" title="Light / Dark"></button>
@@ -323,6 +338,22 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <span class="pill">Groq llama-3.3-70b</span><span class="pill">Gemini 2.5-flash</span><span class="pill">Whisper</span>
       <span class="pill">30+ URL features</span><span class="pill">Upstash Redis</span><span class="pill">Supabase</span>
       <span class="pill">PhishTank · URLhaus</span><span class="pill">Google Safe Browsing</span>
+    </div>
+  </div>
+</section>
+<section class="sec" id="faq">
+  <div class="wrap">
+    <div class="eyebrow reveal">Сұрақ-жауап</div>
+    <h2 class="stitle reveal">Жиі қойылатын сұрақтар</h2>
+    <p class="ssub reveal">Нақты жауаптар — артық сөзсіз.</p>
+    <div class="faq reveal">
+      <details class="fq"><summary>Тегін бе?<i></i></summary><div class="fa">Иә, азаматтарға толық тегін — жасырын ақы жоқ. Монетизация: банк пен реттеушіге арналған B2G API (<code>/v1</code>).</div></details>
+      <details class="fq"><summary>Менің деректерім қауіпсіз бе?<i></i></summary><div class="fa">Сілтеме мен IP тек SHA-256 хэш түрінде сақталады — шикі дерек ешқашан жазылмайды. URL query-параметрлері логқа түспейді. Барлық агрегация анонимді.</div></details>
+      <details class="fq"><summary>Қалай жұмыс істейді?<i></i></summary><div class="fa">6 деңгейлі pipeline: ақ тізім → Redis кэш → офлайн-база → KZ intel (бренд/пирамида/гемблинг) → сыртқы БД + домен анализі → Groq/Gemini AI. Қауіпті сайт бет жүктелмей тұрып бұғатталады.</div></details>
+      <details class="fq"><summary>Қандай қауіптерді анықтайды?<i></i></summary><div class="fa">Фишинг (homoglyph/typosquat қоса), телефон/SMS алаяқтығы, қаржы пирамидалары (АФМ реестрі), нелегал гемблинг, госзакуп фроды (граф), дауыс-скам (Whisper). Офлайн-база: 390+ домен, тірі threat-feed: 1800+ домен.</div></details>
+      <details class="fq"><summary>Қай тілдерде?<i></i></summary><div class="fa">Қазақша, орысша, ағылшынша — детекция да, түсіндірме де үш тілде.</div></details>
+      <details class="fq"><summary>Интернетсіз жұмыс істей ме?<i></i></summary><div class="fa">Иә. Мобиль қосымша (PWA) мен браузер кеңейтімі офлайн-базамен жұмыс істейді — желісіз де негізгі тексеру жүреді.</div></details>
+      <details class="fq"><summary>Банктер/реттеушілер қалай қосыла алады?<i></i></summary><div class="fa">B2G API: <code>X-API-Key</code> арқылы <code>/v1/check</code>, <code>/v1/batch</code>, <code>/v1/phone</code>. <code>/v1/contribute</code> арқылы CERT/банктер ортақ қауіп-базасын толтырады (federated).</div></details>
     </div>
   </div>
 </section>
