@@ -13,7 +13,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -181,6 +181,14 @@ async def log_requests(request: Request, call_next):
 
 
 # --- Global Exception Handler ---
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    if "text/html" in request.headers.get("accept", ""):
+        return HTMLResponse(NOTFOUND_HTML, status_code=404,
+                            headers={"Cache-Control": "public, max-age=300"})
+    return JSONResponse(status_code=404, content={"error": "not_found", "path": request.url.path})
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))

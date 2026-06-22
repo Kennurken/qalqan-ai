@@ -72,7 +72,8 @@ nav{position:fixed;top:14px;left:0;right:0;z-index:50}
 .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(158,206,106,.18)}
 h1{font-size:clamp(40px,7vw,76px);font-weight:800;line-height:1.04;letter-spacing:-.035em;margin-bottom:22px}
-h1 .grad{background:linear-gradient(120deg,var(--accent) 0%,var(--accent2) 55%,var(--accent3) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+h1 .grad{background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3),var(--accent2));background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 7s linear infinite}
+@keyframes shimmer{to{background-position:220% center}}
 .lead{font-size:clamp(16px,2.2vw,20px);color:var(--text2);max-width:620px;margin:0 auto 38px;line-height:1.6}
 .checker{max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;gap:9px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);transition:border-color .3s var(--ease)}
 .checker:focus-within{border-color:var(--border2)}
@@ -137,10 +138,42 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
   .js .reveal{opacity:1;transform:none;transition:none}
   html{scroll-behavior:auto}
   .card,.pstep{transition:border-color .2s}
+  .grad{animation:none!important}
+  .packet{display:none}
 }
+.skip{position:fixed;top:-60px;left:14px;z-index:100;background:var(--accent);color:#06101f;padding:9px 16px;border-radius:10px;font-weight:600;transition:top .25s var(--ease)}
+.skip:focus{top:14px}
+.progress{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:60;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 8px rgba(122,162,247,.5)}
+.theme-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);width:38px;height:38px;border-radius:11px;display:grid;place-items:center;cursor:pointer;transition:.25s var(--ease);flex:0 0 auto}
+.theme-btn:hover{color:var(--text);border-color:var(--border2)}
+.theme-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
+[data-theme="light"]{--bg:#f5f7fc;--surface:rgba(10,16,30,.035);--surface2:rgba(10,16,30,.06);--border:rgba(10,16,30,.1);--border2:rgba(10,16,30,.2);--text:#0f1828;--text2:#48566c;--muted:#8693a8;--accent:#4f72d6;--accent2:#1fa896;--accent3:#8b5cf6;--soft:rgba(79,114,214,.1)}
+[data-theme="light"] .aurora{background:radial-gradient(1200px 800px at 50% -10%, #e7edfb 0%, var(--bg) 60%)}
+[data-theme="light"] .blob{opacity:.3}
+[data-theme="light"] .navbar,[data-theme="light"] .ibanner{background:rgba(255,255,255,.72)}
+[data-theme="light"] .grain{opacity:.012}
+[data-theme="light"] .tg-btn{background:#0f1828;color:#fff}
+[data-theme="light"] .pstep .pn,[data-theme="light"] .nav-cta,[data-theme="light"] .checker button{color:#fff}
+.prob{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center}
+.prob .pc{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 16px;transition:transform .4s var(--ease),border-color .4s var(--ease)}
+.prob .pc:hover{transform:translateY(-3px);border-color:var(--border2)}
+.prob .pn{font-size:clamp(26px,3.6vw,40px);font-weight:800;letter-spacing:-.02em;background:linear-gradient(120deg,var(--danger),var(--accent3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-variant-numeric:tabular-nums}
+.prob .pl{font-size:13px;color:var(--text2);margin-top:8px;line-height:1.5}
+@media(max-width:740px){.prob{grid-template-columns:repeat(2,1fr)}}
+.packet{position:absolute;top:-5px;left:0;width:10px;height:10px;border-radius:50%;background:var(--accent2);box-shadow:0 0 14px var(--accent2),0 0 26px rgba(110,231,211,.5);opacity:0}
+.js .packet{opacity:1;animation:flow 4.8s var(--ease) infinite}
+@keyframes flow{0%,4%{left:1%}96%,100%{left:99%}}
+.pstep.lit{border-color:var(--accent2);box-shadow:0 0 26px -8px rgba(110,231,211,.5);transform:translateY(-3px)}
+.ibanner{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(140px);z-index:55;background:rgba(13,18,28,.9);border:1px solid var(--border2);border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 50px -12px rgba(0,0,0,.6);transition:transform .5s var(--ease);max-width:92vw}
+.ibanner.show{transform:translateX(-50%) translateY(0)}
+.ibanner b{font-size:14px;display:block}.ibanner .it{font-size:12.5px;color:var(--text2)}
+.ibanner button{border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;padding:9px 15px;border-radius:10px}
+.ib-yes{background:var(--accent);color:#06101f}.ib-no{background:transparent;color:var(--muted)}
 </style>
 </head>
 <body>
+<a class="skip" href="#features">Мазмұнға өту</a>
+<div class="progress" id="progress"></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div class="grain"></div>
 <nav>
@@ -155,7 +188,10 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#demo">Демо</a>
       <a href="#tech">Технологии</a>
     </div>
-    <a class="nav-cta" href="/install">Орнату</a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="theme-btn" id="themeBtn" aria-label="Тема ауыстыру" title="Light / Dark"></button>
+      <a class="nav-cta mag" href="/install">Орнату</a>
+    </div>
   </div>
 </nav>
 <header class="hero">
@@ -176,6 +212,19 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
   </div>
 </header>
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="eyebrow reveal">Неге керек</div>
+    <h2 class="stitle reveal">Қазақстандағы цифрлық алаяқтық</h2>
+    <p class="ssub reveal">2025 жылғы 10 айдағы ресми статистика — масштаб орасан.</p>
+    <div class="prob">
+      <div class="pc reveal"><div class="pn"><span data-to="16.4" data-dec="1">0</span> млрд ₸</div><div class="pl">ұрланған қаражат (10 айда)</div></div>
+      <div class="pc reveal"><div class="pn">×<span data-to="29">0</span></div><div class="pl">2024 жылмен салыстырғанда өсім</div></div>
+      <div class="pc reveal"><div class="pn"><span data-to="26300">0</span></div><div class="pl">тіркелген кибер-алаяқтық дерегі</div></div>
+      <div class="pc reveal"><div class="pn">+<span data-to="86">0</span>%</div><div class="pl">оқиғалар санының өсуі</div></div>
+    </div>
+  </div>
+</section>
 <section class="sec" id="features">
   <div class="wrap">
     <div class="eyebrow reveal">Функционал</div>
@@ -211,6 +260,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <h2 class="stitle reveal">6-деңгейлі анықтау</h2>
     <p class="ssub reveal">Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.</p>
     <div class="pipe">
+      <span class="packet" id="packet"></span>
       <div class="pstep reveal"><div class="pn">1</div><div class="pnm">Ақ тізім</div></div>
       <div class="pstep reveal"><div class="pn">2</div><div class="pnm">Redis кэш</div></div>
       <div class="pstep reveal"><div class="pn">3</div><div class="pnm">Офлайн DB</div></div>
@@ -276,6 +326,11 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
   </div>
 </section>
+<div class="ibanner" id="ibanner" role="dialog" aria-label="Қосымшаны орнату">
+  <div><b>Qalqan AI — телефоныңа</b><span class="it">Офлайн жұмыс істейді · PWA</span></div>
+  <button class="ib-yes" id="ibYes">Орнату</button>
+  <button class="ib-no" id="ibNo" aria-label="Жабу">✕</button>
+</div>
 <footer>
   <div class="wrap">
     <div class="brand" style="justify-content:center">
@@ -296,15 +351,16 @@ const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%6,5)*60)+'ms';io.observe(el)});
 function countUp(el){
-  const to=+el.dataset.to||0, suf=el.dataset.suffix||'';
-  if(reduce||!to){el.textContent=to.toLocaleString('ru-RU')+suf;return}
-  const dur=1100, t0=performance.now();
+  const to=+el.dataset.to||0, suf=el.dataset.suffix||'', dec=+el.dataset.dec||0;
+  const fmt=v=>dec?v.toLocaleString('ru-RU',{minimumFractionDigits:dec,maximumFractionDigits:dec}):Math.round(v).toLocaleString('ru-RU');
+  if(reduce||!to){el.textContent=fmt(to)+suf;return}
+  const dur=1200, t0=performance.now();
   (function tick(t){const p=Math.min((t-t0)/dur,1);const e=1-Math.pow(1-p,3);
-    el.textContent=Math.round(to*e).toLocaleString('ru-RU')+suf;
+    el.textContent=fmt(to*e)+suf;
     if(p<1)requestAnimationFrame(tick)})(t0);
 }
 const statIO=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){countUp(e.target);statIO.unobserve(e.target)}})},{threshold:.5});
-document.querySelectorAll('.stat .n[data-to]').forEach(el=>statIO.observe(el));
+document.querySelectorAll('.stat .n[data-to], .prob .pn [data-to]').forEach(el=>statIO.observe(el));
 if(!reduce){
   document.querySelectorAll('.tilt').forEach(card=>{
     card.addEventListener('mousemove',e=>{
@@ -336,6 +392,36 @@ fetch('/stats').then(r=>r.json()).then(t=>{
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null){el.dataset.to=v;countUp(el)}};
   set('statChecked',t.total_checks); set('statBlocked',t.dangerous_blocked??t.dangerous);
 }).catch(()=>{});
+
+/* scroll progress */
+const prog=document.getElementById('progress');
+addEventListener('scroll',()=>{const h=document.documentElement;const m=h.scrollHeight-h.clientHeight;prog.style.width=(m>0?h.scrollTop/m*100:0)+'%';},{passive:true});
+
+/* theme toggle (respects prefers-color-scheme; persists) */
+const SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19"/></svg>';
+const MOON='<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+const tb=document.getElementById('themeBtn'), tcMeta=document.querySelector('meta[name=theme-color]');
+function applyTheme(t){document.documentElement.dataset.theme=t;tb.innerHTML=t==='light'?MOON:SUN;if(tcMeta)tcMeta.setAttribute('content',t==='light'?'#f5f7fc':'#0a0e16');}
+applyTheme(localStorage.getItem('qtheme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+tb.addEventListener('click',()=>{const n=document.documentElement.dataset.theme==='light'?'dark':'light';localStorage.setItem('qtheme',n);applyTheme(n);});
+
+/* magnetic buttons */
+if(!reduce){document.querySelectorAll('.mag').forEach(b=>{
+  b.addEventListener('mousemove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.22}px,${(e.clientY-r.top-r.height/2)*.32}px)`;});
+  b.addEventListener('mouseleave',()=>b.style.transform='');
+});}
+
+/* pipeline packet lights up steps as it flows */
+if(!reduce){
+  const steps=[...document.querySelectorAll('#pipeline .pstep')], pk=document.getElementById('packet');
+  if(pk&&steps.length)setInterval(()=>{const x=pk.getBoundingClientRect().left+5;steps.forEach(s=>{const r=s.getBoundingClientRect();s.classList.toggle('lit',x>=r.left&&x<=r.right);});},90);
+}
+
+/* PWA install banner */
+let dp; const ib=document.getElementById('ibanner');
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;if(!localStorage.getItem('qib'))setTimeout(()=>ib.classList.add('show'),2800);});
+document.getElementById('ibYes').addEventListener('click',async()=>{ib.classList.remove('show');if(dp){dp.prompt();await dp.userChoice;dp=null;}});
+document.getElementById('ibNo').addEventListener('click',()=>{ib.classList.remove('show');localStorage.setItem('qib','1');});
 </script>
 </body>
 </html>"""
@@ -386,6 +472,9 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .maplegend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mut);margin-top:10px}
 .maplegend .grad{height:10px;width:120px;border-radius:5px;background:linear-gradient(90deg,#0d1424,#f7768e)}
 @media(max-width:820px){.grid{grid-template-columns:1fr}.kzmap{grid-template-rows:repeat(5,40px)}}
+.skel{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.08) 37%,rgba(255,255,255,.03) 63%);background-size:400% 100%;animation:shmr 1.4s ease infinite;border-radius:8px}
+@keyframes shmr{0%{background-position:100% 0}100%{background-position:-100% 0}}
+@media(prefers-reduced-motion:reduce){.skel{animation:none}}
 </style>
 </head>
 <body>
@@ -397,7 +486,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   <div><a href="/">← На главную</a> &nbsp; <a href="/dashboard/data">JSON API</a></div>
 </div>
 
-<div class="kpis" id="kpis"></div>
+<div class="kpis" id="kpis"><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div></div>
 
 <div class="card">
   <h3>🗺️ Қауіп картасы — облыстар бойынша (KZ regional threat map)</h3>
@@ -1146,4 +1235,44 @@ pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14p
 Ключ выдаётся под конкретного партнёра, лимиты и логирование — индивидуально.</div>
 
 <div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · <a href="/">главная</a> · <a href="/dashboard">панель</a></div>
+</body></html>"""
+
+
+# ── Branded 404 page ─────────────────────────────────────────────────────────
+NOTFOUND_HTML = """<!DOCTYPE html>
+<html lang="kk"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>404 — Qalqan AI</title>
+<meta name="theme-color" content="#0a0e16">
+<link rel="icon" type="image/svg+xml" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;box-sizing:border-box}
+body{min-height:100vh;display:grid;place-items:center;background:#0a0e16;color:#e7ebf3;font-family:'Inter',-apple-system,sans-serif;text-align:center;padding:24px;overflow:hidden}
+.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 600px at 50% 20%,#101725,#0a0e16 65%)}
+.bg::before,.bg::after{content:"";position:absolute;border-radius:50%;filter:blur(90px)}
+.bg::before{width:420px;height:420px;background:radial-gradient(circle,rgba(122,162,247,.4),transparent 70%);top:-80px;left:20%;animation:f 22s ease-in-out infinite alternate}
+.bg::after{width:380px;height:380px;background:radial-gradient(circle,rgba(110,231,211,.28),transparent 70%);bottom:-60px;right:18%;animation:f 26s ease-in-out infinite alternate-reverse}
+@keyframes f{to{transform:translate(60px,40px)}}
+.shield{width:60px;height:60px;margin:0 auto 8px}
+.code{font-size:clamp(80px,18vw,150px);font-weight:800;line-height:1;letter-spacing:-.04em;background:linear-gradient(120deg,#7aa2f7,#6ee7d3,#bb9af7,#6ee7d3);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:sh 7s linear infinite}
+@keyframes sh{to{background-position:220% center}}
+h1{font-size:22px;font-weight:600;margin:6px 0 10px}
+p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
+.btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7aa2f7,#5b87e8);color:#06101f;font-weight:700;padding:13px 26px;border-radius:13px;text-decoration:none;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(122,162,247,.35)}
+.links{margin-top:22px;font-size:14px;color:#6f7a8f}.links a{color:#7aa2f7;text-decoration:none;margin:0 9px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head>
+<body>
+<div class="bg"></div>
+<div>
+<svg class="shield" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z" stroke="url(#g)" stroke-width="1.4" fill="rgba(122,162,247,.1)"/><defs><linearGradient id="g" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#7aa2f7"/><stop offset="1" stop-color="#6ee7d3"/></linearGradient></defs></svg>
+<div class="code">404</div>
+<h1>Бет табылмады</h1>
+<p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
+<a class="btn" href="/">← Басты бетке</a>
+<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+</div>
 </body></html>"""
