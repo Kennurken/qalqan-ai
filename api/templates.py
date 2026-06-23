@@ -237,9 +237,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </header>
 <section class="sec" id="problem">
   <div class="wrap">
-    <div class="eyebrow reveal">Неге керек</div>
-    <h2 class="stitle reveal">Қазақстандағы цифрлық алаяқтық</h2>
-    <p class="ssub reveal">2025 жылғы 10 айдағы ресми статистика — масштаб орасан.</p>
+    <div class="eyebrow reveal" data-i18n="s_prob_e">Неге керек</div>
+    <h2 class="stitle reveal" data-i18n="s_prob_t">Қазақстандағы цифрлық алаяқтық</h2>
+    <p class="ssub reveal" data-i18n="s_prob_s">2025 жылғы 10 айдағы ресми статистика — масштаб орасан.</p>
     <div class="prob">
       <div class="pc reveal"><div class="pn"><span data-to="16.4" data-dec="1">0</span> млрд ₸</div><div class="pl">ұрланған қаражат (10 айда)</div></div>
       <div class="pc reveal"><div class="pn">×<span data-to="29">0</span></div><div class="pl">2024 жылмен салыстырғанда өсім</div></div>
@@ -250,9 +250,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </section>
 <section class="sec" id="features">
   <div class="wrap">
-    <div class="eyebrow reveal">Функционал</div>
-    <h2 class="stitle reveal">Не қорғайды</h2>
-    <p class="ssub reveal">6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.</p>
+    <div class="eyebrow reveal" data-i18n="s_feat_e">Функционал</div>
+    <h2 class="stitle reveal" data-i18n="s_feat_t">Не қорғайды</h2>
+    <p class="ssub reveal" data-i18n="s_feat_s">6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.</p>
     <div class="bento">
       <div class="card span3 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
@@ -279,9 +279,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </section>
 <section class="sec" id="pipeline">
   <div class="wrap">
-    <div class="eyebrow reveal">Архитектура</div>
-    <h2 class="stitle reveal">6-деңгейлі анықтау</h2>
-    <p class="ssub reveal">Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.</p>
+    <div class="eyebrow reveal" data-i18n="s_arch_e">Архитектура</div>
+    <h2 class="stitle reveal" data-i18n="s_arch_t">6-деңгейлі анықтау</h2>
+    <p class="ssub reveal" data-i18n="s_arch_s">Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.</p>
     <div class="pipe">
       <span class="packet" id="packet"></span>
       <div class="pstep reveal"><div class="pn">1</div><div class="pnm">Ақ тізім</div></div>
@@ -295,9 +295,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </section>
 <section class="sec" id="demo">
   <div class="wrap">
-    <div class="eyebrow reveal">Демо</div>
-    <h2 class="stitle reveal">Бәрі тірі — ашып көріңіз</h2>
-    <p class="ssub reveal">Жұмыс істеп тұрған платформалар мен панельдер.</p>
+    <div class="eyebrow reveal" data-i18n="s_demo_e">Демо</div>
+    <h2 class="stitle reveal" data-i18n="s_demo_t">Бәрі тірі — ашып көріңіз</h2>
+    <p class="ssub reveal" data-i18n="s_demo_s">Жұмыс істеп тұрған платформалар мен панельдер.</p>
     <div class="bento">
       <a class="card span2 tilt reveal" href="/dashboard?demo=1">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg></div>
@@ -339,8 +339,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </section>
 <section class="sec" id="tech">
   <div class="wrap">
-    <div class="eyebrow reveal">Технологиялар</div>
-    <h2 class="stitle reveal">Стек</h2>
+    <div class="eyebrow reveal" data-i18n="s_tech_e">Технологиялар</div>
+    <h2 class="stitle reveal" data-i18n="s_tech_t">Стек</h2>
     <div class="pills reveal">
       <span class="pill">Python · FastAPI</span><span class="pill">React 19</span><span class="pill">Chrome MV3</span>
       <span class="pill">Groq llama-3.3-70b</span><span class="pill">Gemini 2.5-flash</span><span class="pill">Whisper</span>
@@ -351,17 +351,17 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 </section>
 <section class="sec" id="faq">
   <div class="wrap">
-    <div class="eyebrow reveal">Сұрақ-жауап</div>
-    <h2 class="stitle reveal">Жиі қойылатын сұрақтар</h2>
-    <p class="ssub reveal">Нақты жауаптар — артық сөзсіз.</p>
+    <div class="eyebrow reveal" data-i18n="s_faq_e">Сұрақ-жауап</div>
+    <h2 class="stitle reveal" data-i18n="s_faq_t">Жиі қойылатын сұрақтар</h2>
+    <p class="ssub reveal" data-i18n="s_faq_s">Нақты жауаптар — артық сөзсіз.</p>
     <div class="faq reveal">
-      <details class="fq"><summary>Тегін бе?<i></i></summary><div class="fa">Иә, азаматтарға толық тегін — жасырын ақы жоқ. Монетизация: банк пен реттеушіге арналған B2G API (<code>/v1</code>).</div></details>
-      <details class="fq"><summary>Менің деректерім қауіпсіз бе?<i></i></summary><div class="fa">Сілтеме мен IP тек SHA-256 хэш түрінде сақталады — шикі дерек ешқашан жазылмайды. URL query-параметрлері логқа түспейді. Барлық агрегация анонимді.</div></details>
-      <details class="fq"><summary>Қалай жұмыс істейді?<i></i></summary><div class="fa">6 деңгейлі pipeline: ақ тізім → Redis кэш → офлайн-база → KZ intel (бренд/пирамида/гемблинг) → сыртқы БД + домен анализі → Groq/Gemini AI. Қауіпті сайт бет жүктелмей тұрып бұғатталады.</div></details>
-      <details class="fq"><summary>Қандай қауіптерді анықтайды?<i></i></summary><div class="fa">Фишинг (homoglyph/typosquat қоса), телефон/SMS алаяқтығы, қаржы пирамидалары (АФМ реестрі), нелегал гемблинг, госзакуп фроды (граф), дауыс-скам (Whisper). Офлайн-база: 390+ домен, тірі threat-feed: 1800+ домен.</div></details>
-      <details class="fq"><summary>Қай тілдерде?<i></i></summary><div class="fa">Қазақша, орысша, ағылшынша — детекция да, түсіндірме де үш тілде.</div></details>
-      <details class="fq"><summary>Интернетсіз жұмыс істей ме?<i></i></summary><div class="fa">Иә. Мобиль қосымша (PWA) мен браузер кеңейтімі офлайн-базамен жұмыс істейді — желісіз де негізгі тексеру жүреді.</div></details>
-      <details class="fq"><summary>Банктер/реттеушілер қалай қосыла алады?<i></i></summary><div class="fa">B2G API: <code>X-API-Key</code> арқылы <code>/v1/check</code>, <code>/v1/batch</code>, <code>/v1/phone</code>. <code>/v1/contribute</code> арқылы CERT/банктер ортақ қауіп-базасын толтырады (federated).</div></details>
+      <details class="fq"><summary><span data-i18n="q1">Тегін бе?</span><i></i></summary><div class="fa">Иә, азаматтарға толық тегін — жасырын ақы жоқ. Монетизация: банк пен реттеушіге арналған B2G API (<code>/v1</code>).</div></details>
+      <details class="fq"><summary><span data-i18n="q2">Менің деректерім қауіпсіз бе?</span><i></i></summary><div class="fa">Сілтеме мен IP тек SHA-256 хэш түрінде сақталады — шикі дерек ешқашан жазылмайды. URL query-параметрлері логқа түспейді. Барлық агрегация анонимді.</div></details>
+      <details class="fq"><summary><span data-i18n="q3">Қалай жұмыс істейді?</span><i></i></summary><div class="fa">6 деңгейлі pipeline: ақ тізім → Redis кэш → офлайн-база → KZ intel (бренд/пирамида/гемблинг) → сыртқы БД + домен анализі → Groq/Gemini AI. Қауіпті сайт бет жүктелмей тұрып бұғатталады.</div></details>
+      <details class="fq"><summary><span data-i18n="q4">Қандай қауіптерді анықтайды?</span><i></i></summary><div class="fa">Фишинг (homoglyph/typosquat қоса), телефон/SMS алаяқтығы, қаржы пирамидалары (АФМ реестрі), нелегал гемблинг, госзакуп фроды (граф), дауыс-скам (Whisper). Офлайн-база: 390+ домен, тірі threat-feed: 1800+ домен.</div></details>
+      <details class="fq"><summary><span data-i18n="q5">Қай тілдерде?</span><i></i></summary><div class="fa">Қазақша, орысша, ағылшынша — детекция да, түсіндірме де үш тілде.</div></details>
+      <details class="fq"><summary><span data-i18n="q6">Интернетсіз жұмыс істей ме?</span><i></i></summary><div class="fa">Иә. Мобиль қосымша (PWA) мен браузер кеңейтімі офлайн-базамен жұмыс істейді — желісіз де негізгі тексеру жүреді.</div></details>
+      <details class="fq"><summary><span data-i18n="q7">Банктер/реттеушілер қалай қосыла алады?</span><i></i></summary><div class="fa">B2G API: <code>X-API-Key</code> арқылы <code>/v1/check</code>, <code>/v1/batch</code>, <code>/v1/phone</code>. <code>/v1/contribute</code> арқылы CERT/банктер ортақ қауіп-базасын толтырады (federated).</div></details>
     </div>
   </div>
 </section>
@@ -417,17 +417,35 @@ const I18N={
      badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
      lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
-     st_checked:'Тексерілді',st_blocked:'Бұғатталды',st_offline:'Офлайн база',st_levels:'Деңгей',err:'Қате',errd:'Кейінірек қайталаңыз'},
+     st_checked:'Тексерілді',st_blocked:'Бұғатталды',st_offline:'Офлайн база',st_levels:'Деңгей',err:'Қате',errd:'Кейінірек қайталаңыз',
+     s_prob_e:'Неге керек',s_prob_t:'Қазақстандағы цифрлық алаяқтық',s_prob_s:'2025 жылғы 10 айдағы ресми статистика — масштаб орасан.',
+     s_feat_e:'Функционал',s_feat_t:'Не қорғайды',s_feat_s:'6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.',
+     s_arch_e:'Архитектура',s_arch_t:'6-деңгейлі анықтау',s_arch_s:'Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.',
+     s_demo_e:'Демо',s_demo_t:'Бәрі тірі — ашып көріңіз',s_demo_s:'Жұмыс істеп тұрған платформалар мен панельдер.',
+     s_tech_e:'Технологиялар',s_tech_t:'Стек',s_faq_e:'Сұрақ-жауап',s_faq_t:'Жиі қойылатын сұрақтар',s_faq_s:'Нақты жауаптар — артық сөзсіз.',
+     q1:'Тегін бе?',q2:'Менің деректерім қауіпсіз бе?',q3:'Қалай жұмыс істейді?',q4:'Қандай қауіптерді анықтайды?',q5:'Қай тілдерде?',q6:'Интернетсіз жұмыс істей ме?',q7:'Банктер/реттеушілер қалай қосыла алады?'},
  ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
-     st_checked:'Проверено',st_blocked:'Заблокировано',st_offline:'Офлайн-база',st_levels:'Уровней',err:'Ошибка',errd:'Повторите позже'},
+     st_checked:'Проверено',st_blocked:'Заблокировано',st_offline:'Офлайн-база',st_levels:'Уровней',err:'Ошибка',errd:'Повторите позже',
+     s_prob_e:'Зачем нужно',s_prob_t:'Цифровое мошенничество в Казахстане',s_prob_s:'Официальная статистика за 10 месяцев 2025 — масштаб огромен.',
+     s_feat_e:'Функционал',s_feat_t:'От чего защищает',s_feat_s:'6-уровневый pipeline — от 1 мс кэша до AI-анализа.',
+     s_arch_e:'Архитектура',s_arch_t:'6-уровневое обнаружение',s_arch_s:'Каждый запрос проходит 6 уровней — от быстрого к глубокому.',
+     s_demo_e:'Демо',s_demo_t:'Всё вживую — откройте',s_demo_s:'Работающие платформы и панели.',
+     s_tech_e:'Технологии',s_tech_t:'Стек',s_faq_e:'Вопрос-ответ',s_faq_t:'Частые вопросы',s_faq_s:'Точные ответы — без воды.',
+     q1:'Это бесплатно?',q2:'Мои данные в безопасности?',q3:'Как это работает?',q4:'Какие угрозы детектит?',q5:'На каких языках?',q6:'Работает без интернета?',q7:'Как подключаются банки/регуляторы?'},
  en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
-     st_checked:'Checked',st_blocked:'Blocked',st_offline:'Offline DB',st_levels:'Tiers',err:'Error',errd:'Try again later'}
+     st_checked:'Checked',st_blocked:'Blocked',st_offline:'Offline DB',st_levels:'Tiers',err:'Error',errd:'Try again later',
+     s_prob_e:'Why it matters',s_prob_t:'Digital fraud in Kazakhstan',s_prob_s:'Official stats for 10 months of 2025 — the scale is huge.',
+     s_feat_e:'Features',s_feat_t:'What it protects',s_feat_s:'6-tier pipeline — from 1ms cache to AI analysis.',
+     s_arch_e:'Architecture',s_arch_t:'6-tier detection',s_arch_s:'Every request passes 6 tiers — fast to deep.',
+     s_demo_e:'Demo',s_demo_t:'All live — open it',s_demo_s:'Working platforms and dashboards.',
+     s_tech_e:'Technology',s_tech_t:'Stack',s_faq_e:'FAQ',s_faq_t:'Frequently asked',s_faq_s:'Precise answers — no fluff.',
+     q1:'Is it free?',q2:'Is my data safe?',q3:'How does it work?',q4:'What threats does it detect?',q5:'Which languages?',q6:'Does it work offline?',q7:'How can banks/regulators integrate?'}
 };
 let currentLang=localStorage.getItem('qlang')||(navigator.language||'kk').slice(0,2).toLowerCase();
 if(!I18N[currentLang])currentLang='kk';
