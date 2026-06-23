@@ -256,23 +256,23 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <div class="bento">
       <div class="card span3 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
-        <h3>Фишинг сайттары</h3><p>Kaspi, eGov, Halyk Bank клондарын анықтайды — homoglyph (кириллица әріптерін) және typosquat шабуылдарын қоса. Бет жүктелуіне дейін бұғаттайды.</p>
+        <h3 data-i18n="f1t">Фишинг сайттары</h3><p data-i18n="f1d">Kaspi, eGov, Halyk Bank клондарын анықтайды — homoglyph (кириллица әріптерін) және typosquat шабуылдарын қоса. Бет жүктелуіне дейін бұғаттайды.</p>
       </div>
       <div class="card span3 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 18a9 9 0 0 1 18 0"/><path d="M12 3v3M5 9 7 11M19 9l-2 2"/><circle cx="12" cy="18" r="1.5"/></svg></div>
-        <h3>Телефон алаяқтығы</h3><p>Дауыстық хабарламаны Whisper арқылы транскрипциялап, ҚР скам-паттерндерін табады. #1 қауіп — енді одан қорғаныс бар.</p>
+        <h3 data-i18n="f2t">Телефон алаяқтығы</h3><p data-i18n="f2d">Дауыстық хабарламаны Whisper арқылы транскрипциялап, ҚР скам-паттерндерін табады. #1 қауіп — енді одан қорғаныс бар.</p>
       </div>
       <div class="card span2 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9.3 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.3 9 9"/></svg></div>
-        <h3>Қаржылық пирамидалар</h3><p>АФМ реестрі бойынша атау тексеру + Finiko, MMM, HYIP базасы.</p>
+        <h3 data-i18n="f3t">Қаржылық пирамидалар</h3><p data-i18n="f3d">АФМ реестрі бойынша атау тексеру + Finiko, MMM, HYIP базасы.</p>
       </div>
       <div class="card span2 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></div>
-        <h3>Нелегал гемблинг</h3><p>80+ ҚР-да тыйым салынған сайт. 1xBet, Mostbet — браузерде ашылмайды.</p>
+        <h3 data-i18n="f4t">Нелегал гемблинг</h3><p data-i18n="f4d">80+ ҚР-да тыйым салынған сайт. 1xBet, Mostbet — браузерде ашылмайды.</p>
       </div>
       <div class="card span2 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>
-        <h3>Госзакуп фроды</h3><p>Заказчик↔поставщик↔учредитель граф: аффилированность, сговор, картель.</p>
+        <h3 data-i18n="f5t">Госзакуп фроды</h3><p data-i18n="f5d">Заказчик↔поставщик↔учредитель граф: аффилированность, сговор, картель.</p>
       </div>
     </div>
   </div>
@@ -301,27 +301,27 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <div class="bento">
       <a class="card span2 tilt reveal" href="/dashboard?demo=1">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 4-6"/></svg></div>
-        <h3>Реттеуші панелі</h3><p>Облыстар бойынша қауіп картасы, динамика, топ домендер.</p><span class="arrow">Ашу →</span>
+        <h3 data-i18n="d1t">Реттеуші панелі</h3><p data-i18n="d1d">Облыстар бойынша қауіп картасы, динамика, топ домендер.</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
       <a class="card span2 tilt reveal" href="/goszakup/graph">
         <div class="ic"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7 7l3 9M17 9l-3 7"/></svg></div>
-        <h3>Госзакуп графы</h3><p>Аффилированность, сговор, картель — байланыс графы.</p><span class="arrow">Ашу →</span>
+        <h3 data-i18n="d2t">Госзакуп графы</h3><p data-i18n="d2d">Аффилированность, сговор, картель — байланыс графы.</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
       <a class="card span2 tilt reveal" href="/m">
         <div class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></div>
-        <h3>Мобиль қосымша</h3><p>Офлайн жұмыс істейді, телефонға орнатылады (PWA).</p><span class="arrow">Ашу →</span>
+        <h3 data-i18n="d3t">Мобиль қосымша</h3><p data-i18n="d3d">Офлайн жұмыс істейді, телефонға орнатылады (PWA).</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
       <a class="card span2 tilt reveal" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 5 3 12l5 2 2 5 3-4 4 3z"/></svg></div>
-        <h3>Telegram бот</h3><p>Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.</p><span class="arrow">Ашу →</span>
+        <h3 data-i18n="d4t">Telegram бот</h3><p data-i18n="d4d">Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
       <a class="card span2 tilt reveal" href="/stats">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
-        <h3>Тірі статистика</h3><p>Нақты деректер: тексерулер, вердиктер, трендтер.</p><span class="arrow">Ашу →</span>
+        <h3 data-i18n="d5t">Тірі статистика</h3><p data-i18n="d5d">Нақты деректер: тексерулер, вердиктер, трендтер.</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
       <a class="card span2 tilt reveal" href="/feed/kz">
         <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg></div>
-        <h3>KZ Threat Feed</h3><p>Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.</p><span class="arrow">Ашу →</span>
+        <h3>KZ Threat Feed</h3><p data-i18n="d6d">Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.</p><span class="arrow" data-i18n="arrow">Ашу →</span>
       </a>
     </div>
   </div>
@@ -329,8 +329,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 <section class="sec">
   <div class="wrap">
     <div class="tg reveal">
-      <h3>Telegram-да тексер</h3>
-      <p>Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.</p>
+      <h3 data-i18n="tg_t">Telegram-да тексер</h3>
+      <p data-i18n="tg_d">Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.</p>
       <a class="tg-btn" href="https://t.me/QalqanAI_bot" target="_blank" rel="noopener">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#0a0e16"><path d="M21 5 3 12l5 2 2 5 3-4 4 3z"/></svg>@QalqanAI_bot ашу
       </a>
@@ -423,7 +423,15 @@ const I18N={
      s_arch_e:'Архитектура',s_arch_t:'6-деңгейлі анықтау',s_arch_s:'Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.',
      s_demo_e:'Демо',s_demo_t:'Бәрі тірі — ашып көріңіз',s_demo_s:'Жұмыс істеп тұрған платформалар мен панельдер.',
      s_tech_e:'Технологиялар',s_tech_t:'Стек',s_faq_e:'Сұрақ-жауап',s_faq_t:'Жиі қойылатын сұрақтар',s_faq_s:'Нақты жауаптар — артық сөзсіз.',
-     q1:'Тегін бе?',q2:'Менің деректерім қауіпсіз бе?',q3:'Қалай жұмыс істейді?',q4:'Қандай қауіптерді анықтайды?',q5:'Қай тілдерде?',q6:'Интернетсіз жұмыс істей ме?',q7:'Банктер/реттеушілер қалай қосыла алады?'},
+     q1:'Тегін бе?',q2:'Менің деректерім қауіпсіз бе?',q3:'Қалай жұмыс істейді?',q4:'Қандай қауіптерді анықтайды?',q5:'Қай тілдерде?',q6:'Интернетсіз жұмыс істей ме?',q7:'Банктер/реттеушілер қалай қосыла алады?',
+     f1t:'Фишинг сайттары',f2t:'Телефон алаяқтығы',f3t:'Қаржылық пирамидалар',f4t:'Нелегал гемблинг',f5t:'Госзакуп фроды',
+     f1d:'Kaspi, eGov, Halyk Bank клондарын анықтайды — homoglyph (кириллица әріптерін) және typosquat шабуылдарын қоса. Бет жүктелуіне дейін бұғаттайды.',
+     f2d:'Дауыстық хабарламаны Whisper арқылы транскрипциялап, ҚР скам-паттерндерін табады. #1 қауіп — енді одан қорғаныс бар.',
+     f3d:'АФМ реестрі бойынша атау тексеру + Finiko, MMM, HYIP базасы.',f4d:'80+ ҚР-да тыйым салынған сайт. 1xBet, Mostbet — браузерде ашылмайды.',
+     f5d:'Тапсырыс беруші↔жеткізуші↔құрылтайшы граф: аффилированность, сговор, картель.',
+     d1t:'Реттеуші панелі',d2t:'Госзакуп графы',d3t:'Мобиль қосымша',d4t:'Telegram бот',d5t:'Тірі статистика',
+     d1d:'Облыстар бойынша қауіп картасы, динамика, топ домендер.',d2d:'Аффилированность, сговор, картель — байланыс графы.',d3d:'Офлайн жұмыс істейді, телефонға орнатылады (PWA).',d4d:'Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.',d5d:'Нақты деректер: тексерулер, вердиктер, трендтер.',d6d:'Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.',
+     arrow:'Ашу →',tg_t:'Telegram-да тексер',tg_d:'Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.'},
  ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
@@ -434,7 +442,15 @@ const I18N={
      s_arch_e:'Архитектура',s_arch_t:'6-уровневое обнаружение',s_arch_s:'Каждый запрос проходит 6 уровней — от быстрого к глубокому.',
      s_demo_e:'Демо',s_demo_t:'Всё вживую — откройте',s_demo_s:'Работающие платформы и панели.',
      s_tech_e:'Технологии',s_tech_t:'Стек',s_faq_e:'Вопрос-ответ',s_faq_t:'Частые вопросы',s_faq_s:'Точные ответы — без воды.',
-     q1:'Это бесплатно?',q2:'Мои данные в безопасности?',q3:'Как это работает?',q4:'Какие угрозы детектит?',q5:'На каких языках?',q6:'Работает без интернета?',q7:'Как подключаются банки/регуляторы?'},
+     q1:'Это бесплатно?',q2:'Мои данные в безопасности?',q3:'Как это работает?',q4:'Какие угрозы детектит?',q5:'На каких языках?',q6:'Работает без интернета?',q7:'Как подключаются банки/регуляторы?',
+     f1t:'Фишинговые сайты',f2t:'Телефонное мошенничество',f3t:'Финансовые пирамиды',f4t:'Нелегальный гемблинг',f5t:'Фрод в госзакупках',
+     f1d:'Детектит клоны Kaspi, eGov, Halyk Bank — включая homoglyph (кириллица) и typosquat. Блокирует до загрузки страницы.',
+     f2d:'Транскрибирует голосовое через Whisper и находит KZ скам-паттерны. Угроза №1 — теперь есть защита.',
+     f3d:'Проверка названия по реестру АФМ + база Finiko, MMM, HYIP.',f4d:'80+ запрещённых в РК сайтов. 1xBet, Mostbet — не откроются в браузере.',
+     f5d:'Граф заказчик↔поставщик↔учредитель: аффилированность, сговор, картель.',
+     d1t:'Панель регулятора',d2t:'Граф госзакупок',d3t:'Мобильное приложение',d4t:'Telegram бот',d5t:'Живая статистика',
+     d1d:'Карта угроз по областям, динамика, топ-домены.',d2d:'Аффилированность, сговор, картель — граф связей.',d3d:'Работает офлайн, ставится на телефон (PWA).',d4d:'Голос / SMS / ссылка, сообщение в KZ-CERT.',d5d:'Реальные данные: проверки, вердикты, тренды.',d6d:'Открытая база (CC-BY) — могут использовать другие системы.',
+     arrow:'Открыть →',tg_t:'Проверь в Telegram',tg_d:'Отправь любую ссылку, номер или голосовое — получи ответ сразу.'},
  en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
@@ -445,7 +461,15 @@ const I18N={
      s_arch_e:'Architecture',s_arch_t:'6-tier detection',s_arch_s:'Every request passes 6 tiers — fast to deep.',
      s_demo_e:'Demo',s_demo_t:'All live — open it',s_demo_s:'Working platforms and dashboards.',
      s_tech_e:'Technology',s_tech_t:'Stack',s_faq_e:'FAQ',s_faq_t:'Frequently asked',s_faq_s:'Precise answers — no fluff.',
-     q1:'Is it free?',q2:'Is my data safe?',q3:'How does it work?',q4:'What threats does it detect?',q5:'Which languages?',q6:'Does it work offline?',q7:'How can banks/regulators integrate?'}
+     q1:'Is it free?',q2:'Is my data safe?',q3:'How does it work?',q4:'What threats does it detect?',q5:'Which languages?',q6:'Does it work offline?',q7:'How can banks/regulators integrate?',
+     f1t:'Phishing sites',f2t:'Phone scams',f3t:'Financial pyramids',f4t:'Illegal gambling',f5t:'Procurement fraud',
+     f1d:'Detects Kaspi, eGov, Halyk Bank clones — incl. homoglyph (Cyrillic) and typosquat. Blocks before the page loads.',
+     f2d:'Transcribes voice via Whisper and finds KZ scam patterns. The #1 threat — now defended.',
+     f3d:'Name lookup against the AFM registry + Finiko, MMM, HYIP database.',f4d:'80+ banned-in-KZ sites. 1xBet, Mostbet are blocked in the browser.',
+     f5d:'Customer↔supplier↔founder graph: affiliation, collusion, cartel.',
+     d1t:'Regulator dashboard',d2t:'Procurement graph',d3t:'Mobile app',d4t:'Telegram bot',d5t:'Live stats',
+     d1d:'Regional threat map, trends, top domains.',d2d:'Affiliation, collusion, cartel — relationship graph.',d3d:'Works offline, installs on your phone (PWA).',d4d:'Voice / SMS / link check, report to KZ-CERT.',d5d:'Real data: checks, verdicts, trends.',d6d:'Open dataset (CC-BY) — usable by other systems.',
+     arrow:'Open →',tg_t:'Check in Telegram',tg_d:'Send any link, number or voice message — get an answer instantly.'}
 };
 let currentLang=localStorage.getItem('qlang')||(navigator.language||'kk').slice(0,2).toLowerCase();
 if(!I18N[currentLang])currentLang='kk';
