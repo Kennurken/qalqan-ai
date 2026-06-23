@@ -147,6 +147,11 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .theme-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);width:38px;height:38px;border-radius:11px;display:grid;place-items:center;cursor:pointer;transition:.25s var(--ease);flex:0 0 auto}
 .theme-btn:hover{color:var(--text);border-color:var(--border2)}
 .theme-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
+.lang{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden;flex:0 0 auto}
+.lang button{background:none;border:none;color:var(--muted);font-family:inherit;font-weight:600;font-size:12px;padding:8px 9px;cursor:pointer;transition:.2s var(--ease)}
+.lang button.on{background:var(--accent);color:#06101f}
+.lang button:hover:not(.on){color:var(--text)}
+@media(max-width:560px){.lang{display:none}}
 [data-theme="light"]{--bg:#f5f7fc;--surface:rgba(10,16,30,.035);--surface2:rgba(10,16,30,.06);--border:rgba(10,16,30,.1);--border2:rgba(10,16,30,.2);--text:#0f1828;--text2:#48566c;--muted:#8693a8;--accent:#4f72d6;--accent2:#1fa896;--accent3:#8b5cf6;--soft:rgba(79,114,214,.1)}
 [data-theme="light"] .aurora{background:radial-gradient(1200px 800px at 50% -10%, #e7edfb 0%, var(--bg) 60%)}
 [data-theme="light"] .blob{opacity:.3}
@@ -197,33 +202,36 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       Qalqan AI
     </div>
     <div class="nav-links">
-      <a href="#features">Функции</a>
-      <a href="#pipeline">Архитектура</a>
-      <a href="#demo">Демо</a>
-      <a href="#tech">Технологии</a>
+      <a href="#features" data-i18n="nav_feat">Функциялар</a>
+      <a href="#pipeline" data-i18n="nav_arch">Архитектура</a>
+      <a href="#demo" data-i18n="nav_demo">Демо</a>
+      <a href="#tech" data-i18n="nav_tech">Технологиялар</a>
       <a href="#faq">FAQ</a>
     </div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="lang" id="langSw" role="group" aria-label="Тіл / Язык / Language">
+        <button data-lang="kk">KZ</button><button data-lang="ru">RU</button><button data-lang="en">EN</button>
+      </div>
       <button class="theme-btn" id="themeBtn" aria-label="Тема ауыстыру" title="Light / Dark"></button>
-      <a class="nav-cta mag" href="/install">Орнату</a>
+      <a class="nav-cta mag" href="/install" data-i18n="nav_install">Орнату</a>
     </div>
   </div>
 </nav>
 <header class="hero">
   <div class="wrap">
-    <div class="badge reveal"><span class="dot"></span>v5.1 · Қазақстан үшін · Open source</div>
-    <h1 class="reveal">Алаяқтықтан<br><span class="grad">AI қорғанысы</span></h1>
-    <p class="lead reveal">Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.</p>
+    <div class="badge reveal"><span class="dot"></span><span data-i18n="badge">v5.1 · Қазақстан үшін · Open source</span></div>
+    <h1 class="reveal"><span data-i18n="h1a">Алаяқтықтан</span><br><span class="grad" data-i18n="h1b">AI қорғанысы</span></h1>
+    <p class="lead reveal" data-i18n="lead">Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.</p>
     <div class="checker reveal">
-      <input id="urlInput" type="text" inputmode="url" placeholder="kaspi-bonus.kz немесе https://..." autocomplete="off" aria-label="URL тексеру">
-      <button id="checkBtn">Тексеру</button>
+      <input id="urlInput" type="text" inputmode="url" placeholder="kaspi-bonus.kz немесе https://..." data-i18n-ph="checkPh" autocomplete="off" aria-label="URL тексеру">
+      <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
     </div>
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
     <div class="stats reveal">
-      <div class="stat"><div class="n" id="statChecked" data-to="0">—</div><div class="l">Тексерілді</div></div>
-      <div class="stat"><div class="n" id="statBlocked" data-to="0">—</div><div class="l">Бұғатталды</div></div>
-      <div class="stat"><div class="n" id="statDomains" data-to="390" data-suffix="+">390+</div><div class="l">Офлайн база</div></div>
-      <div class="stat"><div class="n" data-to="6">6</div><div class="l">Деңгей</div></div>
+      <div class="stat"><div class="n" id="statChecked" data-to="0">—</div><div class="l" data-i18n="st_checked">Тексерілді</div></div>
+      <div class="stat"><div class="n" id="statBlocked" data-to="0">—</div><div class="l" data-i18n="st_blocked">Бұғатталды</div></div>
+      <div class="stat"><div class="n" id="statDomains" data-to="390" data-suffix="+">390+</div><div class="l" data-i18n="st_offline">Офлайн база</div></div>
+      <div class="stat"><div class="n" data-to="6">6</div><div class="l" data-i18n="st_levels">Деңгей</div></div>
     </div>
   </div>
 </header>
@@ -403,18 +411,49 @@ if(!reduce){
     card.addEventListener('mouseleave',()=>{card.style.transform=''});
   });
 }
+/* i18n — kk/ru/en. AI/verdict comes back in currentLang (sent to /check). */
+const I18N={
+ kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',
+     badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
+     lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
+     checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
+     st_checked:'Тексерілді',st_blocked:'Бұғатталды',st_offline:'Офлайн база',st_levels:'Деңгей',err:'Қате',errd:'Кейінірек қайталаңыз'},
+ ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',
+     badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
+     lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
+     checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
+     st_checked:'Проверено',st_blocked:'Заблокировано',st_offline:'Офлайн-база',st_levels:'Уровней',err:'Ошибка',errd:'Повторите позже'},
+ en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',
+     badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
+     lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
+     checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
+     st_checked:'Checked',st_blocked:'Blocked',st_offline:'Offline DB',st_levels:'Tiers',err:'Error',errd:'Try again later'}
+};
+let currentLang=localStorage.getItem('qlang')||(navigator.language||'kk').slice(0,2).toLowerCase();
+if(!I18N[currentLang])currentLang='kk';
+function applyLang(l){
+  currentLang=I18N[l]?l:'kk'; localStorage.setItem('qlang',currentLang);
+  const D=I18N[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=D[el.dataset.i18n];if(v!=null)el.textContent=v;});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=D[el.dataset.i18nPh];if(v!=null)el.placeholder=v;});
+  document.documentElement.lang=currentLang;
+  document.querySelectorAll('#langSw button').forEach(b=>b.classList.toggle('on',b.dataset.lang===currentLang));
+}
+document.querySelectorAll('#langSw button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.lang)));
+applyLang(currentLang);
+
 const box=$('#resultBox'),verdict=$('#resultVerdict'),detail=$('#resultDetail'),btn=$('#checkBtn'),input=$('#urlInput');
 async function runCheck(){
   const url=input.value.trim(); if(!url)return;
   btn.disabled=true; const old=btn.textContent; btn.textContent='...';
   try{
-    const res=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:'kk'})});
+    const res=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:currentLang})});
     const d=await res.json();
     box.className='result show '+(d.verdict||'SUSPICIOUS');
     const ic=d.verdict==='DANGEROUS'?'⛔':d.verdict==='SUSPICIOUS'?'⚠':'✓';
     verdict.textContent=ic+'  '+(d.verdict||'')+' · '+(d.threat_score||0)+'/100';
-    detail.textContent=d.detail||d.detail_kk||'';
-  }catch(e){box.className='result show SUSPICIOUS';verdict.textContent='⚠  Қате';detail.textContent='Кейінірек қайталаңыз';}
+    detail.textContent=d.detail||d['detail_'+currentLang]||d.detail_kk||'';
+  }catch(e){box.className='result show SUSPICIOUS';verdict.textContent='⚠  '+I18N[currentLang].err;detail.textContent=I18N[currentLang].errd;}
   btn.disabled=false; btn.textContent=old;
 }
 btn.addEventListener('click',runCheck);
