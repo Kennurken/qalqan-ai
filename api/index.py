@@ -412,7 +412,9 @@ async def _run_url_check(request: CheckRequest, req: Request, background_tasks: 
     url = request.url
     lang = request.lang
     domain = extract_domain(url)
-    key = url_hash(url)
+    # lang in the cache key — AI explanations are generated per-language, so a
+    # ru-cached verdict must not be served to an en request (and vice versa).
+    key = url_hash(url + "|" + lang)
 
     # --- Demo Mode: deterministic results for presentation ---
     if DEMO_MODE and domain in _DEMO_RESULTS:
@@ -715,7 +717,7 @@ async def check_batch(request: BatchRequest, req: Request):
             if domain in _whitelist or any(domain.endswith("." + td) for td in _whitelist):
                 return {"url": url, "verdict": "SAFE", "threat_score": 0, "source": "whitelist", "indicators": []}
 
-            key = url_hash(url)
+            key = url_hash(url + "|" + lang)
             cached = await get_cached(key)
             if cached:
                 return {**cached, "url": url}
