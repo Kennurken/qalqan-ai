@@ -77,6 +77,13 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(load_openphish_feed())
     except Exception as e:
         logger.warning(f"feed preload kickoff failed (lazy-loads on first check): {e}")
+    # Register the Telegram / command menu + Menu button (idempotent, no-op
+    # without a bot token) so it applies automatically on deploy.
+    try:
+        from .services.bot_handler import register_bot_ui
+        asyncio.create_task(register_bot_ui())
+    except Exception as e:
+        logger.warning(f"bot UI registration kickoff failed: {e}")
     yield
     from .utils.http import aclose
     await aclose()
