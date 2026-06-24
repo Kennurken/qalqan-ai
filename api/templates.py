@@ -114,7 +114,7 @@ section{position:relative}
 a.card{display:block}
 @media(max-width:900px){.bento{grid-template-columns:repeat(2,1fr)}.card.span3,.card.span2,.card.span6{grid-column:span 1}}
 @media(max-width:560px){.bento{grid-template-columns:1fr}}
-.pipe{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.pipe{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px;position:relative}
 .pstep{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:center;position:relative;transition:transform .4s var(--ease),border-color .4s var(--ease)}
 .pstep:hover{transform:translateY(-3px);border-color:var(--border2)}
 .pstep .pn{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin:0 auto 10px;font-weight:700;font-size:14px;color:#06101f;background:linear-gradient(135deg,var(--accent),var(--accent2))}
