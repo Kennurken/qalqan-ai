@@ -59,3 +59,31 @@ def test_report_payload_cannot_inject_html_into_domain(monkeypatch):
     monkeypatch.setattr(m, "_whitelist", set())
     dom = m._to_domain("javascript:alert(1)//<img src=x onerror=alert(1)>.kz")
     assert "<" not in dom and '"' not in dom and "'" not in dom
+
+
+def test_stats_html_renders_with_data(monkeypatch):
+    # Regression: a local var named `html` shadowed the `import html`, 500-ing the
+    # page whenever there was data to escape. Must render 200 with populated trends.
+    async def fake_trends(*a, **k):
+        return {"total_checks": 83,
+                "verdict_distribution": {"DANGEROUS": 45, "SAFE": 23, "SUSPICIOUS": 15},
+                "top_domains_checked": [{"domain": "kaspi.kz", "checks": 10}],
+                "top_reported_domains": [{"domain": "1xbet.com", "reports": 7, "auto_blocked": True}]}
+    monkeypatch.setattr(m, "supabase_trends", fake_trends)
+    r = client.get("/stats", headers={"Accept": "text/html"})
+    assert r.status_code == 200
+    assert "kaspi.kz" in r.text
+
+
+def test_admin_escapes_stored_xss_in_rows(monkeypatch):
+    monkeypatch.setenv("ADMIN_SECRET", "s3cret")
+    async def fake_admin(*a, **k):
+        return {"reports": [{"domain": "x<script>alert(1)</script>.kz", "category": "scam",
+                             "comment": "<img src=x onerror=alert(1)>", "lang": "ru",
+                             "created_at": "2026-07-02T00:00:00"}],
+                "appeals": [], "check_logs": []}
+    monkeypatch.setattr(m, "get_admin_data", fake_admin)
+    r = client.get("/admin", headers={"X-Admin-Key": "s3cret"})
+    assert r.status_code == 200
+    assert "<script>alert(1)" not in r.text
+    assert "&lt;script&gt;" in r.text

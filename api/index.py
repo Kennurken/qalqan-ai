@@ -866,7 +866,7 @@ async def get_stats(request: Request):
 
     danger_pct = round(dangerous / total * 100) if total else 0
 
-    html = f"""<!DOCTYPE html>
+    page_html = f"""<!DOCTYPE html>
 <html lang="kk"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Статистика</title>
@@ -940,7 +940,7 @@ footer{{text-align:center;padding:32px;color:#334155;font-size:12px;border-top:1
 </div>
 <footer>Qalqan AI v5.1.0 · Деректер: Supabase PostgreSQL · © 2026 Қыдырбек Елдос</footer>
 </body></html>"""
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=page_html)
 
 
 # --- ТРЕНДЫ (crowd-sourced) ---
@@ -1314,7 +1314,7 @@ async def admin_dashboard(req: Request, key: str | None = None):
             )
         return rows
 
-    html = f"""<!DOCTYPE html>
+    page_html = f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
@@ -1428,7 +1428,7 @@ setTimeout(() => location.reload(), 60000);
 </body>
 </html>"""
 
-    return HTMLResponse(html)
+    return HTMLResponse(page_html)
 
 
 # ============================================================
