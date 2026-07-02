@@ -34,7 +34,11 @@ async def check_virustotal(url: str) -> dict | None:
         )
 
         if res.status_code == 404:
-            # URL not in VT database — submit for scanning
+            # URL not in VT database. Submitting it uploads the user's URL to a third
+            # party (VT publishes submitted URLs) — privacy-sensitive. Lookup-only by
+            # default; set VT_SUBMIT=true to opt into active submission.
+            if os.getenv("VT_SUBMIT", "").lower() not in ("1", "true", "yes"):
+                return None
             submit_res = await client.post(
                 "https://www.virustotal.com/api/v3/urls",
                 headers={"x-apikey": key},

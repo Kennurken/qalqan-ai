@@ -524,29 +524,37 @@ async def handle_report(chat_id: int, url: str, message_id: int | None = None):
 
 
 async def handle_stats(chat_id: int):
-    """Fetch /stats from Qalqan API and format for Telegram."""
-    base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai.vercel.app")
+    """Fetch /trends from Qalqan API and format for Telegram.
+    (Uses /trends, not /stats — /trends is where total_checks + verdict distribution live.)"""
+    base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
     try:
         async with httpx.AsyncClient(timeout=8) as client:
-            res = await client.get(f"{base_url}/stats")
+            res = await client.get(f"{base_url}/trends")
             data = res.json()
 
-        total    = data.get("total_checks", 0)
-        blocked  = data.get("blocked", 0)
-        phishing = data.get("by_type", {}).get("phishing", 0)
-        pyramid  = data.get("by_type", {}).get("pyramid", 0)
-        gambling = data.get("by_type", {}).get("gambling", 0)
-        today    = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        total   = data.get("total_checks", 0)
+        dist    = data.get("verdict_distribution", {}) or {}
+        blocked = dist.get("DANGEROUS", 0)
+        susp    = dist.get("SUSPICIOUS", 0)
+        safe    = dist.get("SAFE", 0)
+        reports = data.get("total_reports", 0)
+        top_rep = data.get("top_reported_domains", [])[:3]
+        today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        rep_lines = "\n".join(
+            f"  • <code>{_esc(d.get('domain',''))}</code> ({d.get('reports',0)})"
+            for d in top_rep
+        ) or "  —"
 
         text = (
             f"📊 <b>Qalqan AI — Статистика</b>\n"
             f"<i>{today}</i>\n\n"
             f"🔍 Жалпы тексеру: <b>{total:,}</b>\n"
-            f"🛑 Блокталған: <b>{blocked:,}</b>\n\n"
-            f"<b>Қауіп түрлері:</b>\n"
-            f"  🎣 Фишинг: {phishing:,}\n"
-            f"  💰 Пирамида: {pyramid:,}\n"
-            f"  🎰 Gambling: {gambling:,}\n\n"
+            f"🛑 Қауіпті: <b>{blocked:,}</b>\n"
+            f"🟡 Күдікті: <b>{susp:,}</b>\n"
+            f"🟢 Қауіпсіз: <b>{safe:,}</b>\n"
+            f"🚨 Шағымдар: <b>{reports:,}</b>\n\n"
+            f"<b>Жиі хабарланған домендер:</b>\n{rep_lines}\n\n"
             f"<i>🛡️ Qalqan AI қорғап тұр!</i>"
         )
     except Exception as e:

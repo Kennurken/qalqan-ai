@@ -4,6 +4,7 @@
 # rate-limited demo key so the partner API is testable without config).
 
 import os
+import hmac
 import hashlib
 
 DEMO_KEY = "qalqan-demo-2026"
@@ -31,13 +32,18 @@ _usage: dict[str, int] = {}
 
 
 def verify_api_key(key: str) -> str | None:
-    """Return the partner name for a valid key, else None. Counts usage."""
+    """Return the partner name for a valid key, else None. Counts usage.
+    Constant-time match against every registered key so response timing does not
+    leak which (or how many) keys exist."""
     if not key:
         return None
-    name = _registered_keys().get(key)
-    if name:
+    matched: str | None = None
+    for k, name in _registered_keys().items():
+        if hmac.compare_digest(key, k):
+            matched = name
+    if matched:
         _usage[key] = _usage.get(key, 0) + 1
-    return name
+    return matched
 
 
 def is_demo(key: str) -> bool:

@@ -6,6 +6,8 @@ import json
 import os
 import re
 import time
+import html
+import hmac
 import logging
 import asyncio
 import traceback
@@ -45,7 +47,11 @@ _VALID_IP_RE = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$|^[0-9a-fA-F:]+$")
 
 
 def _get_client_ip(req: Request) -> str:
-    """Real client IP — prefers X-Forwarded-For (Vercel proxies real IP there)."""
+    """Real client IP — prefers X-Forwarded-For (Vercel proxies real IP there).
+    SECURITY: trusting the FIRST XFF value is only safe behind a proxy that
+    overwrites it (Vercel does). On a self-hosted VPS behind Caddy/nginx a client
+    can spoof XFF to evade per-IP rate limits — there, terminate at a proxy that
+    sets a trusted header and read the rightmost hop instead."""
     xff = req.headers.get("x-forwarded-for", "")
     if xff:
         ip = xff.split(",")[0].strip()
@@ -356,7 +362,7 @@ async def root(request: Request):
     if "text/html" not in accept:
         return {
             "status": "online", "name": "Qalqan AI", "version": "5.1.0",
-            "pipeline": "6-tier threat detection",
+            "pipeline": "7-tier threat detection",
             "ai_providers": {
                 "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
                 "gemini": "configured" if os.getenv("GEMINI_API_KEY") else "missing"
@@ -368,12 +374,19 @@ async def root(request: Request):
 # (LANDING_HTML moved to templates.py)
 
 
+# urlparse().hostname passes through HTML metacharacters (e.g. "abc<script>.kz"),
+# so a crafted URL could store an XSS payload as a "domain". Keep only chars that
+# can legitimately appear in a hostname — belt-and-suspenders alongside HTML-escaping.
+_DOMAIN_SANITIZE_RE = re.compile(r"[^a-z0-9.\-:_]")
+
+
 def _to_domain(s: str) -> str:
     """Normalize a URL or bare hostname to a domain (extract_domain needs a scheme)."""
     s = (s or "").strip()
     if s and "://" not in s:
         s = "https://" + s
-    return extract_domain(s)
+    dom = extract_domain(s)
+    return _DOMAIN_SANITIZE_RE.sub("", dom.lower())
 
 
 async def community_verdict(domain: str) -> dict | None:
@@ -690,83 +703,26 @@ async def pyramid_name_check(request: PyramidNameRequest, req: Request):
 
 # --- BATCH ТЕКСЕРУ (max 15 URL) ---
 @app.post("/batch")
-async def check_batch(request: BatchRequest, req: Request):
-    """Check up to 15 URLs in parallel. Returns list of verdicts."""
+async def check_batch(request: BatchRequest, req: Request, background_tasks: BackgroundTasks):
+    """Check up to 15 URLs in parallel. Reuses the single tested pipeline
+    (_run_url_check) so every tier — whitelist, cache, KZ intel, databases,
+    community crowd-block, goszakup, AI — runs identically to /check."""
     client_ip = _get_client_ip(req)
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="check"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
 
-    urls = request.urls[:15]  # hard cap
+    urls = request.urls[:15]  # hard cap (model already validated + normalized)
     lang = request.lang
 
-    async def _check_one(url: str) -> dict:
+    async def _one(url: str) -> dict:
         try:
-            url = url.strip()
-            if not url.startswith(("http://", "https://")):
-                url = "https://" + url
-            from urllib.parse import urlparse as _urlparse
-            host = _urlparse(url).hostname or ""
-            if _PRIVATE_IP_RE.match(host):
-                return {"url": url, "verdict": "SUSPICIOUS", "threat_score": 30,
-                        "error": "Private/internal addresses not allowed"}
-            domain = extract_domain(url)
-
-            if DEMO_MODE and domain in _DEMO_RESULTS:
-                return {**_DEMO_RESULTS[domain], "url": url}
-
-            if domain in _whitelist or any(domain.endswith("." + td) for td in _whitelist):
-                return {"url": url, "verdict": "SAFE", "threat_score": 0, "source": "whitelist", "indicators": []}
-
-            key = url_hash(url + "|" + lang)
-            cached = await get_cached(key)
-            if cached:
-                return {**cached, "url": url}
-
-            url_feats = extract_features(url)  # sync — fast, no I/O
-
-            pyramid_hit = check_pyramid_domain(url)
-            if pyramid_hit:
-                r = calculate_final_verdict([], None, pyramid_hit, lang=lang)
-                r["explanation"] = generate_explanation(url_feats, None, [], None, pyramid_hit, r["threat_score"], lang=lang)
-                await set_cached(key, r)
-                return {**r, "url": url}
-
-            blacklist_hit = check_local_blacklist(url)
-            if blacklist_hit:
-                r = calculate_final_verdict([blacklist_hit], None, None, lang=lang)
-                await set_cached(key, r)
-                return {**r, "url": url}
-
-            kz_impersonation_hit = check_kz_impersonation_url(domain)
-            if kz_impersonation_hit:
-                r = calculate_final_verdict([], kz_impersonation_hit, None, url_features=url_feats, lang=lang)
-                await set_cached(key, r)
-                return {**r, "url": url}
-
-            gambling_hit = check_gambling_domain(domain)
-            if gambling_hit:
-                r = calculate_final_verdict([], gambling_hit, None, url_features=url_feats, lang=lang)
-                await set_cached(key, r)
-                return {**r, "url": url}
-
-            _t2b = await asyncio.gather(
-                check_all_databases(url),
-                check_domain_intelligence(domain, url),
-                return_exceptions=True,
-            )
-            db_results = _t2b[0] if isinstance(_t2b[0], list) else []
-            domain_info = _t2b[1] if isinstance(_t2b[1], dict) else None
-            ai_result = await analyze_url(url, context=url_feats)
-            r = calculate_final_verdict(db_results, ai_result, None,
-                                        domain_info=domain_info, url_features=url_feats, lang=lang)
-            r["explanation"] = generate_explanation(url_feats, domain_info, db_results, ai_result, None, r["threat_score"], lang=lang)
-            await set_cached(key, r)
+            r = await _run_url_check(CheckRequest(url=url, lang=lang), req, background_tasks)
             return {**r, "url": url}
         except Exception as e:
             logger.error(f"Batch check error for {extract_domain(url)}: {e}")
             return {"url": url, "verdict": "SUSPICIOUS", "threat_score": 50, "error": str(e)[:100]}
 
-    results = await asyncio.gather(*[_check_one(u) for u in urls])
+    results = await asyncio.gather(*[_one(u) for u in urls])
     return {"results": list(results), "checked": len(results)}
 
 
@@ -884,7 +840,7 @@ async def get_stats(request: Request):
         "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
         "version": "5.1.0",
-        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "6tier_pipeline", "xai_explainer"],
+        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "7tier_pipeline", "xai_explainer"],
         "report_url": "/report/generate",
     }
     if "text/html" not in request.headers.get("accept", ""):
@@ -900,11 +856,11 @@ async def get_stats(request: Request):
     top_reported = trends.get("top_reported_domains", [])[:5]
 
     top_dom_html = "".join(
-        f'<div class="row-item"><span class="ri-name">{d["domain"]}</span><span class="ri-count">{d["checks"]}</span></div>'
+        f'<div class="row-item"><span class="ri-name">{html.escape(str(d["domain"]))}</span><span class="ri-count">{html.escape(str(d["checks"]))}</span></div>'
         for d in top_domains
     ) or '<div class="row-item muted">Нет данных</div>'
     top_rep_html = "".join(
-        f'<div class="row-item"><span class="ri-name">{d["domain"]}</span><span class="ri-count ri-danger">{d["reports"]}</span></div>'
+        f'<div class="row-item"><span class="ri-name">{html.escape(str(d["domain"]))}</span><span class="ri-count ri-danger">{html.escape(str(d["reports"]))}</span></div>'
         for d in top_reported
     ) or '<div class="row-item muted">Нет данных</div>'
 
@@ -1100,13 +1056,14 @@ async def mini_app():
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
 def _authorize_cron(req: Request) -> bool:
     """Allow only Vercel cron (Authorization: Bearer CRON_SECRET) or explicit ?secret=.
-    If CRON_SECRET is unset, allow (set CRON_SECRET in env to lock cron-only endpoints down)."""
+    Fail-closed: if CRON_SECRET is unset these endpoints are DENIED (they broadcast to
+    Telegram, so must not be open). Set ALLOW_UNAUTHENTICATED_CRON=true to opt out."""
     secret = os.getenv("CRON_SECRET", "")
     if not secret:
+        return os.getenv("ALLOW_UNAUTHENTICATED_CRON", "").lower() in ("1", "true", "yes")
+    if hmac.compare_digest(req.headers.get("authorization", ""), f"Bearer {secret}"):
         return True
-    if req.headers.get("authorization", "") == f"Bearer {secret}":
-        return True
-    return req.query_params.get("secret", "") == secret
+    return hmac.compare_digest(req.query_params.get("secret", ""), secret)
 
 
 @app.get("/telegram/weekly-report")
@@ -1258,11 +1215,18 @@ async def health_check_alert(req: Request):
 
 @app.get("/admin")
 async def admin_dashboard(req: Request, key: str | None = None):
+    # Rate-limit to blunt brute-force of ADMIN_SECRET (10/min per IP).
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, 10, endpoint="admin"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+
     admin_secret = os.getenv("ADMIN_SECRET", "")
     header_key = req.headers.get("x-admin-key", "")
     cookie_key = req.cookies.get("qadmin", "")
     provided = header_key or cookie_key or (key or "")
-    if not admin_secret or provided != admin_secret:
+    # Constant-time comparison (avoids timing side-channel on the secret).
+    authed = bool(admin_secret) and hmac.compare_digest(provided, admin_secret)
+    if not authed:
         return HTMLResponse(
             '<html><body style="background:#0f172a;color:#ef4444;font-family:monospace;'
             'display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">'
@@ -1274,7 +1238,7 @@ async def admin_dashboard(req: Request, key: str | None = None):
 
     # If authenticated via the URL query, move the secret into an httponly cookie and
     # redirect to a clean URL so it never lingers in browser history / bookmarks (P0-4).
-    if key and key == admin_secret and not (header_key or cookie_key):
+    if key and hmac.compare_digest(key, admin_secret) and not (header_key or cookie_key):
         from fastapi.responses import RedirectResponse
         resp = RedirectResponse(url="/admin", status_code=303)
         resp.set_cookie("qadmin", admin_secret, httponly=True, secure=True,
@@ -1302,19 +1266,23 @@ async def admin_dashboard(req: Request, key: str | None = None):
     def _fmt_time(ts):
         return (ts or "")[:19].replace("T", " ")
 
+    def _e(v) -> str:
+        """HTML-escape any DB-derived value before interpolating into the page."""
+        return html.escape(str(v)) if v is not None else ""
+
     def _build_rows_logs():
         rows = ""
         for r in logs[:50]:
             c = _row_color(r.get("verdict", ""))
             rows += (
                 f"<tr>"
-                f"<td>{_fmt_time(r.get('created_at'))}</td>"
-                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
-                f"<td><span style='color:{c};font-weight:bold'>{r.get('verdict','')}</span></td>"
-                f"<td>{r.get('score','')}</td>"
-                f"<td>{r.get('top_source','')}</td>"
+                f"<td>{_e(_fmt_time(r.get('created_at')))}</td>"
+                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{_e(r.get('domain',''))}</td>"
+                f"<td><span style='color:{c};font-weight:bold'>{_e(r.get('verdict',''))}</span></td>"
+                f"<td>{_e(r.get('score',''))}</td>"
+                f"<td>{_e(r.get('top_source',''))}</td>"
                 f"<td>{'✓' if r.get('ai_used') else '—'}</td>"
-                f"<td>{r.get('latency_ms','')}</td>"
+                f"<td>{_e(r.get('latency_ms',''))}</td>"
                 f"</tr>"
             )
         return rows
@@ -1324,11 +1292,11 @@ async def admin_dashboard(req: Request, key: str | None = None):
         for r in reports[:50]:
             rows += (
                 f"<tr>"
-                f"<td>{_fmt_time(r.get('created_at'))}</td>"
-                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
-                f"<td><span style='background:#7c3aed;padding:2px 6px;border-radius:4px;font-size:11px'>{r.get('category','')}</span></td>"
-                f"<td>{r.get('lang','')}</td>"
-                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('comment','') or '—'}</td>"
+                f"<td>{_e(_fmt_time(r.get('created_at')))}</td>"
+                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{_e(r.get('domain',''))}</td>"
+                f"<td><span style='background:#7c3aed;padding:2px 6px;border-radius:4px;font-size:11px'>{_e(r.get('category',''))}</span></td>"
+                f"<td>{_e(r.get('lang',''))}</td>"
+                f"<td style='max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{_e(r.get('comment','')) or '—'}</td>"
                 f"</tr>"
             )
         return rows
@@ -1338,10 +1306,10 @@ async def admin_dashboard(req: Request, key: str | None = None):
         for r in appeals[:50]:
             rows += (
                 f"<tr>"
-                f"<td>{_fmt_time(r.get('created_at'))}</td>"
-                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('domain','')}</td>"
-                f"<td><span style='color:#ef4444'>{r.get('verdict_received','')}</span></td>"
-                f"<td style='max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{r.get('reason','') or '—'}</td>"
+                f"<td>{_e(_fmt_time(r.get('created_at')))}</td>"
+                f"<td style='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{_e(r.get('domain',''))}</td>"
+                f"<td><span style='color:#ef4444'>{_e(r.get('verdict_received',''))}</span></td>"
+                f"<td style='max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>{_e(r.get('reason','')) or '—'}</td>"
                 f"</tr>"
             )
         return rows
@@ -1600,7 +1568,7 @@ async def telegram_webhook(req: Request, background_tasks: BackgroundTasks):
         logger.warning("Telegram webhook called but TELEGRAM_WEBHOOK_SECRET not configured")
         return JSONResponse(status_code=403, content={"error": "Webhook not configured"})
     incoming = req.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-    if incoming != secret:
+    if not hmac.compare_digest(incoming, secret):
         logger.warning("Telegram webhook: invalid secret token")
         return JSONResponse(status_code=403, content={"error": "Forbidden"})
 
@@ -1633,9 +1601,13 @@ async def set_telegram_webhook(req: Request):
     if not token:
         return JSONResponse(status_code=500, content={"error": "TELEGRAM_BOT_TOKEN not set"})
 
-    # Auth: caller must supply the secret in query param
+    # Auth is mandatory: without a configured secret this endpoint could be used to
+    # re-point the bot's webhook, so refuse to run until TELEGRAM_WEBHOOK_SECRET is set.
+    if not secret:
+        return JSONResponse(status_code=403,
+                            content={"error": "TELEGRAM_WEBHOOK_SECRET not configured"})
     caller_secret = req.query_params.get("secret", "")
-    if secret and caller_secret != secret:
+    if not hmac.compare_digest(caller_secret, secret):
         return JSONResponse(status_code=403, content={"error": "Forbidden"})
 
     base = os.getenv("QALQAN_API_URL", str(req.base_url).rstrip("/"))

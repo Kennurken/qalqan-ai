@@ -21,8 +21,18 @@ def test_v1_phone_with_key():
     assert r.json()["result"]["source"] == "phone_check"
 
 
-def test_health_check_open_when_no_cron_secret(monkeypatch):
+def test_health_check_closed_when_no_cron_secret(monkeypatch):
+    # Fail-closed: without CRON_SECRET the cron-gated endpoint is DENIED
+    # (it broadcasts to Telegram, so it must not be open).
     monkeypatch.delenv("CRON_SECRET", raising=False)
+    monkeypatch.delenv("ALLOW_UNAUTHENTICATED_CRON", raising=False)
+    assert client.get("/health/check").status_code == 403
+
+
+def test_health_check_open_with_explicit_optout(monkeypatch):
+    # Opt-out flag restores the old open behavior when explicitly set.
+    monkeypatch.delenv("CRON_SECRET", raising=False)
+    monkeypatch.setenv("ALLOW_UNAUTHENTICATED_CRON", "true")
     r = client.get("/health/check")
     assert r.status_code == 200
     assert "status" in r.json()

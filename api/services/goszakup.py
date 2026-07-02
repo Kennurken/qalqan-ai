@@ -41,14 +41,25 @@ _GOSZAKUP_KEYWORDS = [
 
 
 def is_goszakup_url(url: str) -> bool:
-    """True if URL relates to government procurement."""
+    """True if URL relates to government procurement.
+    Tightened: an actual procurement host is required (exact/subdomain of a known
+    goszakup domain, or a *.gov.kz host carrying a procurement keyword). A bare
+    keyword in any random path/query no longer routes the URL into the external
+    goszakup fetch — that caused needless outbound calls and false positives."""
     try:
         p = urlparse(url if "://" in url else "https://" + url)
-        domain = p.netloc.lower().replace("www.", "")
-        if domain in _GOSZAKUP_DOMAINS:
+        host = (p.hostname or "").lower().removeprefix("www.")
+        if not host:
+            return False
+        # Known procurement host (exact or subdomain)
+        if host in _GOSZAKUP_DOMAINS or any(host.endswith("." + d) for d in _GOSZAKUP_DOMAINS):
             return True
-        path_query = (p.path + "?" + p.query).lower()
-        return any(kw in path_query or kw in domain for kw in _GOSZAKUP_KEYWORDS)
+        # gov.kz host + procurement keyword in host/path (e.g. tender.*.gov.kz)
+        if host.endswith(".gov.kz") or host == "gov.kz":
+            hay = (host + p.path).lower()
+            return any(kw in hay for kw in _GOSZAKUP_KEYWORDS)
+        # Procurement keyword in the hostname itself (e.g. goszakup-mirror.kz)
+        return any(kw in host for kw in _GOSZAKUP_KEYWORDS)
     except Exception:
         return False
 

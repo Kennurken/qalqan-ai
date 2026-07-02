@@ -86,12 +86,53 @@ def _is_internal_host(host: str) -> bool:
     return False
 
 
-async def _ip_intel(domain: str) -> dict | None:
-    """Resolve domain → IP, then enrich via ip-api.com (free, no key):
-    geo country + ASN + org + datacenter-hosting/proxy flags."""
+def _resolve_public_ips(host: str) -> list[str] | None:
+    """Resolve host → list of IPs, returning them ONLY if every address is public.
+    None if the host is internal/reserved or unresolvable. Callers pin one of these
+    IPs for subsequent connects so DNS can't rebind to an internal target between the
+    guard check and the actual socket/HTTP call (TOCTOU / DNS-rebinding defense)."""
+    if not host:
+        return None
+    host = host.strip().lower().rstrip(".")
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+    if host == "localhost" or host.endswith(".local") or host.endswith(".internal"):
+        return None
+    # Literal IP (incl. int/hex-encoded) — accept only if public
+    for parse in (
+        lambda h: ipaddress.ip_address(h),
+        lambda h: ipaddress.ip_address(int(h)) if h.isdigit() else None,
+        lambda h: ipaddress.ip_address(int(h, 16)) if h.startswith("0x") else None,
+    ):
+        try:
+            ip = parse(host)
+        except (ValueError, OverflowError):
+            continue
+        if ip is not None:
+            return None if _ip_blocked(ip) else [str(ip)]
+    # Hostname — resolve; reject if ANY address is internal
+    ips: list[str] = []
+    try:
+        for info in socket.getaddrinfo(host, None):
+            addr = info[4][0].split("%")[0]
+            try:
+                ipobj = ipaddress.ip_address(addr)
+            except ValueError:
+                continue
+            if _ip_blocked(ipobj):
+                return None
+            ips.append(addr)
+    except (socket.gaierror, UnicodeError, OSError):
+        return None
+    return ips or None
+
+
+async def _ip_intel(domain: str, pinned_ip: str | None = None) -> dict | None:
+    """Enrich via ip-api.com (free, no key): geo country + ASN + org + hosting/proxy.
+    Uses the already-validated pinned IP (no re-resolution → no DNS-rebinding window)."""
     try:
         loop = asyncio.get_running_loop()
-        ip = await loop.run_in_executor(None, socket.gethostbyname, domain)
+        ip = pinned_ip or await loop.run_in_executor(None, socket.gethostbyname, domain)
         r = await get_client().get(
             f"http://ip-api.com/json/{ip}"
             "?fields=status,country,countryCode,as,org,isp,hosting,proxy,query", timeout=4)
@@ -118,13 +159,16 @@ async def check_domain_intelligence(domain: str, url: str) -> dict | None:
     # Run RDAP, SSL and IP-intel concurrently
     loop = asyncio.get_running_loop()
 
-    # SSRF guard: never open sockets / RDAP to internal/reserved/metadata hosts
-    if await loop.run_in_executor(None, _is_internal_host, domain):
-        logger.warning(f"domain_intel blocked internal host: {domain}")
+    # SSRF guard: resolve ONCE and pin a validated public IP. Never open sockets to
+    # internal/reserved/metadata hosts, and don't re-resolve later (DNS-rebinding).
+    public_ips = await loop.run_in_executor(None, _resolve_public_ips, domain)
+    if not public_ips:
+        logger.warning(f"domain_intel blocked internal/unresolvable host: {domain}")
         return None
+    pinned_ip = public_ips[0]
     age_task = asyncio.create_task(_get_domain_age_rdap(domain))
-    ssl_task = loop.run_in_executor(None, _check_ssl_cert, domain)
-    ip_task = asyncio.create_task(_ip_intel(domain))
+    ssl_task = loop.run_in_executor(None, _check_ssl_cert, domain, pinned_ip)
+    ip_task = asyncio.create_task(_ip_intel(domain, pinned_ip))
     age_days, ssl_info, ip_info = await asyncio.gather(
         age_task, ssl_task, ip_task, return_exceptions=True)
 
@@ -237,11 +281,13 @@ async def _get_domain_age_rdap(domain: str) -> int | None:
     return None
 
 
-def _check_ssl_cert(domain: str) -> dict:
-    """SSL сертификатын тексеру (stdlib, API жоқ). Expiry + issuer."""
+def _check_ssl_cert(domain: str, pinned_ip: str | None = None) -> dict:
+    """SSL сертификатын тексеру (stdlib, API жоқ). Expiry + issuer.
+    Connects to the pre-validated pinned IP (no re-resolution) but keeps SNI/cert
+    validation against the domain name."""
     try:
         ctx = ssl.create_default_context()
-        with socket.create_connection((domain, 443), timeout=3) as sock:
+        with socket.create_connection((pinned_ip or domain, 443), timeout=3) as sock:
             with ctx.wrap_socket(sock, server_hostname=domain) as ssock:
                 cert = ssock.getpeercert()
                 not_after_ts = ssl.cert_time_to_seconds(cert["notAfter"])

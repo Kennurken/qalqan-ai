@@ -14,9 +14,14 @@ TTL_SAFE      = 21600   # 6h  — safe sites rarely change
 TTL_SUSPICIOUS = 7200   # 2h  — re-check sooner
 TTL_DANGEROUS  = 86400  # 24h — dangerous sites persist
 
-# In-memory fallback (used when Redis not configured or down)
+# In-memory verdict cache fallback (used when Redis not configured or down)
 _mem: OrderedDict[str, tuple[dict, float]] = OrderedDict()
 MAX_MEM = 500  # smaller limit since it's just a fallback
+
+# Separate in-memory rate-limit store — different value shape ([timestamps], expires).
+# Kept apart from _mem so cache eviction and the `cache_entries` metric aren't polluted.
+_rl: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
+MAX_RL = 5000
 
 
 def url_hash(url: str) -> str:
@@ -164,18 +169,20 @@ async def check_rate_limit(ip: str, limit: int, endpoint: str = "", window: int 
         except Exception as e:
             _cb_fail()
             logger.warning(f"Redis rate limit failed, falling back to mem: {e}")
-    # In-memory fallback
+    # In-memory fallback (dedicated _rl store, not the verdict cache)
     now = time.time()
-    if key not in _mem:
-        _mem[key] = ([now], now + window)
+    if len(_rl) >= MAX_RL:
+        _rl.popitem(last=False)
+    if key not in _rl:
+        _rl[key] = ([now], now + window)
         return True
-    timestamps, expires = _mem[key]
-    if time.time() > expires:
-        _mem[key] = ([now], now + window)
+    timestamps, expires = _rl[key]
+    if now > expires:
+        _rl[key] = ([now], now + window)
         return True
     timestamps = [t for t in timestamps if now - t < window]
     timestamps.append(now)
-    _mem[key] = (timestamps, expires)
+    _rl[key] = (timestamps, expires)
     return len(timestamps) <= limit
 
 

@@ -43,3 +43,19 @@ def test_admin_header_key_authorizes(monkeypatch):
     r = client.get("/admin", headers={"X-Admin-Key": "s3cret"})
     assert r.status_code == 200
     assert "401" not in r.text[:200]
+
+
+# ── H1: stored-XSS defense (domain sanitization + HTML escaping) ──────────────
+def test_to_domain_strips_html_metacharacters():
+    # urlparse().hostname passes through '<'/'>' — a crafted URL must NOT yield a
+    # domain containing HTML metacharacters that could break out in /admin or /stats.
+    dom = m._to_domain("https://abc<script>alert(1)</script>.kz")
+    assert "<" not in dom and ">" not in dom
+    assert m._DOMAIN_SANITIZE_RE.search(dom) is None
+
+
+def test_report_payload_cannot_inject_html_into_domain(monkeypatch):
+    # A report with an XSS-shaped URL is stored with a sanitized domain.
+    monkeypatch.setattr(m, "_whitelist", set())
+    dom = m._to_domain("javascript:alert(1)//<img src=x onerror=alert(1)>.kz")
+    assert "<" not in dom and '"' not in dom and "'" not in dom

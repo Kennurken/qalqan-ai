@@ -141,9 +141,10 @@ function quickRiskCheck(url) {
     }
 
     // Gambling keyword patterns — catches subdomain variants and unlisted TLDs
-    // e.g. "bet365.ng", "casinoX.co", "slots-online.ru" not in offline-db exact list
-    // NOTE: does NOT match "1xbet" (x·bet — no word boundary before "bet") — covered above
-    if (/(\b|[-.])(bet|casino|slots?|poker|gambling|букмекер|ставки)(\b|[-.])/i.test(host)) {
+    // e.g. "casinoX.co", "slots-online.ru" not in offline-db exact list.
+    // Bare "bet" removed — too many false positives on legit domains; the specific
+    // bookmaker brands (1xbet/melbet/…) are already covered by the brand regex above.
+    if (/(\b|[-.])(casino|slots?|poker|gambling|букмекер|ставки)(\b|[-.])/i.test(host)) {
       return { verdict: "DANGEROUS", threat_score: 85, threat_type: "gambling", source: "quick_check",
                detail: "Gambling site pattern", detail_kk: "Құмар ойын сайты паттерні",
                detail_ru: "Паттерн сайта азартных игр", detail_en: "Gambling site pattern",

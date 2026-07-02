@@ -147,7 +147,7 @@ async def get_trends(days: int = 7) -> dict | None:
             ),
             client.get(
                 f"{_url()}/rest/v1/reports"
-                "?select=domain,category"
+                "?select=domain,category,reporter_ip_hash"
                 "&order=created_at.desc&limit=500",
                 headers=_headers(),
             ),
@@ -187,20 +187,31 @@ async def get_trends(days: int = 7) -> dict | None:
         top_domains = sorted(domain_counts.items(), key=lambda x: x[1], reverse=True)[:10]
         top_sources = sorted(source_counts.items(), key=lambda x: x[1], reverse=True)[:8]
 
-        # --- Aggregate reports ---
-        rep_domain_counts: dict[str, int] = {}
+        # --- Aggregate reports (per-domain reports/confirms/disputes/unique IPs so the
+        #     auto_blocked flag uses the SAME Sybil-resistant rule as community_auto_block) ---
+        rep_agg: dict[str, dict] = {}
         category_counts: dict[str, int] = {}
         for row in reps:
-            if (row.get("category") or "").startswith("vote:"):
-                continue  # community votes are not scam reports
             d = row.get("domain", "")
+            c = row.get("category", "") or ""
+            iph = row.get("reporter_ip_hash")
             if d:
-                rep_domain_counts[d] = rep_domain_counts.get(d, 0) + 1
-            c = row.get("category", "")
-            if c:
+                a = rep_agg.setdefault(d, {"reports": 0, "confirms": 0, "disputes": 0, "ips": set()})
+                if c == "vote:confirm":
+                    a["confirms"] += 1
+                elif c == "vote:dispute":
+                    a["disputes"] += 1
+                else:
+                    a["reports"] += 1
+                if iph:
+                    a["ips"].add(iph)
+            if c and not c.startswith("vote:"):
                 category_counts[c] = category_counts.get(c, 0) + 1
 
-        top_reported = sorted(rep_domain_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        # Rank by scam reports (votes excluded), keep only domains with real reports
+        top_reported = sorted(
+            ((d, a["reports"]) for d, a in rep_agg.items() if a["reports"] > 0),
+            key=lambda x: x[1], reverse=True)[:10]
 
         return {
             "total_checks": len(logs),
@@ -214,7 +225,13 @@ async def get_trends(days: int = 7) -> dict | None:
             },
             "avg_latency_ms": round(sum(latencies) / len(latencies)) if latencies else None,
             "total_reports": len(reps),
-            "top_reported_domains": [{"domain": d, "reports": c, "auto_blocked": c >= 5} for d, c in top_reported],
+            "top_reported_domains": [
+                {"domain": d, "reports": c,
+                 "auto_blocked": community_auto_block(
+                     rep_agg[d]["reports"], rep_agg[d]["confirms"],
+                     rep_agg[d]["disputes"], len(rep_agg[d]["ips"]))}
+                for d, c in top_reported
+            ],
             "report_categories": dict(sorted(category_counts.items(), key=lambda x: x[1], reverse=True)),
         }
     except Exception as e:
