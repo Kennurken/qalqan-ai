@@ -706,12 +706,11 @@ def _inline_tip() -> dict:
 # ── Internal pipeline call ────────────────────────────────────────────────────
 
 async def _run_pipeline(url: str) -> dict:
-    """Run the full Qalqan pipeline via the /check API (same deployment) — the one
-    real, tested pipeline (whitelist, cache, all tiers, AI, domain enrichment)."""
-    base_url = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
-    async with httpx.AsyncClient(timeout=25) as client:
-        res = await client.post(f"{base_url}/check", json={"url": url, "lang": "kk"})
-    return res.json()
+    """Run the full Qalqan pipeline IN-PROCESS (bot runs inside the same FastAPI app
+    as /check, so the old HTTP self-call paid an extra serverless invocation and
+    ~200-400ms per check for nothing). Lazy import avoids a circular import at load."""
+    from ..index import run_pipeline_internal
+    return await run_pipeline_internal(url, "kk")
 
 
 # ── Main dispatcher ───────────────────────────────────────────────────────────
