@@ -87,3 +87,19 @@ def test_admin_escapes_stored_xss_in_rows(monkeypatch):
     assert r.status_code == 200
     assert "<script>alert(1)" not in r.text
     assert "&lt;script&gt;" in r.text
+
+
+# ── N7: security headers on the (primary) Vercel deploy ───────────────────────
+def test_security_headers_present_on_all_responses():
+    r = client.get("/ping")
+    assert r.headers.get("x-content-type-options") == "nosniff"
+    assert r.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+    assert "max-age=" in r.headers.get("strict-transport-security", "")
+
+
+def test_admin_is_frame_denied_but_miniapp_is_not(monkeypatch):
+    monkeypatch.setenv("ADMIN_SECRET", "s3cret")
+    a = client.get("/admin")  # 401 page still carries the frame guard
+    assert a.headers.get("x-frame-options") == "DENY"
+    mini = client.get("/app")  # Telegram Mini App must remain iframe-embeddable
+    assert mini.headers.get("x-frame-options") != "DENY"

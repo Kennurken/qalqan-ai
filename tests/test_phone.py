@@ -40,3 +40,8 @@ def test_phone_endpoint():
 def test_extract_urls():
     urls = extract_urls("Срочно перейдите kaspi-fake.kz и halyk.com/login")
     assert any("kaspi-fake.kz" in u for u in urls)
+
+
+def test_phone_has_english_detail():
+    for num in ("+7 777 700 00 00", "+7 701 345 67 12", "hello"):
+        assert analyze_phone(num, "en").get("detail_en")

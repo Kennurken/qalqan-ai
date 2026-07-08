@@ -182,6 +182,26 @@ async def enforce_origin(request: Request, call_next):
     return response
 
 
+# --- Security headers (the Vercel deploy is primary; only the VPS Caddyfile set
+#     these before, so every Vercel-served page — landing, admin, stats — shipped
+#     bare). Applied to all responses; frame-blocking is scoped so it doesn't break
+#     the Telegram Mini App (/app, /m) which legitimately loads inside an iframe. ---
+_NO_FRAME_PATHS = ("/admin",)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Strict-Transport-Security",
+                                "max-age=31536000; includeSubDomains")
+    if request.url.path in _NO_FRAME_PATHS:
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+    return response
+
+
 # --- Request Logging Middleware ---
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

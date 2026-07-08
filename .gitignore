@@ -21,3 +21,6 @@ claude-code-sub-agents/
 everything-claude-code/
 wshobson-agents/
 translate-book/
+
+# Generated Firefox build output (produced by build-firefox.sh)
+extension-firefox/build/

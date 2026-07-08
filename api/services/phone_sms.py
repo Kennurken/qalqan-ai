@@ -22,13 +22,14 @@ def analyze_phone(number: str, lang: str = "kk") -> dict:
     """Heuristic scam check for a KZ phone number."""
     raw = normalize_kz_phone(number)
     if not raw:
+        kk = "Нөмір қате. ҚР форматы: +7 7XX XXX XX XX"
+        ru = "Неверный номер. Формат РК: +7 7XX XXX XX XX"
+        en = "Invalid number. KZ format: +7 7XX XXX XX XX"
         return {
             "verdict": "UNKNOWN", "threat_score": 0, "source": "phone_check",
             "error": "invalid_kz_phone",
-            "detail": "Нөмір қате. ҚР форматы: +7 7XX XXX XX XX" if lang == "kk"
-                      else "Неверный номер. Формат РК: +7 7XX XXX XX XX",
-            "detail_kk": "Нөмір қате. ҚР форматы: +7 7XX XXX XX XX",
-            "detail_ru": "Неверный номер. Формат РК: +7 7XX XXX XX XX",
+            "detail": {"kk": kk, "ru": ru, "en": en}.get(lang, kk),
+            "detail_kk": kk, "detail_ru": ru, "detail_en": en,
             "indicators": [],
         }
 
@@ -46,22 +47,25 @@ def analyze_phone(number: str, lang: str = "kk") -> dict:
         verdict, score = "SUSPICIOUS", 55
         kk = "Қайталанатын цифрлар немесе алаяқтыққа тән үлгі"
         ru = "Повторяющиеся цифры или подозрительный паттерн"
+        en = "Repeated digits or a scam-typical pattern"
     elif not valid_mobile:
         verdict, score = "SUSPICIOUS", 40
         indicators.append("unknown_prefix")
         kk = "Белгісіз ҚР мобилдік префикс"
         ru = "Неизвестный мобильный префикс РК"
+        en = "Unknown Kazakhstan mobile prefix"
     else:
         verdict, score = "SAFE", 10
         kk = "Стандартты ҚР мобилдік нөмір"
         ru = "Стандартный мобильный номер РК"
+        en = "Standard Kazakhstan mobile number"
 
     return {
         "verdict": verdict, "threat_score": score, "threat_type": "scam_phone",
         "source": "phone_check",
         "formatted": f"+7 {raw[1:4]} {raw[4:7]} {raw[7:9]} {raw[9:11]}",
-        "detail": kk if lang == "kk" else ru,
-        "detail_kk": kk, "detail_ru": ru, "indicators": indicators,
+        "detail": {"kk": kk, "ru": ru, "en": en}.get(lang, kk),
+        "detail_kk": kk, "detail_ru": ru, "detail_en": en, "indicators": indicators,
     }
 
 
