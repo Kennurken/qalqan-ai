@@ -205,7 +205,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#features" data-i18n="nav_feat">Функциялар</a>
       <a href="#pipeline" data-i18n="nav_arch">Архитектура</a>
       <a href="#demo" data-i18n="nav_demo">Демо</a>
-      <a href="#tech" data-i18n="nav_tech">Технологиялар</a>
+      <a href="/quiz">🎯 Тренажёр</a>
+      <a href="/dashboard">🗺️ Карта</a>
       <a href="#faq">FAQ</a>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -602,8 +603,11 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 
 <div class="card">
   <h3>🗺️ Қауіп картасы — облыстар бойынша (KZ regional threat map)</h3>
-  <div class="kzmap" id="kzmap"></div>
-  <div class="maplegend"><span>аз қауіп</span><div class="grad"></div><span>көп қауіп</span><span style="margin-left:auto">Vercel geo · санақ бойынша</span></div>
+  <div style="position:relative">
+    <svg id="kzsvg" viewBox="0 0 1000 550" style="width:100%;height:auto;display:block"></svg>
+    <div id="maptip" style="position:absolute;pointer-events:none;display:none;background:#0d1424;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:12px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
+  </div>
+  <div class="maplegend"><span>аз қауіп</span><div class="grad"></div><span>көп қауіп</span><span style="margin-left:auto">ОCHA COD-AB 2023 · 20 регионов · Vercel geo</span></div>
 </div>
 
 <div class="grid">
@@ -637,6 +641,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 
 <div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · данные агрегируются анонимно (url_hash/ip_hash)</div>
 
+<script src="/kz-regions.js"></script>
 <script>
 const fmt = n => (n||0).toLocaleString('ru-RU');
 const $ = id => document.getElementById(id);
@@ -681,14 +686,7 @@ function renderDonut(vd){
   $('donut').innerHTML=svg; $('donut-leg').innerHTML=leg;
 }
 
-// Approximate geographic placement of KZ regions on a 7x5 grid
-const KZ_LAYOUT={
-  "Қостанай":{c:2,r:1},"СҚО":{c:3,r:1},"Павлодар":{c:5,r:1},
-  "БҚО":{c:1,r:2},"Ақмола":{c:3,r:2},"Астана":{c:4,r:2},"Абай":{c:5,r:2},"ШҚО":{c:6,r:2},
-  "Атырау":{c:1,r:3},"Ақтөбе":{c:2,r:3},"Ұлытау":{c:3,r:3},"Қарағанды":{c:4,r:3},
-  "Маңғыстау":{c:1,r:4},"Қызылорда":{c:2,r:4},"Жамбыл":{c:4,r:4},"Жетісу":{c:6,r:4},
-  "Түркістан":{c:3,r:5},"Шымкент":{c:4,r:5},"Алматы обл.":{c:5,r:5},"Алматы қ.":{c:6,r:5}
-};
+// ── Real KZ choropleth (geometry from /kz-regions.js → KZ_GEO, 20 regions 2023) ──
 function heat(frac){
   const a=[13,20,36], b=[255,59,92];
   const c=a.map((v,i)=>Math.round(v+(b[i]-v)*frac));
@@ -696,15 +694,33 @@ function heat(frac){
 }
 function renderMap(regions){
   regions=regions||{};
+  if(typeof KZ_GEO==='undefined'){ return; }
   const mx=Math.max(1,...Object.values(regions).map(r=>r.threats||0));
-  let html='';
-  for(const [name,p] of Object.entries(KZ_LAYOUT)){
+  const svg=$('kzsvg'), tip=$('maptip');
+  let out='';
+  for(const [name,d] of Object.entries(KZ_GEO.paths)){
     const r=regions[name]||{total:0,threats:0};
     const frac=Math.min(1,(r.threats||0)/mx);
-    const col=frac>0.45?'#fff':'#e7ebf3';
-    html+=`<div class="kzt" style="grid-column:${p.c};grid-row:${p.r};background:${heat(frac)};color:${col}" title="${name}: ${r.threats} қауіп / ${r.total} тексеру"><span class="rn">${name}</span><b>${r.threats||0}</b></div>`;
+    out+=`<path d="${d}" fill="${heat(frac)}" stroke="#1e293b" stroke-width="1.2" data-n="${name}" data-t="${r.threats||0}" data-c="${r.total||0}" style="cursor:pointer;transition:filter .15s"/>`;
   }
-  $('kzmap').innerHTML=html;
+  // Region labels for the biggest oblasts + city markers
+  for(const [name,c] of Object.entries(KZ_GEO.centroids)){
+    const small = (name==='Алматы қ.'||name==='Астана'||name==='Шымкент');
+    if(small) continue;
+    out+=`<text x="${c[0]}" y="${c[1]}" text-anchor="middle" font-size="15" fill="#e7ebf3" opacity=".75" pointer-events="none" font-weight="600">${name}</text>`;
+  }
+  svg.innerHTML=out;
+  svg.querySelectorAll('path').forEach(p=>{
+    p.addEventListener('mousemove',e=>{
+      p.style.filter='brightness(1.5)';
+      tip.style.display='block';
+      tip.innerHTML=`<b>${p.dataset.n}</b><br>🔴 ${p.dataset.t} қауіп · 🔍 ${p.dataset.c} тексеру`;
+      const box=svg.getBoundingClientRect();
+      tip.style.left=Math.min(e.clientX-box.left+14, box.width-160)+'px';
+      tip.style.top=(e.clientY-box.top+14)+'px';
+    });
+    p.addEventListener('mouseleave',()=>{ p.style.filter=''; tip.style.display='none'; });
+  });
 }
 
 fetch('/dashboard/data'+location.search).then(r=>r.json()).then(d=>{
@@ -879,6 +895,7 @@ input,textarea{width:100%;background:var(--card2);border:1px solid var(--bd);bor
 textarea{min-height:84px;resize:vertical}
 .btn{width:100%;margin-top:10px;background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer}
 .btn:active{opacity:.85}
+.btn-qr{background:var(--card);color:var(--cyan);border:1.5px solid var(--cyan)}
 .hint{color:var(--mut);font-size:12px;margin:8px 2px}
 .res{margin-top:14px;border-radius:14px;padding:16px;border:1px solid var(--bd);background:var(--card);display:none}
 .res.show{display:block}
@@ -909,7 +926,8 @@ textarea{min-height:84px;resize:vertical}
 <div class="panel on" id="p-check">
   <input id="url" placeholder="kaspi-bonus.kz немесе https://..." autocapitalize="off" autocomplete="off">
   <button class="btn" id="btn-check">Тексеру</button>
-  <div class="hint">Сілтемені қой — фишинг, клон, гемблингті тексеремін</div>
+  <button class="btn btn-qr" id="btn-qr" style="display:none">📷 QR-код сканерлеу</button>
+  <div class="hint">Сілтемені қой немесе QR-кодты сканерле — фишинг, клон, гемблингті тексеремін. Жалған Kaspi QR — жиі алаяқтық!</div>
   <div class="res" id="res-check"></div>
 </div>
 
@@ -923,7 +941,8 @@ textarea{min-height:84px;resize:vertical}
 <div class="panel" id="p-map">
   <div class="kpis" id="kpis"></div>
   <div style="font-size:13px;font-weight:700;margin-bottom:6px">Облыстар бойынша қауіп</div>
-  <div class="kzmap" id="kzmap"></div>
+  <svg id="kzsvg" viewBox="0 0 1000 550" style="width:100%;height:auto;display:block;background:var(--card2);border-radius:12px"></svg>
+  <div class="kzmap" id="kzmap" style="margin-top:8px"></div>
 </div>
 
 <script>
@@ -958,6 +977,33 @@ async function check(){
 $('#btn-check').onclick=check;
 $('#url').addEventListener('keydown',e=>{if(e.key==='Enter')check();});
 
+// ── QR scanner (Telegram WebApp 6.4+) — fake Kaspi-QR is a common KZ scam ──
+// Scan → URL lands in the input → the normal /check pipeline runs.
+if (tg && tg.isVersionAtLeast && tg.isVersionAtLeast('6.4') && tg.showScanQrPopup) {
+  $('#btn-qr').style.display='block';
+  $('#btn-qr').onclick = () => {
+    try {
+      tg.showScanQrPopup({ text: 'QR-кодты камераға көрсетіңіз' });
+    } catch(e) {}
+  };
+  tg.onEvent('qrTextReceived', (ev) => {
+    try { tg.closeScanQrPopup(); } catch(e) {}
+    const data = (ev && ev.data || '').trim();
+    if (!data) return;
+    // Non-URL QR payloads (wifi:, tel:, plain text) → show as-is, no check
+    const m = data.match(/https?:\\/\\/[^\\s]+|[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}[^\\s]*/);
+    if (!m) {
+      const box=$('#res-check'); box.className='res show';
+      box.innerHTML=`<div class="verdict" style="color:var(--amber)">ℹ️ QR ішінде сілтеме жоқ</div>
+        <div class="detail" style="word-break:break-all">${data.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+      return;
+    }
+    $('#url').value = m[0];
+    check();
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+  });
+}
+
 async function ask(){
   const t=$('#situation').value.trim(); if(t.length<10) return;
   const box=$('#res-ask'); box.className='res show'; box.innerHTML='<div class="spin">AI талдап жатыр...</div>';
@@ -979,13 +1025,29 @@ let mapLoaded=false;
 async function loadMap(){
   if(mapLoaded) return; mapLoaded=true;
   try{
-    const d=await (await fetch(API+'/dashboard/data?demo=1')).json();
+    // Load geometry + data in parallel (geometry cached 24h by the CDN)
+    const [geoTxt, d] = await Promise.all([
+      fetch(API+'/kz-regions.js').then(r=>r.text()),
+      fetch(API+'/dashboard/data?demo=1').then(r=>r.json()),
+    ]);
+    let KZ_GEO; try{ KZ_GEO = (new Function(geoTxt+';return KZ_GEO;'))(); }catch(e){ KZ_GEO=null; }
     const k=d.kpis||{};
     $('#kpis').innerHTML=
       `<div class="kpi"><div class="v" style="color:var(--cyan)">${(k.total_checks||0).toLocaleString()}</div><div class="l">Тексерілді</div></div>`+
       `<div class="kpi"><div class="v" style="color:var(--red)">${(k.threats_blocked||0).toLocaleString()}</div><div class="l">Қауіп</div></div>`;
     const reg=d.regions||{}; const mx=Math.max(1,...Object.values(reg).map(r=>r.threats||0));
-    const top=Object.entries(reg).sort((a,b)=>(b[1].threats||0)-(a[1].threats||0)).slice(0,12);
+    if(KZ_GEO){
+      // Real choropleth — 20 регионов (2023 COD-AB)
+      let out='';
+      for(const [nm,path] of Object.entries(KZ_GEO.paths)){
+        const r=reg[nm]||{threats:0};
+        const f=Math.min(1,(r.threats||0)/mx);
+        const c=`rgb(${Math.round(13+(255-13)*f)},${Math.round(20+(59-20)*f)},${Math.round(36+(92-36)*f)})`;
+        out+=`<path d="${path}" fill="${c}" stroke="#1e293b" stroke-width="1.5"/>`;
+      }
+      $('#kzsvg').innerHTML=out;
+    }
+    const top=Object.entries(reg).sort((a,b)=>(b[1].threats||0)-(a[1].threats||0)).slice(0,8);
     $('#kzmap').innerHTML=top.map(([nm,r])=>{
       const f=Math.min(1,(r.threats||0)/mx);
       const c=`rgb(${Math.round(13+(255-13)*f)},${Math.round(20+(59-20)*f)},${Math.round(36+(92-36)*f)})`;
@@ -1388,3 +1450,165 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 <div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
 </div>
 </body></html>"""
+
+QUIZ_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Скам-тренажёр</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}
+.top a:hover{color:var(--cyan)}
+h1{font-size:22px;font-weight:800}
+.sub{color:var(--mut);font-size:13px;margin:6px 0 20px}
+.progress{display:flex;gap:5px;margin-bottom:18px}
+.pseg{flex:1;height:6px;border-radius:4px;background:var(--card2)}
+.pseg.ok{background:var(--green)}.pseg.bad{background:var(--red)}.pseg.cur{background:var(--cyan)}
+.qcard{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;margin-bottom:14px}
+.qtype{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cyan);background:rgba(122,162,247,.1);border:1px solid rgba(122,162,247,.25);padding:4px 10px;border-radius:999px;margin-bottom:14px}
+.qmsg{background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:16px;font-size:15px;line-height:1.55;white-space:pre-wrap;margin-bottom:18px}
+.qmsg .from{font-size:12px;color:var(--mut);margin-bottom:8px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.abtn{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s}
+.abtn:active{transform:scale(.97)}
+.abtn.scam{background:rgba(247,118,142,.12);color:var(--red);border:1.5px solid rgba(247,118,142,.4)}
+.abtn.legit{background:rgba(158,206,106,.12);color:var(--green);border:1.5px solid rgba(158,206,106,.4)}
+.expl{border-radius:12px;padding:16px;font-size:14px;line-height:1.6;margin-top:14px;display:none}
+.expl.show{display:block}
+.expl.right{background:rgba(158,206,106,.08);border:1px solid rgba(158,206,106,.3)}
+.expl.wrong{background:rgba(247,118,142,.08);border:1px solid rgba(247,118,142,.3)}
+.expl .verdict{font-weight:800;font-size:15px;margin-bottom:6px}
+.next{width:100%;margin-top:14px;background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:none;font-family:inherit}
+.next.show{display:block}
+.final{text-align:center;padding:30px 20px}
+.final .big{font-size:52px;font-weight:800;margin:10px 0}
+.final .grade{font-size:19px;font-weight:700;margin-bottom:8px}
+.final .desc{color:var(--mut);font-size:14px;line-height:1.6;margin-bottom:22px}
+.share{background:var(--card2);border:1.5px solid var(--cyan);color:var(--cyan);border-radius:12px;padding:14px 22px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin:4px}
+.restart{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin:4px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🎯 Скам-тренажёр</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Алаяқтықты тани аласың ба? · Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.</div>
+  <div class="progress" id="prog"></div>
+  <div id="game"></div>
+  <div class="foot">Qalqan AI · Скам-тренажёр · Обучение кибергигиене · <a href="/">Проверить сайт</a></div>
+</div>
+
+<script>
+const QUESTIONS = [
+ {type:"SMS", from:"+7 707 123 45 67", text:"KASPI: Ваша карта Kaspi Gold заблокирована! Срочно подтвердите данные: kaspi-verify.top/unlock", scam:true,
+  expl:"СКАМ. Kaspi шлёт SMS только с короткого номера, а не с мобильного +7 707. Домен kaspi-verify.top — не kaspi.kz. Срочность («срочно!») — классический приём давления."},
+ {type:"SMS", from:"Kaspi", text:"Kaspi: Сіздің растау кодыңыз: 1234. Ешкімге айтпаңыз!", scam:false,
+  expl:"НЕ СКАМ — это обычный код подтверждения, который приходит, когда ВЫ сами входите в приложение. Но если код пришёл сам по себе и кто-то звонит и просит его назвать — это уже мошенники."},
+ {type:"ЗВОНОК", from:"«Служба безопасности банка»", text:"— Здравствуйте! С вашей карты пытаются снять деньги. Для защиты срочно переведите средства на безопасный счёт. Никому не говорите — идёт спецоперация.", scam:true,
+  expl:"СКАМ, всегда. «Безопасных счетов» не существует. Банк НИКОГДА не просит переводить деньги или называть коды. «Никому не говорите» — признак манипуляции. Клади трубку и звони в банк по номеру с карты."},
+ {type:"САЙТ", from:"egov-kz.support", text:"Электрондық үкімет порталы\\n\\nЖеке кабинетке кіру үшін ЖСН мен құпиясөзіңізді енгізіңіз.", scam:true,
+  expl:"СКАМ. Официальный портал — только egov.kz. Домен egov-kz.support — подделка (клон). Проверяй адресную строку: до первого «/» должно быть ровно egov.kz."},
+ {type:"TELEGRAM", from:"@invest_kz_pro", text:"🚀 Инвестируй 50 000 ₸ — гарантированный доход 30% в месяц! Приведи друга — получи бонус 10%. Уже 5000+ участников!", scam:true,
+  expl:"СКАМ — финансовая пирамида. «Гарантированный доход» + «приведи друга» = формула пирамиды. Легальные инвестиции никогда не гарантируют 30% в месяц. Проверить компанию можно в реестре АФМ через Qalqan AI."},
+ {type:"EMAIL", from:"info@halykbank.kz", text:"Құрметті клиент! 1 тамыздан бастап аударымдар тарифі өзгереді. Толығырақ: halykbank.kz/tariffs", scam:false,
+  expl:"НЕ СКАМ. Отправитель — официальный домен halykbank.kz, ссылка ведёт на официальный сайт, данные не запрашиваются. Информационная рассылка — норма."},
+ {type:"WHATSAPP", from:"Неизвестный номер", text:"Мама, это я! Телефон сломался, пишу с чужого номера. Срочно нужны деньги, переведи 40 000 ₸ на эту карту, потом всё объясню!", scam:true,
+  expl:"СКАМ «мама, я с нового номера». Всегда перезванивай на СТАРЫЙ номер близкого человека. Мошенники давят на эмоции и срочность."},
+ {type:"QR-КОД", from:"Касса магазина", text:"Продавец показывает Kaspi QR для оплаты покупки. В приложении видно имя получателя: «ИП Айгуль С.», сумма 3 500 ₸.", scam:false,
+  expl:"НЕ СКАМ — обычная оплата через Kaspi QR. Главное: перед подтверждением проверь ИМЯ получателя и СУММУ в своём приложении. Подмена QR-наклейки существует — поэтому Qalqan AI умеет сканировать QR."},
+ {type:"SMS", from:"+7 776 999 00 11", text:"Поздравляем! Вы выиграли 1 000 000 ₸ в лотерее Kaspi! Для получения приза оплатите комиссию 5 000 ₸: kaspi-lottery.win", scam:true,
+  expl:"СКАМ. Настоящий выигрыш никогда не требует предоплаты «комиссии». Лотереи Kaspi с таким механизмом не существует, домен — фальшивый."},
+ {type:"ГОЛОСОВОЕ", from:"«Директор» в WhatsApp", text:"🎤 Голосовое сообщение голосом вашего руководителя: «Я на совещании, срочно оплати счёт поставщика 800 000 ₸, реквизиты скину. Никому не говори, это конфиденциально».", scam:true,
+  expl:"СКАМ — AI-дипфейк голоса (тренд 2025-2026). Голос легко клонируется по 10 секундам записи. Правило: любая «срочная оплата» подтверждается только звонком руководителю по известному номеру."},
+];
+
+let idx=0, score=0, answers=[];
+const $=s=>document.querySelector(s);
+
+function renderProgress(){
+  $('#prog').innerHTML = QUESTIONS.map((_,i)=>{
+    let c='pseg';
+    if(i<answers.length) c+=answers[i]?' ok':' bad';
+    else if(i===idx) c+=' cur';
+    return `<div class="${c}"></div>`;
+  }).join('');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+
+function renderQ(){
+  renderProgress();
+  const q=QUESTIONS[idx];
+  $('#game').innerHTML=`
+    <div class="qcard">
+      <span class="qtype">${q.type} · ${idx+1}/${QUESTIONS.length}</span>
+      <div class="qmsg"><div class="from">От: ${esc(q.from)}</div>${esc(q.text)}</div>
+      <div class="btns">
+        <button class="abtn scam" onclick="answer(true)">🚨 Скам</button>
+        <button class="abtn legit" onclick="answer(false)">✅ Не скам</button>
+      </div>
+      <div class="expl" id="expl"></div>
+      <button class="next" id="next" onclick="nextQ()">Келесі → Дальше</button>
+    </div>`;
+}
+
+function answer(saidScam){
+  const q=QUESTIONS[idx];
+  const right = saidScam===q.scam;
+  if(right) score++;
+  answers.push(right);
+  renderProgress();
+  const e=$('#expl');
+  e.className='expl show '+(right?'right':'wrong');
+  e.innerHTML=`<div class="verdict">${right?'✅ Дұрыс! Верно!':'❌ Қате! Ошибка!'}</div>${esc(q.expl)}`;
+  document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
+  $('#next').classList.add('show');
+  $('#next').textContent = idx===QUESTIONS.length-1 ? 'Нәтиже → Результат' : 'Келесі → Дальше';
+}
+
+function nextQ(){
+  idx++;
+  if(idx>=QUESTIONS.length){ renderFinal(); return; }
+  renderQ();
+}
+
+function renderFinal(){
+  renderProgress();
+  const pct=Math.round(score/QUESTIONS.length*100);
+  let grade, desc;
+  if(pct>=90){grade='🛡️ Кибер-сарбаз!'; desc='Отлично! Тебя не проведёшь. Поделись тренажёром с родными — особенно со старшими.';}
+  else if(pct>=70){grade='👍 Жақсы! Хороший уровень'; desc='Ты распознаёшь большинство схем. Помни главное: срочность + деньги + секретность = скам.';}
+  else if(pct>=50){grade='⚠️ Осторожно!'; desc='Половина ловушек сработала бы. Установи расширение Qalqan AI — оно проверит сайты за тебя.';}
+  else {grade='🚨 Ты в зоне риска'; desc='Мошенники легко могут тебя обмануть. Правило №1: никому не говори коды из SMS. Правило №2: клади трубку и перезванивай сам.';}
+  $('#game').innerHTML=`
+    <div class="qcard final">
+      <div>Твой результат</div>
+      <div class="big" style="color:${pct>=70?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}">${score}/${QUESTIONS.length}</div>
+      <div class="grade">${grade}</div>
+      <div class="desc">${desc}</div>
+      <button class="restart" onclick="restart()">🔄 Қайталау · Ещё раз</button>
+      <button class="share" onclick="shareResult(${score})">📤 Бөлісу · Поделиться</button>
+      <div style="margin-top:18px"><a href="/install" style="color:var(--cyan);font-size:14px">🛡️ Установить защиту Qalqan AI →</a></div>
+    </div>`;
+}
+
+function shareResult(s){
+  const text=`Я набрал ${s}/10 в Скам-тренажёре Qalqan AI! Проверь себя:`;
+  const url=location.origin+'/quiz';
+  if(navigator.share){ navigator.share({title:'Qalqan AI',text,url}).catch(()=>{}); }
+  else { navigator.clipboard.writeText(text+' '+url).then(()=>alert('Ссылка скопирована!')).catch(()=>{}); }
+}
+
+function restart(){ idx=0; score=0; answers=[]; renderQ(); }
+renderQ();
+</script>
+</body>
+</html>"""

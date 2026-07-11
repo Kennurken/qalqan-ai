@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -1085,6 +1085,7 @@ async def pwa_manifest():
         "categories": ["security", "utilities"],
         "shortcuts": [
             {"name": "URL тексеру", "url": "/", "description": "Check a URL for threats"},
+            {"name": "Скам-тренажёр", "url": "/quiz", "description": "Scam recognition trainer"},
             {"name": "Статистика", "url": "/stats", "description": "View threat statistics"},
             {"name": "Орнату", "url": "/install", "description": "Install the extension"}
         ]
@@ -1103,6 +1104,21 @@ async def install_page():
 @app.get("/m")
 async def mobile_app():
     return HTMLResponse(content=MOBILE_HTML, headers=_HTML_CACHE)
+
+
+@app.get("/quiz")
+async def scam_quiz():
+    """Скам-тренажёр — interactive scam-recognition trainer (digital literacy)."""
+    return HTMLResponse(QUIZ_HTML, headers=_HTML_CACHE)
+
+
+@app.get("/kz-regions.js")
+async def kz_regions_js():
+    """Kazakhstan ADM1 geometry (20 regions, 2023 COD-AB) for the threat map."""
+    from fastapi.responses import Response as _Resp
+    from .kz_geo import KZ_GEO_JS
+    return _Resp(content=KZ_GEO_JS, media_type="application/javascript",
+                 headers={"Cache-Control": "public, max-age=86400, s-maxage=604800"})
 
 
 @app.get("/sw.js")

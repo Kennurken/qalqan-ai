@@ -21,7 +21,7 @@ def test_root_serves_json_to_api_clients():
 
 
 def test_dashboard_and_install_render():
-    assert 'id="kzmap"' in client.get("/dashboard").text
+    assert 'id="kzsvg"' in client.get("/dashboard").text  # real SVG choropleth (was grid tiles)
     assert "<!DOCTYPE html>" in client.get("/install").text
 
 
@@ -29,3 +29,19 @@ def test_templates_module_exposes_constants():
     from api import templates
     assert all(isinstance(getattr(templates, n), str)
                for n in ("LANDING_HTML", "DASHBOARD_HTML", "INSTALL_HTML"))
+
+
+def test_quiz_page_renders():
+    r = client.get("/quiz")
+    assert r.status_code == 200
+    assert "Скам-тренажёр" in r.text
+    assert "QUESTIONS" in r.text
+
+
+def test_kz_regions_geometry():
+    r = client.get("/kz-regions.js")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("application/javascript")
+    # all 20 post-2022 regions present (incl. the three new oblasts + Shymkent)
+    for name in ("Қызылорда", "Абай", "Жетісу", "Ұлытау", "Шымкент"):
+        assert name in r.text
