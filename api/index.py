@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -142,6 +142,9 @@ def _cors_origin_allowed(origin: str) -> bool:
             return True  # dev: no IDs pinned yet → allow any extension
         ext_id = origin[len("chrome-extension://"):].strip("/")
         return ext_id in pinned  # prod: only our published extension(s)
+    # Local dev on any port (http://localhost:8899 etc.)
+    if origin.startswith(("http://localhost:", "http://127.0.0.1:")):
+        return True
     return origin in _ALLOWED_ORIGINS
 
 _CORS_ALLOW_HEADERS = {"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -1110,6 +1113,12 @@ async def mobile_app():
 async def scam_quiz():
     """Скам-тренажёр — interactive scam-recognition trainer (digital literacy)."""
     return HTMLResponse(QUIZ_HTML, headers=_HTML_CACHE)
+
+
+@app.get("/leak")
+async def leak_check():
+    """Password-leak checker (HIBP k-anonymity; hash prefix only, client-side)."""
+    return HTMLResponse(LEAK_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/kz-regions.js")

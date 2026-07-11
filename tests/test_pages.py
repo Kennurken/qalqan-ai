@@ -9,7 +9,7 @@ client = TestClient(m.app)
 def test_landing_renders_for_browser():
     r = client.get("/", headers={"Accept": "text/html"})
     assert r.status_code == 200
-    assert "6-деңгейлі" in r.text          # honest 6-tier pipeline
+    assert "7-деңгейлі" in r.text          # 7-tier pipeline (community + ML added)
     assert "XLM-RoBERTa" not in r.text      # ML marketing stays removed
     assert len(r.text) > 5000
 
@@ -45,3 +45,22 @@ def test_kz_regions_geometry():
     # all 20 post-2022 regions present (incl. the three new oblasts + Shymkent)
     for name in ("Қызылорда", "Абай", "Жетісу", "Ұлытау", "Шымкент"):
         assert name in r.text
+
+
+def test_leak_page_renders():
+    r = client.get("/leak")
+    assert r.status_code == 200
+    assert "pwnedpasswords.com" in r.text
+    assert "SHA-1" in r.text
+
+
+def test_landing_has_no_stale_tier_count():
+    t = client.get("/", headers={"Accept": "text/html"}).text
+    assert "6-tier" not in t and "6-деңгей" not in t and "6-уровн" not in t
+
+
+def test_localhost_any_port_origin_allowed():
+    import api.index as _m
+    assert _m._cors_origin_allowed("http://localhost:8899") is True
+    assert _m._cors_origin_allowed("http://127.0.0.1:5500") is True
+    assert _m._cors_origin_allowed("https://evil.example.com") is False

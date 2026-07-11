@@ -118,6 +118,8 @@ async def register_bot_ui() -> None:
         {"command": "tender", "description": "Тендер фрод тексеру"},
         {"command": "report", "description": "Алаяқтықты хабарлау"},
         {"command": "app", "description": "Қосымшаны ашу"},
+        {"command": "quiz", "description": "Скам-тренажёр — өзіңді тексер"},
+        {"command": "leak", "description": "Құпиясөз утечкасын тексеру"},
         {"command": "stats", "description": "Статистика"},
         {"command": "help", "description": "Көмек"},
     ]})
@@ -315,7 +317,7 @@ def format_result(url: str, result: dict, lang: str = "kk") -> str:
             f"🛡️ <b>Бұл сайтқа кіруді ұсынбаймыз!</b>",
         ]
 
-    lines.append(f"\n<i>Qalqan AI · qalqan.kz</i>")
+    lines.append(f"\n<i>Qalqan AI · qalqan-ai-nu.vercel.app</i>")
     return "\n".join(lines)
 
 
@@ -900,6 +902,27 @@ async def dispatch(update: dict) -> None:
 
     elif text.startswith("/app"):
         await handle_app(chat_id, message_id)
+
+    elif text.startswith("/quiz"):
+        base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        kb = {"inline_keyboard": [[{"text": "🎯 Тренажёрді бастау",
+                                    "web_app": {"url": f"{base}/quiz"}}]]}
+        await send_message(chat_id,
+            "🎯 <b>Скам-тренажёр</b>\n\nАлаяқтықты тани аласың ба? 10 нақты мысал: "
+            "жалған Kaspi SMS, «банк қауіпсіздігі» қоңыраулары, дипфейк...\n"
+            "Нәтижеңмен бөліс — жақындарың да үйренсін!",
+            reply_to=message_id, reply_markup=kb)
+
+    elif text.startswith("/leak"):
+        base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        kb = {"inline_keyboard": [[{"text": "🔑 Құпиясөзді тексеру",
+                                    "web_app": {"url": f"{base}/leak"}}]]}
+        await send_message(chat_id,
+            "🔑 <b>Құпиясөз утечкасын тексеру</b>\n\n900+ млн утёкших паролей базасы "
+            "(HaveIBeenPwned) бойынша тексеру.\n"
+            "🔒 Құпиясөз құрылғыдан шықпайды — тек хэштің алғашқы 5 таңбасы жіберіледі "
+            "(k-anonymity).\n\n⚠️ Құпиясөзді ЕШҚАШАН чатқа жазба — тек батырма арқылы тексер!",
+            reply_to=message_id, reply_markup=kb)
 
     elif text.startswith("/deepfake") or text.startswith("/voice"):
         await handle_deepfake(chat_id, message_id)

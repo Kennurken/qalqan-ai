@@ -13,14 +13,14 @@ LANDING_HTML = """<!DOCTYPE html>
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://qalqan-ai-nu.vercel.app/">
 <meta property="og:title" content="Qalqan AI — Казахстанский ИИ-щит от мошенников">
-<meta property="og:description" content="Бесплатно: блокирует фишинг, пирамиды, гемблинг, телефонный скам и госзакуп-фрод. Расширение + мобилка + Telegram-бот + дашборд регулятора. 6-уровневый AI.">
+<meta property="og:description" content="Бесплатно: блокирует фишинг, пирамиды, гемблинг, телефонный скам и госзакуп-фрод. Расширение + мобилка + Telegram-бот + дашборд регулятора. 7-уровневый AI.">
 <meta property="og:url" content="https://qalqan-ai-nu.vercel.app">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
 <meta property="og:locale" content="kk_KZ">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
-<meta name="twitter:description" content="Blocks phishing, scams, gambling, phone fraud & procurement fraud. Extension + mobile + bot + regulator dashboard. 6-tier AI. kk/ru/en.">
+<meta name="twitter:description" content="Blocks phishing, scams, gambling, phone fraud & procurement fraud. Extension + mobile + bot + regulator dashboard. 7-tier AI. kk/ru/en.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="/favicon.ico">
@@ -253,7 +253,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
   <div class="wrap">
     <div class="eyebrow reveal" data-i18n="s_feat_e">Функционал</div>
     <h2 class="stitle reveal" data-i18n="s_feat_t">Не қорғайды</h2>
-    <p class="ssub reveal" data-i18n="s_feat_s">6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.</p>
+    <p class="ssub reveal" data-i18n="s_feat_s">7-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.</p>
     <div class="bento">
       <div class="card span3 tilt reveal">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
@@ -281,8 +281,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 <section class="sec" id="pipeline">
   <div class="wrap">
     <div class="eyebrow reveal" data-i18n="s_arch_e">Архитектура</div>
-    <h2 class="stitle reveal" data-i18n="s_arch_t">6-деңгейлі анықтау</h2>
-    <p class="ssub reveal" data-i18n="s_arch_s">Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.</p>
+    <h2 class="stitle reveal" data-i18n="s_arch_t">7-деңгейлі анықтау</h2>
+    <p class="ssub reveal" data-i18n="s_arch_s">Әр сұраныс жеті қабаттан өтеді — жылдамнан тереңге.</p>
     <div class="pipe">
       <span class="packet" id="packet"></span>
       <div class="pstep reveal"><div class="pn">1</div><div class="pnm">Ақ тізім</div></div>
@@ -358,7 +358,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <div class="faq reveal">
       <details class="fq"><summary><span data-i18n="q1">Тегін бе?</span><i></i></summary><div class="fa">Иә, азаматтарға толық тегін — жасырын ақы жоқ. Монетизация: банк пен реттеушіге арналған B2G API (<code>/v1</code>).</div></details>
       <details class="fq"><summary><span data-i18n="q2">Менің деректерім қауіпсіз бе?</span><i></i></summary><div class="fa">Сілтеме мен IP тек SHA-256 хэш түрінде сақталады — шикі дерек ешқашан жазылмайды. URL query-параметрлері логқа түспейді. Барлық агрегация анонимді.</div></details>
-      <details class="fq"><summary><span data-i18n="q3">Қалай жұмыс істейді?</span><i></i></summary><div class="fa">6 деңгейлі pipeline: ақ тізім → Redis кэш → офлайн-база → KZ intel (бренд/пирамида/гемблинг) → сыртқы БД + домен анализі → Groq/Gemini AI. Қауіпті сайт бет жүктелмей тұрып бұғатталады.</div></details>
+      <details class="fq"><summary><span data-i18n="q3">Қалай жұмыс істейді?</span><i></i></summary><div class="fa">7 деңгейлі pipeline: ақ тізім → Redis кэш → офлайн-база → KZ intel (бренд/пирамида/гемблинг) → сыртқы БД + домен анализі → қоғамдастық + ML → Groq/Gemini AI. Қауіпті сайт бет жүктелмей тұрып бұғатталады.</div></details>
       <details class="fq"><summary><span data-i18n="q4">Қандай қауіптерді анықтайды?</span><i></i></summary><div class="fa">Фишинг (homoglyph/typosquat қоса), телефон/SMS алаяқтығы, қаржы пирамидалары (АФМ реестрі), нелегал гемблинг, госзакуп фроды (граф), дауыс-скам (Whisper). Офлайн-база: 390+ домен, тірі threat-feed: 1800+ домен.</div></details>
       <details class="fq"><summary><span data-i18n="q5">Қай тілдерде?</span><i></i></summary><div class="fa">Қазақша, орысша, ағылшынша — детекция да, түсіндірме де үш тілде.</div></details>
       <details class="fq"><summary><span data-i18n="q6">Интернетсіз жұмыс істей ме?</span><i></i></summary><div class="fa">Иә. Мобиль қосымша (PWA) мен браузер кеңейтімі офлайн-базамен жұмыс істейді — желісіз де негізгі тексеру жүреді.</div></details>
@@ -379,7 +379,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
     <div class="flinks">
       <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
-      <a href="/m">Мобилка</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+      <a href="/m">Мобилка</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
     </div>
     <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
@@ -420,8 +420,8 @@ const I18N={
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
      st_checked:'Тексерілді',st_blocked:'Бұғатталды',st_offline:'Офлайн база',st_levels:'Деңгей',err:'Қате',errd:'Кейінірек қайталаңыз',
      s_prob_e:'Неге керек',s_prob_t:'Қазақстандағы цифрлық алаяқтық',s_prob_s:'2025 жылғы 10 айдағы ресми статистика — масштаб орасан.',
-     s_feat_e:'Функционал',s_feat_t:'Не қорғайды',s_feat_s:'6-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.',
-     s_arch_e:'Архитектура',s_arch_t:'6-деңгейлі анықтау',s_arch_s:'Әр сұраныс алты қабаттан өтеді — жылдамнан тереңге.',
+     s_feat_e:'Функционал',s_feat_t:'Не қорғайды',s_feat_s:'7-деңгейлі pipeline — 1 мс кэш-тексеруден AI анализіне дейін.',
+     s_arch_e:'Архитектура',s_arch_t:'7-деңгейлі анықтау',s_arch_s:'Әр сұраныс жеті қабаттан өтеді — жылдамнан тереңге.',
      s_demo_e:'Демо',s_demo_t:'Бәрі тірі — ашып көріңіз',s_demo_s:'Жұмыс істеп тұрған платформалар мен панельдер.',
      s_tech_e:'Технологиялар',s_tech_t:'Стек',s_faq_e:'Сұрақ-жауап',s_faq_t:'Жиі қойылатын сұрақтар',s_faq_s:'Нақты жауаптар — артық сөзсіз.',
      q1:'Тегін бе?',q2:'Менің деректерім қауіпсіз бе?',q3:'Қалай жұмыс істейді?',q4:'Қандай қауіптерді анықтайды?',q5:'Қай тілдерде?',q6:'Интернетсіз жұмыс істей ме?',q7:'Банктер/реттеушілер қалай қосыла алады?',
@@ -439,8 +439,8 @@ const I18N={
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
      st_checked:'Проверено',st_blocked:'Заблокировано',st_offline:'Офлайн-база',st_levels:'Уровней',err:'Ошибка',errd:'Повторите позже',
      s_prob_e:'Зачем нужно',s_prob_t:'Цифровое мошенничество в Казахстане',s_prob_s:'Официальная статистика за 10 месяцев 2025 — масштаб огромен.',
-     s_feat_e:'Функционал',s_feat_t:'От чего защищает',s_feat_s:'6-уровневый pipeline — от 1 мс кэша до AI-анализа.',
-     s_arch_e:'Архитектура',s_arch_t:'6-уровневое обнаружение',s_arch_s:'Каждый запрос проходит 6 уровней — от быстрого к глубокому.',
+     s_feat_e:'Функционал',s_feat_t:'От чего защищает',s_feat_s:'7-уровневый pipeline — от 1 мс кэша до AI-анализа.',
+     s_arch_e:'Архитектура',s_arch_t:'7-уровневое обнаружение',s_arch_s:'Каждый запрос проходит 7 уровней — от быстрого к глубокому.',
      s_demo_e:'Демо',s_demo_t:'Всё вживую — откройте',s_demo_s:'Работающие платформы и панели.',
      s_tech_e:'Технологии',s_tech_t:'Стек',s_faq_e:'Вопрос-ответ',s_faq_t:'Частые вопросы',s_faq_s:'Точные ответы — без воды.',
      q1:'Это бесплатно?',q2:'Мои данные в безопасности?',q3:'Как это работает?',q4:'Какие угрозы детектит?',q5:'На каких языках?',q6:'Работает без интернета?',q7:'Как подключаются банки/регуляторы?',
@@ -458,8 +458,8 @@ const I18N={
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
      st_checked:'Checked',st_blocked:'Blocked',st_offline:'Offline DB',st_levels:'Tiers',err:'Error',errd:'Try again later',
      s_prob_e:'Why it matters',s_prob_t:'Digital fraud in Kazakhstan',s_prob_s:'Official stats for 10 months of 2025 — the scale is huge.',
-     s_feat_e:'Features',s_feat_t:'What it protects',s_feat_s:'6-tier pipeline — from 1ms cache to AI analysis.',
-     s_arch_e:'Architecture',s_arch_t:'6-tier detection',s_arch_s:'Every request passes 6 tiers — fast to deep.',
+     s_feat_e:'Features',s_feat_t:'What it protects',s_feat_s:'7-tier pipeline — from 1ms cache to AI analysis.',
+     s_arch_e:'Architecture',s_arch_t:'7-tier detection',s_arch_s:'Every request passes 7 tiers — fast to deep.',
      s_demo_e:'Demo',s_demo_t:'All live — open it',s_demo_s:'Working platforms and dashboards.',
      s_tech_e:'Technology',s_tech_t:'Stack',s_faq_e:'FAQ',s_faq_t:'Frequently asked',s_faq_s:'Precise answers — no fluff.',
      q1:'Is it free?',q2:'Is my data safe?',q3:'How does it work?',q4:'What threats does it detect?',q5:'Which languages?',q6:'Does it work offline?',q7:'How can banks/regulators integrate?',
@@ -491,19 +491,31 @@ async function runCheck(){
   btn.disabled=true; const old=btn.textContent; btn.textContent='...';
   try{
     const res=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:currentLang})});
+    // NEVER fail-open: 429/403/500 must not render as an empty "✓ 0/100" verdict
+    if(res.status===429){
+      box.className='result show SUSPICIOUS';
+      verdict.textContent='⏳  '+(currentLang==='kk'?'Тым көп сұраныс — 1 минуттан кейін қайталаңыз':currentLang==='en'?'Too many requests — retry in a minute':'Слишком много запросов — повторите через минуту');
+      detail.textContent='';
+      btn.disabled=false; btn.textContent=old; return;
+    }
+    if(!res.ok) throw new Error('http '+res.status);
     const d=await res.json();
-    box.className='result show '+(d.verdict||'SUSPICIOUS');
+    if(!d.verdict) throw new Error('bad payload');
+    box.className='result show '+d.verdict;
     const ic=d.verdict==='DANGEROUS'?'⛔':d.verdict==='SUSPICIOUS'?'⚠':'✓';
-    verdict.textContent=ic+'  '+(d.verdict||'')+' · '+(d.threat_score||0)+'/100';
+    verdict.textContent=ic+'  '+d.verdict+' · '+(d.threat_score||0)+'/100';
     detail.textContent=d.detail||d['detail_'+currentLang]||d.detail_kk||'';
   }catch(e){box.className='result show SUSPICIOUS';verdict.textContent='⚠  '+I18N[currentLang].err;detail.textContent=I18N[currentLang].errd;}
   btn.disabled=false; btn.textContent=old;
 }
 btn.addEventListener('click',runCheck);
 input.addEventListener('keydown',e=>{if(e.key==='Enter')runCheck()});
-fetch('/stats').then(r=>r.json()).then(t=>{
+// /trends is where total_checks + verdict_distribution actually live (/stats has neither)
+fetch('/trends').then(r=>r.json()).then(t=>{
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null){el.dataset.to=v;countUp(el)}};
-  set('statChecked',t.total_checks); set('statBlocked',t.dangerous_blocked??t.dangerous);
+  const dist=t.verdict_distribution||{};
+  set('statChecked',t.total_checks||0);
+  set('statBlocked',(dist.DANGEROUS||0)+(dist.SUSPICIOUS||0));
 }).catch(()=>{});
 
 /* scroll progress */
@@ -945,6 +957,11 @@ textarea{min-height:84px;resize:vertical}
   <div class="kzmap" id="kzmap" style="margin-top:8px"></div>
 </div>
 
+<div style="display:flex;gap:8px;margin-top:14px">
+  <a href="/quiz" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🎯 Скам-тренажёр</a>
+  <a href="/leak" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🔑 Пароль утёк?</a>
+</div>
+
 <script>
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -1025,15 +1042,18 @@ let mapLoaded=false;
 async function loadMap(){
   if(mapLoaded) return; mapLoaded=true;
   try{
-    // Load geometry + data in parallel (geometry cached 24h by the CDN)
+    // Load geometry + data in parallel (geometry cached 24h by the CDN).
+    // No forced demo: server returns real data when it exists, falls back to a
+    // demo dataset and labels it via _source — show an honest badge either way.
     const [geoTxt, d] = await Promise.all([
       fetch(API+'/kz-regions.js').then(r=>r.text()),
-      fetch(API+'/dashboard/data?demo=1').then(r=>r.json()),
+      fetch(API+'/dashboard/data').then(r=>r.json()),
     ]);
     let KZ_GEO; try{ KZ_GEO = (new Function(geoTxt+';return KZ_GEO;'))(); }catch(e){ KZ_GEO=null; }
     const k=d.kpis||{};
+    const demoBadge = d._source==='demo' ? ' <span style="font-size:9px;color:var(--amber);border:1px solid var(--amber);border-radius:6px;padding:1px 5px;vertical-align:middle">ДЕМО</span>' : '';
     $('#kpis').innerHTML=
-      `<div class="kpi"><div class="v" style="color:var(--cyan)">${(k.total_checks||0).toLocaleString()}</div><div class="l">Тексерілді</div></div>`+
+      `<div class="kpi"><div class="v" style="color:var(--cyan)">${(k.total_checks||0).toLocaleString()}</div><div class="l">Тексерілді${demoBadge}</div></div>`+
       `<div class="kpi"><div class="v" style="color:var(--red)">${(k.threats_blocked||0).toLocaleString()}</div><div class="l">Қауіп</div></div>`;
     const reg=d.regions||{}; const mx=Math.max(1,...Object.values(reg).map(r=>r.threats||0));
     if(KZ_GEO){
@@ -1302,10 +1322,11 @@ let mapLoaded=false;
 async function loadMap(){
   if(mapLoaded)return; mapLoaded=true;
   try{
-    const d=await (await fetch(API+'/dashboard/data?demo=1')).json();
+    const d=await (await fetch(API+'/dashboard/data')).json();
+    const demoTag = d._source==='demo' ? ' <small style="color:#e0af68">(демо)</small>' : '';
     const reg=Object.entries(d.regions||{}).sort((a,b)=>b[1].threats-a[1].threats).slice(0,12);
     const mx=Math.max(1,...reg.map(r=>r[1].threats));
-    $('#regions').innerHTML=reg.map(([n,r])=>`<div class="region"><span class="nm">${n}</span><span class="tk"><span class="fl" style="width:${Math.round(100*r.threats/mx)}%"></span></span><span class="vv">${r.threats}</span></div>`).join('');
+    $('#regions').innerHTML=demoTag+reg.map(([n,r])=>`<div class="region"><span class="nm">${n}</span><span class="tk"><span class="fl" style="width:${Math.round(100*r.threats/mx)}%"></span></span><span class="vv">${r.threats}</span></div>`).join('');
   }catch(e){$('#regions').innerHTML='<div class="muted">Картаны жүктеу қатесі</div>';}
 }
 
@@ -1447,7 +1468,7 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 <h1>Бет табылмады</h1>
 <p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
 <a class="btn" href="/">← Басты бетке</a>
-<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/quiz">🎯 Тренажёр</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
 </div>
 </body></html>"""
 
@@ -1609,6 +1630,120 @@ function shareResult(s){
 
 function restart(){ idx=0; score=0; answers=[]; renderQ(); }
 renderQ();
+</script>
+</body>
+</html>"""
+
+LEAK_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Проверка утечки пароля</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:560px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}
+.top a:hover{color:var(--cyan)}
+h1{font-size:22px;font-weight:800}
+.sub{color:var(--mut);font-size:13px;margin:6px 0 22px;line-height:1.6}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;margin-bottom:14px}
+.inrow{display:flex;gap:8px}
+input{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:14px;color:var(--tx);font-size:16px;outline:none;font-family:inherit}
+input:focus{border-color:var(--cyan)}
+.eye{background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:0 14px;color:var(--mut);cursor:pointer;font-size:16px}
+.btn{width:100%;margin-top:12px;background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.6;cursor:wait}
+.priv{display:flex;gap:10px;align-items:flex-start;background:rgba(158,206,106,.07);border:1px solid rgba(158,206,106,.25);border-radius:12px;padding:13px;font-size:12.5px;line-height:1.55;color:var(--mut);margin-top:14px}
+.priv b{color:var(--green)}
+.res{margin-top:16px;border-radius:14px;padding:18px;display:none;line-height:1.6}
+.res.show{display:block}
+.res.bad{background:rgba(247,118,142,.09);border:1px solid rgba(247,118,142,.35)}
+.res.ok{background:rgba(158,206,106,.09);border:1px solid rgba(158,206,106,.35)}
+.res .big{font-size:19px;font-weight:800;margin-bottom:6px}
+.res .cnt{font-size:34px;font-weight:800;color:var(--red)}
+.res ul{margin:10px 0 0 18px;font-size:13.5px;color:var(--tx)}
+.res li{margin-bottom:5px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
+.foot a{color:var(--cyan);text-decoration:none}
+.how{font-size:12.5px;color:var(--mut);line-height:1.6;margin-top:14px}
+.how code{background:var(--card2);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🔑 Пароль утёк?</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Құпиясөзіңіз деректер утечкаларында бар ма? · Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.</div>
+
+  <div class="card">
+    <div class="inrow">
+      <input id="pw" type="password" placeholder="Введите пароль для проверки" autocomplete="off">
+      <button class="eye" id="eye" aria-label="Показать пароль">👁</button>
+    </div>
+    <button class="btn" id="go">Проверить утечку</button>
+    <div class="priv">
+      <span style="font-size:16px">🔒</span>
+      <span><b>Пароль не покидает ваше устройство.</b> Считается SHA-1 хэш прямо в браузере, наружу уходят только первые 5 символов хэша (k-анонимность). Ни мы, ни HIBP не видим пароль и даже его полный хэш.</span>
+    </div>
+    <div class="res" id="res"></div>
+    <div class="how">Как это работает: пароль → <code>SHA-1</code> в браузере → префикс <code>5 симв.</code> → HIBP возвращает ~800 хэшей с этим префиксом → сравнение происходит локально у вас.</div>
+  </div>
+
+  <div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · <a href="/quiz">🎯 Скам-тренажёр</a></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+$('#eye').onclick=()=>{const p=$('#pw');p.type=p.type==='password'?'text':'password';};
+
+async function sha1hex(str){
+  const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+async function checkLeak(){
+  const pw=$('#pw').value;
+  const res=$('#res');
+  if(!pw){ return; }
+  const btn=$('#go'); btn.disabled=true; btn.textContent='Проверяем...';
+  try{
+    const hash=await sha1hex(pw);
+    const prefix=hash.slice(0,5), suffix=hash.slice(5);
+    const r=await fetch('https://api.pwnedpasswords.com/range/'+prefix,{headers:{'Add-Padding':'true'}});
+    if(!r.ok) throw new Error('hibp '+r.status);
+    const lines=(await r.text()).split('\\n');
+    let count=0;
+    for(const ln of lines){
+      const [suf,cnt]=ln.trim().split(':');
+      if(suf===suffix){ count=parseInt(cnt,10)||0; break; }
+    }
+    if(count>0){
+      res.className='res show bad';
+      res.innerHTML=`<div class="big">🚨 Пароль скомпрометирован!</div>
+        Этот пароль встречается в утечках <span class="cnt">${count.toLocaleString('ru-RU')}</span> раз.
+        <ul>
+          <li>Смени его ВЕЗДЕ, где используешь — прямо сейчас</li>
+          <li>Включи двухфакторную защиту (2FA) в банках и почте</li>
+          <li>Используй разные пароли для разных сервисов</li>
+        </ul>`;
+    }else{
+      res.className='res show ok';
+      res.innerHTML=`<div class="big">✅ В известных утечках не найден</div>
+        Это не гарантия абсолютной безопасности, но в 900+ млн утёкших паролей его нет.
+        Совет: длина 12+ символов и уникальность для каждого сервиса важнее сложности.`;
+    }
+  }catch(e){
+    res.className='res show bad';
+    res.innerHTML='<div class="big">⚠️ Сервис недоступен</div>Попробуйте позже — проверка идёт напрямую в HaveIBeenPwned.';
+  }
+  btn.disabled=false; btn.textContent='Проверить утечку';
+}
+$('#go').onclick=checkLeak;
+$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')checkLeak();});
 </script>
 </body>
 </html>"""
