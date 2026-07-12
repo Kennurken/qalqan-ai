@@ -120,6 +120,7 @@ async def register_bot_ui() -> None:
         {"command": "app", "description": "Қосымшаны ашу"},
         {"command": "quiz", "description": "Скам-тренажёр — өзіңді тексер"},
         {"command": "leak", "description": "Құпиясөз утечкасын тексеру"},
+        {"command": "sos", "description": "🆘 Алдап кетті ме? Не істеу керек"},
         {"command": "stats", "description": "Статистика"},
         {"command": "help", "description": "Көмек"},
     ]})
@@ -316,6 +317,9 @@ def format_result(url: str, result: dict, lang: str = "kk") -> str:
             f"",
             f"🛡️ <b>Бұл сайтқа кіруді ұсынбаймыз!</b>",
         ]
+        if verdict == "DANGEROUS":
+            base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+            lines.append(f"🆘 Ақшаңыз кетті ме? → <a href='{base}/help'>Не істеу керек</a> · ☎️ 1477")
 
     lines.append(f"\n<i>Qalqan AI · qalqan-ai-nu.vercel.app</i>")
     return "\n".join(lines)
@@ -926,6 +930,20 @@ async def dispatch(update: dict) -> None:
 
     elif text.startswith("/deepfake") or text.startswith("/voice"):
         await handle_deepfake(chat_id, message_id)
+
+    elif text.startswith("/sos") or text.startswith("/help919") or text.startswith("/obman"):
+        base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+        kb = {"inline_keyboard": [[{"text": "🆘 Толық нұсқаулық", "web_app": {"url": f"{base}/help"}}]]}
+        await send_message(chat_id,
+            "🆘 <b>Алдап кетті ме? Тез әрекет ет!</b>\n\n"
+            "☎️ <b>1477</b> — Нацбанк Антифрод-орталығы (тәулік бойы, аударымды блоктайды)\n"
+            "🚓 <b>102</b> — полиция (алаяқтық туралы арыз)\n\n"
+            "1️⃣ Банкіңе қоңырау шал → картаны блокта\n"
+            "2️⃣ SMS-кодты ЕШКІМГЕ айтпа\n"
+            "3️⃣ 102-ге арыз бер\n"
+            "4️⃣ Құпиясөздерді ауыстыр (/leak тексер)\n\n"
+            "Алғашқы сағаттар шешуші — жылдам әрекет ет!",
+            reply_to=message_id, reply_markup=kb)
 
     elif text.startswith("/ask"):
         parts = text.split(maxsplit=1)

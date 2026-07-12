@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -1121,8 +1121,14 @@ async def leak_check():
     return HTMLResponse(LEAK_HTML, headers=_HTML_CACHE)
 
 
-_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/m",
-                 "/partners", "/goszakup/graph"]
+@app.get("/help")
+async def help_resources():
+    """«Обманули — куда обращаться»: official KZ fraud/cyber helplines + action plan."""
+    return HTMLResponse(HELP_HTML, headers=_HTML_CACHE)
+
+
+_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/help",
+                 "/m", "/partners", "/goszakup/graph"]
 
 
 @app.get("/robots.txt")

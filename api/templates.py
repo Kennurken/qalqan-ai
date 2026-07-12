@@ -235,6 +235,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a class="chip" href="/quiz" data-i18n="chip_quiz">🎯 Скам-тренажёр</a>
       <a class="chip" href="/leak" data-i18n="chip_leak">🔑 Пароль утёк?</a>
       <a class="chip" href="/dashboard" data-i18n="chip_map">🗺️ Карта угроз</a>
+      <a class="chip" href="/help">🆘 Обманули?</a>
       <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
     </div>
     <div class="stats reveal">
@@ -388,7 +389,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
     <div class="flinks">
       <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
-      <a href="/m">Мобилка</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+      <a href="/m">Мобилка</a><a href="/help">🆘 Помощь</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
     </div>
     <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
@@ -969,6 +970,7 @@ textarea{min-height:84px;resize:vertical}
 <div style="display:flex;gap:8px;margin-top:14px">
   <a href="/quiz" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🎯 Скам-тренажёр</a>
   <a href="/leak" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🔑 Пароль утёк?</a>
+  <a href="/help" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🆘 Помощь</a>
 </div>
 
 <script>
@@ -1755,5 +1757,110 @@ async function checkLeak(){
 $('#go').onclick=checkLeak;
 $('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')checkLeak();});
 </script>
+</body>
+</html>"""
+
+HELP_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Обманули? Куда обращаться</title>
+<meta name="description" content="Официальные контакты Казахстана при мошенничестве: Нацбанк 1477, Антифрод-центр, KZ-CERT, АФМ, полиция 102. Пошаговый план действий.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+h1{font-size:24px;font-weight:800;line-height:1.2}
+.sub{color:var(--mut);font-size:14px;margin:8px 0 22px;line-height:1.6}
+.urgent{background:linear-gradient(135deg,rgba(247,118,142,.14),rgba(247,118,142,.05));border:1px solid rgba(247,118,142,.4);border-radius:16px;padding:18px;margin-bottom:22px}
+.urgent .t{font-size:15px;font-weight:800;color:var(--red);margin-bottom:6px}
+.urgent .n{font-size:30px;font-weight:800;color:var(--tx);letter-spacing:1px}
+.urgent .d{font-size:13px;color:var(--mut);margin-top:4px}
+.sec-t{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:24px 0 10px}
+.steps{counter-reset:s;list-style:none}
+.steps li{position:relative;padding:12px 12px 12px 46px;background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-bottom:8px;font-size:14px;line-height:1.55}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:12px;top:12px;width:24px;height:24px;border-radius:8px;background:var(--cyan);color:#04121a;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.steps b{color:var(--tx)}
+.grid{display:grid;gap:10px}
+.org{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:15px;text-decoration:none;color:inherit;transition:border-color .2s}
+.org:hover{border-color:var(--cyan)}
+.org .ic{font-size:24px;flex-shrink:0;line-height:1.2}
+.org .nm{font-weight:700;font-size:15px}
+.org .ds{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.5}
+.org .ph{font-size:15px;font-weight:800;color:var(--cyan);margin-top:5px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:26px;line-height:1.7}
+.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🆘 Обманули? Действуй быстро</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Алдап кетті ме? Тез әрекет ет — алғашқы сағаттар шешуші. · Первые часы решают: чем быстрее заблокируешь операцию, тем выше шанс вернуть деньги.</div>
+
+  <div class="urgent">
+    <div class="t">⚡ Деньги ушли только что — звони НЕМЕДЛЕННО</div>
+    <div class="n">📞 1477</div>
+    <div class="d">Контакт-центр Нацбанка РК · круглосуточно · блокировка перевода через Антифрод-центр</div>
+  </div>
+
+  <div class="sec-t">Пошаговый план</div>
+  <ol class="steps">
+    <li><b>Позвони в свой банк</b> и на 1477 — потребуй заблокировать карту и оспорить операцию. Антифрод-центр может приостановить перевод и вернуть деньги.</li>
+    <li><b>Не переходи по ссылкам и не диктуй SMS-коды</b> — настоящий банк никогда их не спрашивает. Положи трубку и перезвони на номер с обратной стороны карты.</li>
+    <li><b>Подай заявление в полицию</b> — 102 или через eGov. Приложи скриншоты, номера, реквизиты получателя.</li>
+    <li><b>Смени пароли</b> банка, почты, госуслуг. Включи 2FA. Проверь пароль на <a href="/leak" style="color:var(--cyan)">/leak</a>.</li>
+    <li><b>Сообщи о сайте/номере</b> — помоги другим: <a href="/" style="color:var(--cyan)">проверь ссылку</a> или отправь боту <a href="https://t.me/QalqanAI_bot" style="color:var(--cyan)">@QalqanAI_bot</a>.</li>
+  </ol>
+
+  <div class="sec-t">Официальные службы Казахстана</div>
+  <div class="grid">
+    <a class="org" href="tel:1477">
+      <span class="ic">🏦</span>
+      <div><div class="nm">Нацбанк РК · Антифрод-центр</div>
+      <div class="ds">Блокировка мошеннических переводов, возврат средств. Работает с банками и операторами 24/7.</div>
+      <div class="ph">1477</div></div>
+    </a>
+    <a class="org" href="tel:102">
+      <span class="ic">🚓</span>
+      <div><div class="nm">Полиция · киберпреступления</div>
+      <div class="ds">Заявление о мошенничестве. Единый номер экстренных служб.</div>
+      <div class="ph">102</div></div>
+    </a>
+    <a class="org" href="https://www.cert.gov.kz/" target="_blank" rel="noopener">
+      <span class="ic">🛡️</span>
+      <div><div class="nm">KZ-CERT · Нацинтех</div>
+      <div class="ds">Национальная служба реагирования на киберинциденты — фишинг, взломы, вредоносные сайты.</div>
+      <div class="ph">cert.gov.kz →</div></div>
+    </a>
+    <a class="org" href="https://www.gov.kz/memleket/entities/ardfm" target="_blank" rel="noopener">
+      <span class="ic">📉</span>
+      <div><div class="nm">АРРФР / АФМ</div>
+      <div class="ds">Финансовые пирамиды, нелегальные инвестиции, обманутые вкладчики. Реестр пирамид.</div>
+      <div class="ph">gov.kz/ardfm →</div></div>
+    </a>
+    <a class="org" href="https://egov.kz/" target="_blank" rel="noopener">
+      <span class="ic">🏛️</span>
+      <div><div class="nm">eGov · онлайн-заявление</div>
+      <div class="ds">Подать обращение в органы онлайн, проверить статус дела.</div>
+      <div class="ph">egov.kz →</div></div>
+    </a>
+    <a class="org" href="tel:1406">
+      <span class="ic">🎰</span>
+      <div><div class="nm">Помощь при лудомании</div>
+      <div class="ds">Игровая зависимость — это болезнь, которую лечат. Бесплатная психологическая помощь.</div>
+      <div class="ph">1406 · 8-800-080-88-87</div></div>
+    </a>
+  </div>
+
+  <div class="foot">
+    Qalqan AI · Бұл ресми қызметтер тізімі, кеңес емес · Список официальных служб, не является юр. консультацией<br>
+    <a href="/quiz">🎯 Тренажёр</a> · <a href="/leak">🔑 Пароль</a> · <a href="/">🛡️ Проверить сайт</a>
+  </div>
+</div>
 </body>
 </html>"""

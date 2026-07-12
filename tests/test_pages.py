@@ -78,3 +78,12 @@ def test_hero_has_seven_tiers_and_chips():
     assert 'data-to="7">7' in t          # hero stat
     assert 'class="chip"' in t           # mobile-visible feature chips
     assert 'chip_leak' in t              # i18n wired
+
+
+def test_help_resources_page():
+    r = client.get("/help")
+    assert r.status_code == 200
+    assert "1477" in r.text          # Нацбанк antifraud hotline
+    assert "102" in r.text           # police
+    assert "cert.gov.kz" in r.text   # KZ-CERT
+    assert "/help" in client.get("/sitemap.xml").text

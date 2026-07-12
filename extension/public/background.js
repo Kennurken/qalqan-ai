@@ -482,7 +482,54 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     checkUrl(message.url, sender.tab?.id || 0);
     sendResponse({ status: "checking" });
   }
+
+  if (message.action === "ANNOTATE_SEARCH") {
+    annotateSearch(message.urls || []).then(results => sendResponse({ results }));
+    return true; // async response
+  }
 });
+
+// --- Search-results annotation: offline-first, batch the rest via API ---
+async function annotateSearch(urls) {
+  const results = [];
+  const unknown = [];
+  for (const url of urls.slice(0, 30)) {
+    // Domain cache (30-min) first — free, instant
+    let domain = "";
+    try { domain = new URL(url).hostname.replace("www.", "").toLowerCase(); } catch {}
+    const cached = domain && getDomainCache(domain);
+    if (cached) { results.push({ url, verdict: cached.verdict, threat_score: cached.threat_score }); continue; }
+    // Offline DB — instant, no network
+    const off = typeof offlineCheck === "function" ? offlineCheck(url) : null;
+    if (off) {
+      results.push({ url, verdict: off.verdict, threat_score: off.threat_score });
+      if (domain) setDomainCache(domain, off);
+    } else {
+      unknown.push(url);
+    }
+  }
+  // Batch the unknowns (cap 15 per /batch call; take the first 15 to stay cheap)
+  if (unknown.length) {
+    try {
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), 12000);
+      const r = await fetch(`${API_URL}/batch`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls: unknown.slice(0, 15), lang: "kk" }),
+        signal: controller.signal,
+      });
+      clearTimeout(to);
+      if (r.ok) {
+        const d = await r.json();
+        for (const res of (d.results || [])) {
+          results.push({ url: res.url, verdict: res.verdict, threat_score: res.threat_score });
+          try { const dm = new URL(res.url).hostname.replace("www.", "").toLowerCase(); setDomainCache(dm, res); } catch {}
+        }
+      }
+    } catch (e) { /* offline / rate-limited — annotate what we have */ }
+  }
+  return results;
+}
 
 // --- Stats ---
 async function updateStats(verdict) {
