@@ -1121,6 +1121,31 @@ async def leak_check():
     return HTMLResponse(LEAK_HTML, headers=_HTML_CACHE)
 
 
+_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/m",
+                 "/partners", "/goszakup/graph"]
+
+
+@app.get("/robots.txt")
+async def robots():
+    from fastapi.responses import PlainTextResponse
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    return PlainTextResponse(
+        "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /telegram/\n"
+        f"Sitemap: {base}/sitemap.xml\n",
+        headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    from fastapi.responses import Response as _Resp
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    urls = "".join(f"<url><loc>{base}{p}</loc></url>" for p in _PUBLIC_PAGES)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>')
+    return _Resp(content=xml, media_type="application/xml",
+                 headers={"Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/kz-regions.js")
 async def kz_regions_js():
     """Kazakhstan ADM1 geometry (20 regions, 2023 COD-AB) for the threat map."""

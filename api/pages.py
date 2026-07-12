@@ -107,7 +107,7 @@ footer{{text-align:center;padding:32px;color:#334155;font-size:12px;border-top:1
 
   <a class="report-btn" href="/report/generate">PDF есеп жүктеу</a>
 </div>
-<footer>Qalqan AI v5.1.0 · Деректер: Supabase PostgreSQL · © 2026 Қыдырбек Елдос</footer>
+<footer>Qalqan AI v5.1.0 · Деректер: Supabase PostgreSQL · © 2026 Барахат Мұхтар · Қыдырбек Елдос</footer>
 </body></html>"""
 
 

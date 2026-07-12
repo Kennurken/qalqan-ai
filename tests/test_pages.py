@@ -64,3 +64,17 @@ def test_localhost_any_port_origin_allowed():
     assert _m._cors_origin_allowed("http://localhost:8899") is True
     assert _m._cors_origin_allowed("http://127.0.0.1:5500") is True
     assert _m._cors_origin_allowed("https://evil.example.com") is False
+
+
+def test_robots_and_sitemap():
+    r = client.get("/robots.txt")
+    assert r.status_code == 200 and "Disallow: /admin" in r.text
+    s = client.get("/sitemap.xml")
+    assert s.status_code == 200 and "/quiz" in s.text and "/leak" in s.text
+
+
+def test_hero_has_seven_tiers_and_chips():
+    t = client.get("/", headers={"Accept": "text/html"}).text
+    assert 'data-to="7">7' in t          # hero stat
+    assert 'class="chip"' in t           # mobile-visible feature chips
+    assert 'chip_leak' in t              # i18n wired

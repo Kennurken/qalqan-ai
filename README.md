@@ -17,7 +17,9 @@ AI-платформа, защищающая казахстанцев от фиш
 | 🕸️ Граф фрода в госзакупках | [`/goszakup/graph`](https://qalqan-ai-nu.vercel.app/goszakup/graph) |
 | 📱 Мобильное PWA (offline) | [`/m`](https://qalqan-ai-nu.vercel.app/m) |
 | 🏛️ B2G API для банков/регуляторов | [`/partners`](https://qalqan-ai-nu.vercel.app/partners) |
-| 🤖 Telegram-бот (голос/SMS/URL) | [@QalqanAI_bot](https://t.me/QalqanAI_bot) |
+| 🤖 Telegram-бот (голос/SMS/URL + QR-сканер в Mini App) | [@QalqanAI_bot](https://t.me/QalqanAI_bot) |
+| 🎯 Скам-тренажёр — узнаёшь ли ты мошенника? | [`/quiz`](https://qalqan-ai-nu.vercel.app/quiz) |
+| 🔑 Проверка утечки пароля (HIBP, k-anonymity) | [`/leak`](https://qalqan-ai-nu.vercel.app/leak) |
 | 🌐 Открытый KZ threat-feed (CC-BY) | [`/feed/kz`](https://qalqan-ai-nu.vercel.app/feed/kz) |
 
 ```bash
@@ -55,7 +57,7 @@ curl -X POST https://qalqan-ai-nu.vercel.app/check \
 
 ---
 
-## Архитектура — 6-уровневый pipeline
+## Архитектура — 7-уровневый pipeline
 
 ```
 POST /check → FastAPI (Vercel)
@@ -64,6 +66,8 @@ POST /check → FastAPI (Vercel)
   ├── Tier 1   — Офлайн-база: пирамиды, blacklist, KZ-бренды, гемблинг, threat-feeds
   ├── Tier 1.9 — Goszakup fraud detection
   ├── Tier 2   — Внешние БД: PhishTank, SafeBrowsing, URLhaus, OpenPhish + RDAP/SSL
+  ├── Tier 2.7 — Краудинтеллект (авто-блок сообщества) + fine-tuned XLM-RoBERTa
+  │              (отдельный ML-сервис, ML_SERVICE_URL — опционально)
   └── Tier 3   — Groq llama-3.3-70b → Gemini 2.5-flash → эвристики
 ```
 

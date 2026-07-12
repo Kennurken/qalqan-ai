@@ -68,6 +68,9 @@ nav{position:fixed;top:14px;left:0;right:0;z-index:50}
 .nav-cta{background:linear-gradient(135deg,var(--accent),#5b87e8);color:#06101f;font-weight:600;font-size:14px;padding:9px 16px;border-radius:11px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
 .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(122,162,247,.35)}
 @media(max-width:780px){.nav-links{display:none}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
+.chip{font-size:12.5px;font-weight:600;color:var(--text2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;transition:all .2s var(--ease)}
+.chip:hover{color:var(--text);border-color:var(--accent)}
 .hero{padding:170px 0 80px;text-align:center;position:relative}
 .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(158,206,106,.18)}
@@ -205,8 +208,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#features" data-i18n="nav_feat">Функциялар</a>
       <a href="#pipeline" data-i18n="nav_arch">Архитектура</a>
       <a href="#demo" data-i18n="nav_demo">Демо</a>
-      <a href="/quiz">🎯 Тренажёр</a>
-      <a href="/dashboard">🗺️ Карта</a>
+      <a href="/quiz" data-i18n="n_quiz">🎯 Тренажёр</a>
+      <a href="/dashboard" data-i18n="n_map">🗺️ Карта</a>
       <a href="#faq">FAQ</a>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -228,11 +231,17 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
     </div>
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
+    <div class="chips reveal">
+      <a class="chip" href="/quiz" data-i18n="chip_quiz">🎯 Скам-тренажёр</a>
+      <a class="chip" href="/leak" data-i18n="chip_leak">🔑 Пароль утёк?</a>
+      <a class="chip" href="/dashboard" data-i18n="chip_map">🗺️ Карта угроз</a>
+      <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
+    </div>
     <div class="stats reveal">
       <div class="stat"><div class="n" id="statChecked" data-to="0">—</div><div class="l" data-i18n="st_checked">Тексерілді</div></div>
       <div class="stat"><div class="n" id="statBlocked" data-to="0">—</div><div class="l" data-i18n="st_blocked">Бұғатталды</div></div>
       <div class="stat"><div class="n" id="statDomains" data-to="390" data-suffix="+">390+</div><div class="l" data-i18n="st_offline">Офлайн база</div></div>
-      <div class="stat"><div class="n" data-to="6">6</div><div class="l" data-i18n="st_levels">Деңгей</div></div>
+      <div class="stat"><div class="n" data-to="7">7</div><div class="l" data-i18n="st_levels">Деңгей</div></div>
     </div>
   </div>
 </header>
@@ -414,7 +423,7 @@ if(!reduce){
 }
 /* i18n — kk/ru/en. AI/verdict comes back in currentLang (sent to /check). */
 const I18N={
- kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',
+ kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',
      badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
      lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
@@ -433,7 +442,7 @@ const I18N={
      d1t:'Реттеуші панелі',d2t:'Госзакуп графы',d3t:'Мобиль қосымша',d4t:'Telegram бот',d5t:'Тірі статистика',
      d1d:'Облыстар бойынша қауіп картасы, динамика, топ домендер.',d2d:'Аффилированность, сговор, картель — байланыс графы.',d3d:'Офлайн жұмыс істейді, телефонға орнатылады (PWA).',d4d:'Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.',d5d:'Нақты деректер: тексерулер, вердиктер, трендтер.',d6d:'Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.',
      arrow:'Ашу →',tg_t:'Telegram-да тексер',tg_d:'Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.'},
- ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',
+ ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
@@ -452,7 +461,7 @@ const I18N={
      d1t:'Панель регулятора',d2t:'Граф госзакупок',d3t:'Мобильное приложение',d4t:'Telegram бот',d5t:'Живая статистика',
      d1d:'Карта угроз по областям, динамика, топ-домены.',d2d:'Аффилированность, сговор, картель — граф связей.',d3d:'Работает офлайн, ставится на телефон (PWA).',d4d:'Голос / SMS / ссылка, сообщение в KZ-CERT.',d5d:'Реальные данные: проверки, вердикты, тренды.',d6d:'Открытая база (CC-BY) — могут использовать другие системы.',
      arrow:'Открыть →',tg_t:'Проверь в Telegram',tg_d:'Отправь любую ссылку, номер или голосовое — получи ответ сразу.'},
- en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',
+ en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_quiz:'🎯 Trainer',n_map:'🗺️ Map',chip_quiz:'🎯 Scam trainer',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
@@ -1025,7 +1034,8 @@ async function ask(){
   const t=$('#situation').value.trim(); if(t.length<10) return;
   const box=$('#res-ask'); box.className='res show'; box.innerHTML='<div class="spin">AI талдап жатыр...</div>';
   try{
-    const r=await fetch(API+'/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,lang:'ru'})});
+    const ulang=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||'ru';
+    const r=await fetch(API+'/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,lang:['kk','ru','en'].includes(ulang)?ulang:'ru'})});
     const d=await r.json();
     const v=d.verdict, sc=d.threat_score||0;
     let h=`<div class="verdict" style="color:${vcolor(v)}">${vlabel(v)}</div>
@@ -1468,7 +1478,7 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 <h1>Бет табылмады</h1>
 <p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
 <a class="btn" href="/">← Басты бетке</a>
-<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/quiz">🎯 Тренажёр</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/quiz" data-i18n="n_quiz">🎯 Тренажёр</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
 </div>
 </body></html>"""
 
