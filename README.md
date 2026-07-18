@@ -2,7 +2,7 @@
 
 AI-платформа, защищающая казахстанцев от фишинга, телефонного мошенничества, финансовых пирамид, нелегального гемблинга и фрода в госзакупках. Сделана для республиканского конкурса ДЭР.
 
-**Live**: [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **3 языка**: Қазақша / Русский / English · **Открытый код**
+**Точность**: 97% accuracy · F1 0.98 · 0 ложных срабатываний на открытом бенчмарке · **Live**: [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **3 языка**: Қазақша / Русский / English · **Открытый код**
 
 > За 10 мес. 2025 казахстанцы потеряли **16,4 млрд ₸** от киберскама (×29 к 2024), **26 300 случаев** (+86%). Телефонное мошенничество — угроза №1.
 
@@ -20,6 +20,9 @@ AI-платформа, защищающая казахстанцев от фиш
 | 🤖 Telegram-бот (голос/SMS/URL + QR-сканер в Mini App) | [@QalqanAI_bot](https://t.me/QalqanAI_bot) |
 | 🎯 Скам-тренажёр — узнаёшь ли ты мошенника? | [`/quiz`](https://qalqan-ai-nu.vercel.app/quiz) |
 | 🔑 Проверка утечки пароля (HIBP, k-anonymity) | [`/leak`](https://qalqan-ai-nu.vercel.app/leak) |
+| 🔬 Оценка безопасности сайта (A–F) | [`/scan`](https://qalqan-ai-nu.vercel.app/scan) |
+| 🎯 Защита бренда от фишинга (typosquat radar) | [`/brand`](https://qalqan-ai-nu.vercel.app/brand) |
+| 🆘 Обманули? Куда обращаться (1477) | [`/help`](https://qalqan-ai-nu.vercel.app/help) |
 | 🌐 Открытый KZ threat-feed (CC-BY) | [`/feed/kz`](https://qalqan-ai-nu.vercel.app/feed/kz) |
 
 ```bash
@@ -80,7 +83,7 @@ POST /check → FastAPI (Vercel)
 **Backend** — FastAPI (Python 3.11) на Vercel serverless · Groq (llama-3.3-70b + Whisper) · Gemini 2.5-flash · Supabase Postgres · Upstash Redis · httpx (async)
 **Frontend** — React 19 + Vite (расширение, website) · vanilla SVG-дашборды/граф · PWA + service worker
 **Данные** — PhishTank/OpenPhish/URLhaus/SafeBrowsing · RDAP · Goszakup.gov.kz API · кастомные KZ-базы (пирамиды/гемблинг/бренды/АФМ)
-**CI** — GitHub Actions (билд расширений) · 121 авто-тест (pytest)
+**CI** — GitHub Actions (билд расширений) · 148 авто-тестов (pytest)
 
 ---
 

@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -1127,8 +1127,61 @@ async def help_resources():
     return HTMLResponse(HELP_HTML, headers=_HTML_CACHE)
 
 
+class BrandRequest(BaseModel):
+    domain: str = Field(..., max_length=253)
+
+
+@app.post("/brand/scan")
+async def brand_scan(request: BrandRequest, req: Request):
+    """Brand-protection radar: generate the phishing look-alikes of a brand domain
+    and classify them by risk (homoglyph / free-TLD / affix / typo). Deterministic,
+    no network — the B2G economic-security tool for banks & agencies."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="brand"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.brand_protect import generate_typosquats
+    return generate_typosquats(request.domain)
+
+
+@app.get("/brand")
+async def brand_page():
+    """Brand-protection radar page."""
+    return HTMLResponse(BRAND_HTML, headers=_HTML_CACHE)
+
+
+@app.get("/scan/{domain}")
+async def security_scan(domain: str, req: Request):
+    """Website security grade (A–F): runs the verdict pipeline + domain intel and
+    composes an SSL-Labs-style report card (TLS, domain age, TLD, homoglyph, infra)."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="scan"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    try:
+        creq = CheckRequest(url=domain, lang="ru")
+    except Exception:
+        return JSONResponse(status_code=422, content={"error": "invalid domain"})
+    url = creq.url
+    dom = extract_domain(url)
+    url_feats = extract_features(url)
+    verdict_result, domain_info = await asyncio.gather(
+        run_pipeline_internal(url, "ru"),
+        check_domain_intelligence(dom, url),
+    )
+    from .services.security_scan import build_grade
+    grade = build_grade(verdict_result, domain_info if isinstance(domain_info, dict) else None, url_feats)
+    grade["domain"] = dom
+    grade["checked_url"] = url
+    return grade
+
+
+@app.get("/scan")
+async def scan_page():
+    """Security-grade scanner page."""
+    return HTMLResponse(SCAN_HTML, headers=_HTML_CACHE)
+
+
 _PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/help",
-                 "/m", "/partners", "/goszakup/graph"]
+                 "/brand", "/scan", "/m", "/partners", "/goszakup/graph"]
 
 
 @app.get("/robots.txt")

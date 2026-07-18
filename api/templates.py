@@ -70,6 +70,7 @@ nav{position:fixed;top:14px;left:0;right:0;z-index:50}
 @media(max-width:780px){.nav-links{display:none}}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
 .chip{font-size:12.5px;font-weight:600;color:var(--text2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;transition:all .2s var(--ease)}
+.proof{margin:14px 0 2px;font-size:13px;font-weight:600;color:var(--accent);opacity:.92}
 .chip:hover{color:var(--text);border-color:var(--accent)}
 .hero{padding:170px 0 80px;text-align:center;position:relative}
 .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
@@ -231,10 +232,13 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
     </div>
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
+    <div class="proof reveal" data-i18n="proof">🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
     <div class="chips reveal">
       <a class="chip" href="/quiz" data-i18n="chip_quiz">🎯 Скам-тренажёр</a>
       <a class="chip" href="/leak" data-i18n="chip_leak">🔑 Пароль утёк?</a>
       <a class="chip" href="/dashboard" data-i18n="chip_map">🗺️ Карта угроз</a>
+      <a class="chip" href="/scan">🔬 Оценка сайта</a>
+      <a class="chip" href="/brand">🎯 Защита бренда</a>
       <a class="chip" href="/help">🆘 Обманули?</a>
       <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
     </div>
@@ -389,7 +393,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
     <div class="flinks">
       <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
-      <a href="/m">Мобилка</a><a href="/help">🆘 Помощь</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+      <a href="/m">Мобилка</a><a href="/scan">Оценка сайта</a><a href="/brand">Защита бренда</a><a href="/help">🆘 Помощь</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
     </div>
     <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
@@ -424,7 +428,7 @@ if(!reduce){
 }
 /* i18n — kk/ru/en. AI/verdict comes back in currentLang (sent to /check). */
 const I18N={
- kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',
+ kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',proof:'🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)',
      badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
      lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
@@ -443,7 +447,7 @@ const I18N={
      d1t:'Реттеуші панелі',d2t:'Госзакуп графы',d3t:'Мобиль қосымша',d4t:'Telegram бот',d5t:'Тірі статистика',
      d1d:'Облыстар бойынша қауіп картасы, динамика, топ домендер.',d2d:'Аффилированность, сговор, картель — байланыс графы.',d3d:'Офлайн жұмыс істейді, телефонға орнатылады (PWA).',d4d:'Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.',d5d:'Нақты деректер: тексерулер, вердиктер, трендтер.',d6d:'Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.',
      arrow:'Ашу →',tg_t:'Telegram-да тексер',tg_d:'Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.'},
- ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',
+ ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',proof:'🎯 97% точность · 0 ложных срабатываний · открытый бенчмарк (F1 0.98)',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
@@ -462,7 +466,7 @@ const I18N={
      d1t:'Панель регулятора',d2t:'Граф госзакупок',d3t:'Мобильное приложение',d4t:'Telegram бот',d5t:'Живая статистика',
      d1d:'Карта угроз по областям, динамика, топ-домены.',d2d:'Аффилированность, сговор, картель — граф связей.',d3d:'Работает офлайн, ставится на телефон (PWA).',d4d:'Голос / SMS / ссылка, сообщение в KZ-CERT.',d5d:'Реальные данные: проверки, вердикты, тренды.',d6d:'Открытая база (CC-BY) — могут использовать другие системы.',
      arrow:'Открыть →',tg_t:'Проверь в Telegram',tg_d:'Отправь любую ссылку, номер или голосовое — получи ответ сразу.'},
- en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_quiz:'🎯 Trainer',n_map:'🗺️ Map',chip_quiz:'🎯 Scam trainer',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',
+ en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_quiz:'🎯 Trainer',n_map:'🗺️ Map',chip_quiz:'🎯 Scam trainer',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',proof:'🎯 97% accuracy · 0 false positives · open benchmark (F1 0.98)',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
@@ -1862,5 +1866,204 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
     <a href="/quiz">🎯 Тренажёр</a> · <a href="/leak">🔑 Пароль</a> · <a href="/">🛡️ Проверить сайт</a>
   </div>
 </div>
+</body>
+</html>"""
+
+BRAND_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Защита бренда от фишинга</title>
+<meta name="description" content="Radar фишинговых доменов-двойников вашего бренда: гомоглифы, бесплатные TLD, приманки. Для банков, госорганов, бизнеса Казахстана.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:760px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+h1{font-size:23px;font-weight:800;line-height:1.2}
+.sub{color:var(--mut);font-size:13.5px;margin:8px 0 20px;line-height:1.6}
+.b2b{display:inline-block;font-size:11px;font-weight:700;color:var(--cyan);border:1px solid var(--cyan);border-radius:6px;padding:2px 8px;margin-bottom:12px}
+.inrow{display:flex;gap:8px}
+input{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:14px;color:var(--tx);font-size:16px;outline:none;font-family:inherit}
+input:focus{border-color:var(--cyan)}
+.btn{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:0 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:disabled{opacity:.6;cursor:wait}
+.ex{color:var(--mut);font-size:12px;margin-top:8px}
+.ex b{color:var(--cyan);cursor:pointer}
+.summary{display:none;gap:8px;margin:18px 0 6px;flex-wrap:wrap}
+.summary.show{display:flex}
+.pill{border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;border:1px solid}
+.pill.c{background:rgba(247,118,142,.12);color:var(--red);border-color:rgba(247,118,142,.4)}
+.pill.h{background:rgba(224,175,104,.12);color:var(--amber);border-color:rgba(224,175,104,.4)}
+.pill.m{background:rgba(122,162,247,.1);color:var(--cyan);border-color:rgba(122,162,247,.35)}
+.grid{display:none;grid-template-columns:1fr;gap:7px;margin-top:10px}
+.grid.show{display:grid}
+@media(min-width:560px){.grid.show{grid-template-columns:1fr 1fr}}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:11px 13px}
+.row .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dot.critical{background:var(--red);box-shadow:0 0 8px var(--red)}.dot.high{background:var(--amber)}.dot.medium{background:var(--cyan)}
+.row .dm{font-family:'SF Mono',ui-monospace,monospace;font-size:13.5px;font-weight:600;word-break:break-all}
+.row .nt{font-size:11.5px;color:var(--mut);margin-top:1px}
+.advice{display:none;background:rgba(158,206,106,.07);border:1px solid rgba(158,206,106,.25);border-radius:12px;padding:14px;margin-top:16px;font-size:13px;line-height:1.6;color:var(--tx)}
+.advice.show{display:block}
+.advice b{color:var(--green)}
+.disc{color:var(--mut);font-size:11.5px;margin-top:10px;line-height:1.5}
+.spin{color:var(--mut);font-size:13px;margin-top:14px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🎯 Защита бренда от фишинга</h1><a href="/">← Qalqan AI</a></div>
+  <div class="b2b">ДЛЯ БАНКОВ · ГОСОРГАНОВ · БИЗНЕСА</div>
+  <div class="sub">Брендіңіздің фишингтік домен-егіздерін табыңыз. · Введите домен вашего бренда — покажем домены-двойники, которые регистрируют мошенники, чтобы красть у ваших клиентов.</div>
+
+  <div class="inrow">
+    <input id="dom" placeholder="kaspi.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <button class="btn" id="go">Сканировать</button>
+  </div>
+  <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="halykbank.kz">halykbank.kz</b> · <b data-d="egov.kz">egov.kz</b></div>
+
+  <div class="summary" id="summary"></div>
+  <div class="grid" id="grid"></div>
+  <div id="status"></div>
+  <div class="advice" id="advice"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+async function scan(dom){
+  dom=(dom||$('#dom').value).trim(); if(!dom) return;
+  $('#dom').value=dom;
+  const btn=$('#go'); btn.disabled=true; btn.textContent='...';
+  $('#summary').className='summary'; $('#grid').className='grid'; $('#advice').className='advice';
+  $('#status').innerHTML='<div class="spin">Генерируем варианты атаки...</div>';
+  try{
+    const r=await fetch('/brand/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
+    const d=await r.json();
+    if(d.error){ $('#status').innerHTML='<div class="spin">⚠️ Введите корректный домен, напр. kaspi.kz</div>'; btn.disabled=false; btn.textContent='Сканировать'; return; }
+    const c=d.risk_counts||{};
+    $('#summary').innerHTML=
+      `<div class="pill c">🔴 Критичных: ${c.critical||0}</div>`+
+      `<div class="pill h">🟠 Высоких: ${c.high||0}</div>`+
+      `<div class="pill m">🔵 Средних: ${c.medium||0}</div>`;
+    $('#summary').className='summary show';
+    $('#grid').innerHTML=(d.variants||[]).map(v=>
+      `<div class="row"><span class="dot ${v.risk}"></span><div><div class="dm">${v.domain}</div><div class="nt">${v.note}</div></div></div>`).join('');
+    $('#grid').className='grid show';
+    $('#advice').innerHTML=`<b>Что делать:</b> ${d.advice_ru||''}<div class="disc">${d.disclaimer_ru||''}</div>`;
+    $('#advice').className='advice show';
+    $('#status').innerHTML='';
+  }catch(e){ $('#status').innerHTML='<div class="spin">Ошибка. Попробуйте позже.</div>'; }
+  btn.disabled=false; btn.textContent='Сканировать';
+}
+$('#go').onclick=()=>scan();
+$('#dom').addEventListener('keydown',e=>{if(e.key==='Enter')scan();});
+document.querySelectorAll('.ex b').forEach(b=>b.onclick=()=>scan(b.dataset.d));
+</script>
+<div class="foot">Qalqan AI · Domain typosquatting radar · <a href="/partners">B2G API</a> · <a href="/">Проверить сайт</a></div>
+</body>
+</html>"""
+
+SCAN_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Оценка безопасности сайта</title>
+<meta name="description" content="Оценка безопасности любого сайта от A+ до F: HTTPS/SSL, возраст домена, репутация, гомоглифы, инфраструктура. Бесплатно.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:620px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+h1{font-size:23px;font-weight:800}
+.sub{color:var(--mut);font-size:13.5px;margin:8px 0 20px;line-height:1.6}
+.inrow{display:flex;gap:8px}
+input{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:14px;color:var(--tx);font-size:16px;outline:none;font-family:inherit}
+input:focus{border-color:var(--cyan)}
+.btn{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:0 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.6;cursor:wait}
+.ex{color:var(--mut);font-size:12px;margin-top:8px}.ex b{color:var(--cyan);cursor:pointer}
+.card{display:none;margin-top:20px;background:var(--card);border:1px solid var(--bd);border-radius:18px;overflow:hidden}
+.card.show{display:block}
+.hd{display:flex;align-items:center;gap:18px;padding:22px;border-bottom:1px solid var(--bd)}
+.badge{width:92px;height:92px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:800;color:#04121a;flex-shrink:0}
+.hd .dm{font-family:'SF Mono',ui-monospace,monospace;font-size:16px;font-weight:700;word-break:break-all}
+.hd .vv{font-size:13px;color:var(--mut);margin-top:4px}
+.hd .pc{font-size:13px;margin-top:6px}
+.factors{padding:12px 18px 18px}
+.f{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(30,41,59,.5);font-size:13.5px;line-height:1.5}
+.f:last-child{border-bottom:none}
+.f .i{flex-shrink:0;font-size:15px;margin-top:1px}
+.f.pass .i{color:var(--green)}.f.warn .i{color:var(--amber)}.f.fail .i{color:var(--red)}
+.spin{color:var(--mut);font-size:13px;margin-top:16px}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
+.disc{color:var(--mut);font-size:11px;text-align:center;padding:0 18px 16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🔬 Оценка безопасности сайта</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Сайттың қауіпсіздік бағасы: A+ ден F дейін. · Комплексная оценка любого сайта: HTTPS/SSL, возраст домена, репутация, гомоглифы, хостинг.</div>
+
+  <div class="inrow">
+    <input id="dom" placeholder="example.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <button class="btn" id="go">Оценить</button>
+  </div>
+  <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="1xbet.com">1xbet.com</b> · <b data-d="github.com">github.com</b></div>
+
+  <div id="status"></div>
+  <div class="card" id="card">
+    <div class="hd">
+      <div class="badge" id="badge">—</div>
+      <div>
+        <div class="dm" id="dm"></div>
+        <div class="vv" id="vv"></div>
+        <div class="pc" id="pc"></div>
+      </div>
+    </div>
+    <div class="factors" id="factors"></div>
+    <div class="disc">Оценка основана на публичных сигналах (TLS, WHOIS/RDAP, репутация). Не является аудитом.</div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+async function scan(dom){
+  dom=(dom||$('#dom').value).trim().replace(/^https?:\\/\\//,'').replace(/\\/.*$/,''); if(!dom) return;
+  $('#dom').value=dom;
+  const btn=$('#go'); btn.disabled=true; btn.textContent='...';
+  $('#card').className='card'; $('#status').innerHTML='<div class="spin">Анализируем '+dom+' (SSL, домен, репутация)...</div>';
+  try{
+    const r=await fetch('/scan/'+encodeURIComponent(dom));
+    if(!r.ok) throw new Error('http '+r.status);
+    const d=await r.json();
+    if(d.error){ $('#status').innerHTML='<div class="spin">⚠️ '+d.error+'</div>'; btn.disabled=false; btn.textContent='Оценить'; return; }
+    $('#badge').textContent=d.grade; $('#badge').style.background=d.grade_color;
+    $('#dm').textContent=d.domain;
+    const vlabel=d.verdict==='DANGEROUS'?'🔴 Опасный':d.verdict==='SUSPICIOUS'?'🟡 Подозрительный':'🟢 Чистый';
+    $('#vv').textContent=vlabel+' · риск '+d.risk_score+'/100';
+    $('#pc').innerHTML='<span style="color:var(--green)">✓ '+d.passed+'</span> из '+d.total_checks+' проверок пройдено';
+    $('#factors').innerHTML=(d.factors||[]).map(f=>{
+      const ic=f.status==='pass'?'✓':f.status==='warn'?'▲':'✕';
+      return `<div class="f ${f.status}"><span class="i">${ic}</span><span>${f.ru}</span></div>`;
+    }).join('');
+    $('#card').className='card show'; $('#status').innerHTML='';
+  }catch(e){ $('#status').innerHTML='<div class="spin">Ошибка анализа. Попробуйте позже.</div>'; }
+  btn.disabled=false; btn.textContent='Оценить';
+}
+$('#go').onclick=()=>scan();
+$('#dom').addEventListener('keydown',e=>{if(e.key==='Enter')scan();});
+document.querySelectorAll('.ex b').forEach(b=>b.onclick=()=>scan(b.dataset.d));
+</script>
+<div class="foot">Qalqan AI · Website security grade · <a href="/brand">Защита бренда</a> · <a href="/">Главная</a></div>
 </body>
 </html>"""

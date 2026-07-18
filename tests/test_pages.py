@@ -87,3 +87,34 @@ def test_help_resources_page():
     assert "102" in r.text           # police
     assert "cert.gov.kz" in r.text   # KZ-CERT
     assert "/help" in client.get("/sitemap.xml").text
+
+
+def test_brand_protection():
+    r = client.post("/brand/scan", json={"domain": "kaspi.kz"})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["total"] > 5
+    assert d["risk_counts"]["critical"] >= 1   # homoglyph variants
+    assert any(v["kind"] == "homoglyph" for v in d["variants"])
+    # invalid domain handled
+    assert client.post("/brand/scan", json={"domain": "!!!"}).json().get("error") == "invalid_domain"
+    assert client.get("/brand").status_code == 200
+
+
+def test_security_scan_grade():
+    r = client.get("/scan/github.com")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["grade"] in ("A+", "A", "B", "C", "D", "E", "F")
+    assert "factors" in d and len(d["factors"]) >= 4
+    assert client.get("/scan").status_code == 200
+
+
+def test_scan_and_brand_in_sitemap():
+    s = client.get("/sitemap.xml").text
+    assert "/brand" in s and "/scan" in s
+
+
+def test_landing_has_accuracy_proof():
+    t = client.get("/", headers={"Accept": "text/html"}).text
+    assert 'class="proof' in t and "97%" in t
