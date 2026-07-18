@@ -486,8 +486,12 @@ const I18N={
      d1d:'Regional threat map, trends, top domains.',d2d:'Affiliation, collusion, cartel — relationship graph.',d3d:'Works offline, installs on your phone (PWA).',d4d:'Voice / SMS / link check, report to KZ-CERT.',d5d:'Real data: checks, verdicts, trends.',d6d:'Open dataset (CC-BY) — usable by other systems.',
      arrow:'Open →',tg_t:'Check in Telegram',tg_d:'Send any link, number or voice message — get an answer instantly.'}
 };
-let currentLang=localStorage.getItem('qlang')||(navigator.language||'kk').slice(0,2).toLowerCase();
-if(!I18N[currentLang])currentLang='kk';
+/* Default for the KZ audience: honor a saved choice, else browser lang only if it's
+   kk/ru, otherwise fall back to ru (universally understood here) — never surprise a
+   Kazakh jury with an English page just because the demo laptop's locale is en. */
+let _nav=(navigator.language||'').slice(0,2).toLowerCase();
+let currentLang=localStorage.getItem('qlang')||(['kk','ru'].includes(_nav)?_nav:'ru');
+if(!I18N[currentLang])currentLang='ru';
 function applyLang(l){
   currentLang=I18N[l]?l:'kk'; localStorage.setItem('qlang',currentLang);
   const D=I18N[currentLang];
