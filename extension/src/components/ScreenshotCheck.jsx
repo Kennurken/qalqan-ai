@@ -14,7 +14,7 @@ export default function ScreenshotCheck({ onCheck, loading, t }) {
         display: "flex", alignItems: "center", gap: "6px", justifyContent: "center"
       }}
     >
-      📸 {t("analyzeScreen")}
+      {t("analyzeScreen")}
     </button>
   );
 }

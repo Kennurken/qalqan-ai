@@ -197,6 +197,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .fa code{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--accent)}
 .checker #qrBtn{border:1px solid var(--bd,#1e293b);background:transparent;color:inherit;border-radius:12px;padding:0 14px;font-size:18px;cursor:pointer}
 .checker #qrBtn:hover{border-color:#7aa2f7}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
@@ -214,7 +215,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#features" data-i18n="nav_feat">Функциялар</a>
       <a href="#pipeline" data-i18n="nav_arch">Архитектура</a>
       <a href="#demo" data-i18n="nav_demo">Демо</a>
-      <a href="/dashboard" data-i18n="n_map">🗺️ Карта</a>
+      <a href="/dashboard" data-i18n="n_map"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта</a>
       <a href="#faq">FAQ</a>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
@@ -233,21 +234,21 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <p class="lead reveal" data-i18n="lead">Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.</p>
     <div class="checker reveal">
       <input id="urlInput" type="text" inputmode="url" placeholder="kaspi-bonus.kz немесе https://..." data-i18n-ph="checkPh" autocomplete="off" aria-label="URL тексеру">
-      <button id="qrBtn" type="button" title="Проверить QR-код" aria-label="QR тексеру">📷</button>
+      <button id="qrBtn" type="button" title="Проверить QR-код" aria-label="QR тексеру"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></button>
       <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
       <input id="qrFile" type="file" accept="image/*" capture="environment" style="display:none">
     </div>
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
-    <div class="proof reveal" data-i18n="proof">🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
+    <div class="proof reveal" data-i18n="proof"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
     <div class="chips reveal">
-      <a class="chip" href="/leak" data-i18n="chip_leak">🔑 Пароль утёк?</a>
-      <a class="chip" href="/dashboard" data-i18n="chip_map">🗺️ Карта угроз</a>
-      <a class="chip" href="/scan">🔬 Оценка сайта</a>
-      <a class="chip" href="/brand">🎯 Защита бренда</a>
-      <a class="chip" href="/screen">🖼 Скриншот-тест</a>
-      <a class="chip" href="/help">🆘 Обманули?</a>
-      <a class="chip" href="/impact">💸 Эконом-эффект</a>
-      <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
+      <a class="chip" href="/leak" data-i18n="chip_leak"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?</a>
+      <a class="chip" href="/dashboard" data-i18n="chip_map"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта угроз</a>
+      <a class="chip" href="/scan"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg> Оценка сайта</a>
+      <a class="chip" href="/brand"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Защита бренда</a>
+      <a class="chip" href="/screen"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Скриншот-тест</a>
+      <a class="chip" href="/help"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Обманули?</a>
+      <a class="chip" href="/impact"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg> Эконом-эффект</a>
+      <a class="chip" href="https://t.me/QalqanAI_bot"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg> Telegram-бот</a>
     </div>
     <div class="stats reveal">
       <div class="stat"><div class="n" id="statChecked" data-to="0">—</div><div class="l" data-i18n="st_checked">Тексерілді</div></div>
@@ -393,7 +394,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 <div class="ibanner" id="ibanner" role="dialog" aria-label="Қосымшаны орнату">
   <div><b>Qalqan AI — телефоныңа</b><span class="it">Офлайн жұмыс істейді · PWA</span></div>
   <button class="ib-yes" id="ibYes">Орнату</button>
-  <button class="ib-no" id="ibNo" aria-label="Жабу">✕</button>
+  <button class="ib-no" id="ibNo" aria-label="Жабу"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
 </div>
 <footer>
   <div class="wrap">
@@ -403,7 +404,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
     <div class="flinks">
       <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
-      <a href="/m">Мобилка</a><a href="/scan">Оценка сайта</a><a href="/brand">Защита бренда</a><a href="/help">🆘 Помощь</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+      <a href="/m">Мобилка</a><a href="/scan">Оценка сайта</a><a href="/brand">Защита бренда</a><a href="/help"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Помощь</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
     </div>
     <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
@@ -438,7 +439,7 @@ if(!reduce){
 }
 /* i18n — kk/ru/en. AI/verdict comes back in currentLang (sent to /check). */
 const I18N={
- kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_map:'🗺️ Карта',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',proof:'🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)',
+ kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта',chip_leak:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Құпиясөз утечкасы',chip_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Қауіп картасы',proof:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)',
      badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
      lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
@@ -457,7 +458,7 @@ const I18N={
      d1t:'Реттеуші панелі',d2t:'Госзакуп графы',d3t:'Мобиль қосымша',d4t:'Telegram бот',d5t:'Тірі статистика',
      d1d:'Облыстар бойынша қауіп картасы, динамика, топ домендер.',d2d:'Аффилированность, сговор, картель — байланыс графы.',d3d:'Офлайн жұмыс істейді, телефонға орнатылады (PWA).',d4d:'Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.',d5d:'Нақты деректер: тексерулер, вердиктер, трендтер.',d6d:'Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.',
      arrow:'Ашу →',tg_t:'Telegram-да тексер',tg_d:'Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.'},
- ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_map:'🗺️ Карта',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',proof:'🎯 97% точность · 0 ложных срабатываний · открытый бенчмарк (F1 0.98)',
+ ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта',chip_leak:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?',chip_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта угроз',proof:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 97% точность · 0 ложных срабатываний · открытый бенчмарк (F1 0.98)',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
@@ -476,7 +477,7 @@ const I18N={
      d1t:'Панель регулятора',d2t:'Граф госзакупок',d3t:'Мобильное приложение',d4t:'Telegram бот',d5t:'Живая статистика',
      d1d:'Карта угроз по областям, динамика, топ-домены.',d2d:'Аффилированность, сговор, картель — граф связей.',d3d:'Работает офлайн, ставится на телефон (PWA).',d4d:'Голос / SMS / ссылка, сообщение в KZ-CERT.',d5d:'Реальные данные: проверки, вердикты, тренды.',d6d:'Открытая база (CC-BY) — могут использовать другие системы.',
      arrow:'Открыть →',tg_t:'Проверь в Telegram',tg_d:'Отправь любую ссылку, номер или голосовое — получи ответ сразу.'},
- en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_map:'🗺️ Map',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',proof:'🎯 97% accuracy · 0 false positives · open benchmark (F1 0.98)',
+ en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Map',chip_leak:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Password leak check',chip_map:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Threat map',proof:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 97% accuracy · 0 false positives · open benchmark (F1 0.98)',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
@@ -505,7 +506,7 @@ if(!I18N[currentLang])currentLang='ru';
 function applyLang(l){
   currentLang=I18N[l]?l:'kk'; localStorage.setItem('qlang',currentLang);
   const D=I18N[currentLang];
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=D[el.dataset.i18n];if(v!=null)el.textContent=v;});
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=D[el.dataset.i18n];if(v!=null)el.innerHTML=v;});
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=D[el.dataset.i18nPh];if(v!=null)el.placeholder=v;});
   document.documentElement.lang=currentLang;
   document.querySelectorAll('#langSw button').forEach(b=>b.classList.toggle('on',b.dataset.lang===currentLang));
@@ -525,10 +526,10 @@ async function runCheck(){
   btn.disabled=true; const old=btn.textContent; btn.textContent='...';
   try{
     const res=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,lang:currentLang})});
-    // NEVER fail-open: 429/403/500 must not render as an empty "✓ 0/100" verdict
+    // NEVER fail-open: 429/403/500 must not render as an empty "<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> 0/100" verdict
     if(res.status===429){
       box.className='result show SUSPICIOUS';
-      verdict.textContent='⏳  '+(currentLang==='kk'?'Тым көп сұраныс — 1 минуттан кейін қайталаңыз':currentLang==='en'?'Too many requests — retry in a minute':'Слишком много запросов — повторите через минуту');
+      verdict.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>  '+(currentLang==='kk'?'Тым көп сұраныс — 1 минуттан кейін қайталаңыз':currentLang==='en'?'Too many requests — retry in a minute':'Слишком много запросов — повторите через минуту');
       detail.textContent='';
       btn.disabled=false; btn.textContent=old; return;
     }
@@ -536,10 +537,10 @@ async function runCheck(){
     const d=await res.json();
     if(!d.verdict) throw new Error('bad payload');
     box.className='result show '+d.verdict;
-    const ic=d.verdict==='DANGEROUS'?'⛔':d.verdict==='SUSPICIOUS'?'⚠':'✓';
+    const ic=d.verdict==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>':d.verdict==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
     verdict.textContent=ic+'  '+d.verdict+' · '+(d.threat_score||0)+'/100';
     detail.textContent=d.detail||d['detail_'+currentLang]||d.detail_kk||'';
-  }catch(e){box.className='result show SUSPICIOUS';verdict.textContent='⚠  '+I18N[currentLang].err;detail.textContent=I18N[currentLang].errd;}
+  }catch(e){box.className='result show SUSPICIOUS';verdict.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>  '+I18N[currentLang].err;detail.textContent=I18N[currentLang].errd;}
   btn.disabled=false; btn.textContent=old;
 }
 btn.addEventListener('click',runCheck);
@@ -554,10 +555,10 @@ fetch('/trends').then(r=>r.json()).then(t=>{
   // Live pilot ticker: most-reported domain from real crowd data (only when we have activity)
   const rep=(t.top_reported_domains||[]);
   if(checks>0){
-    const L={kk:'🔴 Соңғы бұғатталған қауіп: ',ru:'🔴 Недавно заблокировано: ',en:'🔴 Recently blocked: '}[currentLang]||'🔴 ';
+    const L={kk:'Соңғы бұғатталған қауіп: ',ru:'Недавно заблокировано: ',en:'Recently blocked: '}[currentLang]||'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> ';
     const dom=rep.length?rep[0].domain:null;
     const w=document.getElementById('livewrap'), tx=document.getElementById('livetxt');
-    if(w&&tx){ tx.textContent = dom ? (L+dom) : ({kk:'🟢 Пилот белсенді — нақты уақыттағы қорғаныс',ru:'🟢 Пилот активен — защита в реальном времени',en:'🟢 Pilot live — real-time protection'}[currentLang]||''); w.style.display='inline-flex'; }
+    if(w&&tx){ tx.textContent = dom ? (L+dom) : ({kk:'Пилот белсенді — нақты уақыттағы қорғаныс',ru:'Пилот активен — защита в реальном времени',en:'Pilot live — real-time protection'}[currentLang]||''); w.style.display='inline-flex'; }
   }
 }).catch(()=>{});
 
@@ -620,17 +621,17 @@ async function decodeFallback(bmp){
 }
 F.addEventListener('change',async()=>{
   const file=F.files&&F.files[0];F.value='';if(!file)return;
-  note('📷 Читаем QR-код...');
+  note('Читаем QR-код...');
   try{
     const bmp=await toBitmap(file);
     let data=await decodeNative(bmp);
     if(!data)data=await decodeFallback(bmp);
-    if(!data){note('⚠️ QR-код не найден на фото. Снимите ближе и ровнее.');return}
+    if(!data){note('QR-код не найден на фото. Снимите ближе и ровнее.');return}
     const inp=document.getElementById('urlInput');
     inp.value=data.trim();
-    note('🔍 QR: '+data.trim().slice(0,80));
+    note('QR: '+data.trim().slice(0,80));
     document.getElementById('checkBtn').click();
-  }catch(e){note('⚠️ Не удалось обработать фото.')}
+  }catch(e){note('Не удалось обработать фото.')}
 });
 })();
 </script>
@@ -653,20 +654,22 @@ F.addEventListener('change',async()=>{
 .advIn textarea{flex:1;background:var(--bg,#0a0e16);border:1px solid var(--bd,#1e293b);border-radius:10px;color:inherit;font-family:inherit;font-size:13px;padding:8px 10px;resize:none;height:40px}
 .advIn button{border:none;border-radius:10px;background:#7aa2f7;color:#04121a;font-weight:700;padding:0 14px;cursor:pointer}
 .advHint{font-size:11px;color:var(--mut,#7d8aa0);padding:0 12px 10px}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
-<button id="advBtn" aria-label="AI-советник">💬</button>
+<button id="advBtn" aria-label="AI-советник"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg></button>
 <div id="advPanel">
-  <div class="advHead"><span id="advTitle">🛡️ AI-советник Qalqan</span><button id="advClose">✕</button></div>
+  <div class="advHead"><span id="advTitle"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> AI-советник Qalqan</span><button id="advClose"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
   <div id="advMsgs"></div>
   <div class="advHint" id="advHint">Опиши ситуацию: звонок, SMS, «инвестиции» — скажу, скам ли это.</div>
-  <div class="advIn"><textarea id="advTxt" maxlength="1500" placeholder="Мне звонят из «банка»..."></textarea><button id="advSend">➤</button></div>
+  <div class="advIn"><textarea id="advTxt" maxlength="1500" placeholder="Мне звонят из «банка»..."></textarea><button id="advSend"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></button></div>
 </div>
 <script>
+const QI={octagon:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',alert:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',checkc:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',check:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',copy:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'};
 (function(){
 const P=document.getElementById('advPanel'),B=document.getElementById('advBtn'),M=document.getElementById('advMsgs');
-const L={kk:{t:'🛡️ Qalqan AI-кеңесші',h:'Жағдайды сипатта: қоңырау, SMS, «инвестиция» — алаяқтық па, айтамын.',ph:'Маған «банктен» қоңырау шалып жатыр...',think:'Талдап жатырмын...',err:'Қате. Кейінірек көріңіз.',rl:'⏳ Тым жиі — минут күтіңіз.',flags:'Қауіп белгілері',adv:'Не істеу керек'},
-ru:{t:'🛡️ AI-советник Qalqan',h:'Опиши ситуацию: звонок, SMS, «инвестиции» — скажу, скам ли это.',ph:'Мне звонят из «банка»...',think:'Анализирую...',err:'Ошибка. Попробуйте позже.',rl:'⏳ Слишком часто — подождите минуту.',flags:'Признаки угрозы',adv:'Что делать'},
-en:{t:'🛡️ Qalqan AI advisor',h:'Describe the situation: a call, SMS, an "investment" — I will tell you if it is a scam.',ph:'The "bank" is calling me...',think:'Analyzing...',err:'Error. Try later.',rl:'⏳ Too often — wait a minute.',flags:'Red flags',adv:'What to do'}};
+const L={kk:{t:'Qalqan AI-кеңесші',h:'Жағдайды сипатта: қоңырау, SMS, «инвестиция» — алаяқтық па, айтамын.',ph:'Маған «банктен» қоңырау шалып жатыр...',think:'Талдап жатырмын...',err:'Қате. Кейінірек көріңіз.',rl:'Тым жиі — минут күтіңіз.',flags:'Қауіп белгілері',adv:'Не істеу керек'},
+ru:{t:'AI-советник Qalqan',h:'Опиши ситуацию: звонок, SMS, «инвестиции» — скажу, скам ли это.',ph:'Мне звонят из «банка»...',think:'Анализирую...',err:'Ошибка. Попробуйте позже.',rl:'Слишком часто — подождите минуту.',flags:'Признаки угрозы',adv:'Что делать'},
+en:{t:'Qalqan AI advisor',h:'Describe the situation: a call, SMS, an "investment" — I will tell you if it is a scam.',ph:'The "bank" is calling me...',think:'Analyzing...',err:'Error. Try later.',rl:'Too often — wait a minute.',flags:'Red flags',adv:'What to do'}};
 function dict(){return L[typeof currentLang!=='undefined'?currentLang:'ru']||L.ru}
 function applyAdvLang(){const D=dict();document.getElementById('advTitle').textContent=D.t;document.getElementById('advHint').textContent=D.h;document.getElementById('advTxt').placeholder=D.ph}
 B.onclick=()=>{P.classList.toggle('open');applyAdvLang();if(P.classList.contains('open'))document.getElementById('advTxt').focus()};
@@ -683,7 +686,7 @@ async function send(){
     if(r.status===429){w.textContent=D.rl;busy=false;return}
     const d=await r.json();
     const v=(d.verdict||'').toUpperCase();
-    const em=v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅';
+    const em=v==='DANGEROUS'?QI.octagon:v==='SUSPICIOUS'?QI.alert:QI.checkc;
     w.className='advM a '+(v==='DANGEROUS'?'danger':v==='SUSPICIOUS'?'warn':'');
     let h=`<b>${em} ${esc(v)} · ${d.threat_score??''}/100</b>`;
     if(d.reasoning)h+=`<br>${esc(d.reasoning)}`;
@@ -749,12 +752,13 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .skel{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.08) 37%,rgba(255,255,255,.03) 63%);background-size:400% 100%;animation:shmr 1.4s ease infinite;border-radius:8px}
 @keyframes shmr{0%{background-position:100% 0}100%{background-position:-100% 0}}
 @media(prefers-reduced-motion:reduce){.skel{animation:none}}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="top">
   <div>
-    <h1>🛡️ Панель регулятора <span id="src" class="badge demo">—</span></h1>
+    <h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Панель регулятора <span id="src" class="badge demo">—</span></h1>
     <div class="sub">Qalqan AI · Мониторинг кибер-экономических угроз Республики Казахстан</div>
   </div>
   <div><a href="/">← На главную</a> &nbsp; <a href="/dashboard/data">JSON API</a></div>
@@ -763,7 +767,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 <div class="kpis" id="kpis"><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div><div class="kpi"><div class="skel" style="height:30px;width:62%"></div><div class="skel" style="height:11px;width:85%;margin-top:9px"></div></div></div>
 
 <div class="card">
-  <h3>🗺️ Қауіп картасы — облыстар бойынша (KZ regional threat map)</h3>
+  <h3><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Қауіп картасы — облыстар бойынша (KZ regional threat map)</h3>
   <div style="position:relative">
     <svg id="kzsvg" viewBox="0 0 1000 550" style="width:100%;height:auto;display:block"></svg>
     <div id="maptip" style="position:absolute;pointer-events:none;display:none;background:#0d1424;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:12px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
@@ -779,7 +783,7 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
       <div class="legend"><span><span class="dot" style="background:#7aa2f7"></span>Всего проверок</span><span><span class="dot" style="background:#f7768e"></span>Угрозы (опасн.+подозр.)</span></div>
     </div>
     <div class="card">
-      <h3>🔴 Топ опасных доменов</h3>
+      <h3><svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> Топ опасных доменов</h3>
       <table><thead><tr><th>Домен</th><th style="text-align:right">Блокировок</th></tr></thead><tbody id="domains"></tbody></table>
     </div>
   </div>
@@ -875,7 +879,7 @@ function renderMap(regions){
     p.addEventListener('mousemove',e=>{
       p.style.filter='brightness(1.5)';
       tip.style.display='block';
-      tip.innerHTML=`<b>${p.dataset.n}</b><br>🔴 ${p.dataset.t} қауіп · 🔍 ${p.dataset.c} тексеру`;
+      tip.innerHTML=`<b>${p.dataset.n}</b><br><svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> ${p.dataset.t} қауіп · <svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> ${p.dataset.c} тексеру`;
       const box=svg.getBoundingClientRect();
       tip.style.left=Math.min(e.clientX-box.left+14, box.width-160)+'px';
       tip.style.top=(e.clientY-box.top+14)+'px';
@@ -937,10 +941,11 @@ code{background:#131d35;border:1px solid #1e2d4a;border-radius:4px;padding:2px 7
 .dl-btn:hover{opacity:.85}
 .warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#e0af68;margin:16px 0}
 .note{background:rgba(122,162,247,.06);border:1px solid rgba(122,162,247,.15);border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8;margin:16px 0}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style></head>
 <body>
 <div class="navbar">
-  <a class="logo" href="/">🛡 Qalqan AI</a>
+  <a class="logo" href="/"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI</a>
   <a href="/" style="color:#64748b;font-size:14px">← Басты бет</a>
 </div>
 <div class="page">
@@ -1073,21 +1078,22 @@ textarea{min-height:84px;resize:vertical}
 .kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{font-size:11px;color:var(--mut);text-transform:uppercase}
 .spin{text-align:center;color:var(--mut);padding:14px;font-size:13px}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
-<div class="hd"><span class="logo">🛡️</span><h1>Qalqan AI</h1></div>
+<div class="hd"><span class="logo"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg></span><h1>Qalqan AI</h1></div>
 
 <div class="tabs">
-  <div class="tab on" data-p="check">🔍 Тексеру</div>
-  <div class="tab" data-p="ask">🤖 AI-кеңес</div>
-  <div class="tab" data-p="map">🗺️ Карта</div>
+  <div class="tab on" data-p="check"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Тексеру</div>
+  <div class="tab" data-p="ask"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg> AI-кеңес</div>
+  <div class="tab" data-p="map"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg> Карта</div>
 </div>
 
 <div class="panel on" id="p-check">
   <input id="url" placeholder="kaspi-bonus.kz немесе https://..." autocapitalize="off" autocomplete="off">
   <button class="btn" id="btn-check">Тексеру</button>
-  <button class="btn btn-qr" id="btn-qr" style="display:none">📷 QR-код сканерлеу</button>
+  <button class="btn btn-qr" id="btn-qr" style="display:none"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> QR-код сканерлеу</button>
   <div class="hint">Сілтемені қой немесе QR-кодты сканерле — фишинг, клон, гемблингті тексеремін. Жалған Kaspi QR — жиі алаяқтық!</div>
   <div class="res" id="res-check"></div>
 </div>
@@ -1107,8 +1113,8 @@ textarea{min-height:84px;resize:vertical}
 </div>
 
 <div style="display:flex;gap:8px;margin-top:14px">
-  <a href="/leak" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🔑 Пароль утёк?</a>
-  <a href="/help" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🆘 Помощь</a>
+  <a href="/leak" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?</a>
+  <a href="/help" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Помощь</a>
 </div>
 
 <script>
@@ -1117,7 +1123,7 @@ if (tg) { tg.ready(); tg.expand(); }
 const API = location.origin;
 const $ = s => document.querySelector(s);
 const vcolor = v => v==='DANGEROUS'?'var(--red)':v==='SUSPICIOUS'?'var(--amber)':'var(--green)';
-const vlabel = v => v==='DANGEROUS'?'🔴 ҚАУІПТІ':v==='SUSPICIOUS'?'🟡 КҮДІКТІ':'🟢 ҚАУІПСІЗ';
+const vlabel = v => v==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> ҚАУІПТІ':v==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#e0af68"/></svg> КҮДІКТІ':'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#9ece6a"/></svg> ҚАУІПСІЗ';
 
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
@@ -1160,7 +1166,7 @@ if (tg && tg.isVersionAtLeast && tg.isVersionAtLeast('6.4') && tg.showScanQrPopu
     const m = data.match(/https?:\\/\\/[^\\s]+|[a-zA-Z0-9-]+\\.[a-zA-Z]{2,}[^\\s]*/);
     if (!m) {
       const box=$('#res-check'); box.className='res show';
-      box.innerHTML=`<div class="verdict" style="color:var(--amber)">ℹ️ QR ішінде сілтеме жоқ</div>
+      box.innerHTML=`<div class="verdict" style="color:var(--amber)">ℹ QR ішінде сілтеме жоқ</div>
         <div class="detail" style="word-break:break-all">${data.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
       return;
     }
@@ -1182,7 +1188,7 @@ async function ask(){
       <div class="score">${sc}/100 · ${d.scam_type||''}</div>
       <div class="bar"><div style="width:${sc}%;background:${vcolor(v)}"></div></div>
       <div class="detail">${d.reasoning||d.detail_ru||''}</div>`;
-    if((d.advice||[]).length) h+='<div class="meta">✅ '+d.advice.slice(0,4).map(a=>a).join('<br>✅ ')+'</div>';
+    if((d.advice||[]).length) h+='<div class="meta"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> '+d.advice.slice(0,4).map(a=>a).join('<br><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ')+'</div>';
     box.innerHTML=h;
   }catch(e){ box.innerHTML='<div class="spin">Қате. Кейінірек қайталаңыз.</div>'; }
 }
@@ -1254,9 +1260,10 @@ svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
 .finding .sc{color:var(--red);font-weight:800;font-variant-numeric:tabular-nums}
 .foot{color:var(--mut);font-size:12px;margin-top:20px;text-align:center}
 @media(max-width:860px){.wrap{grid-template-columns:1fr}}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style></head><body>
 <div class="top">
-  <div><h1>🕸️ Граф госзакупок — аффилированность и сговор</h1>
+  <div><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2.5"/><path d="m10.2 6.3-3.9 3.9"/><circle cx="4.5" cy="12" r="2.5"/><path d="M7 12h10"/><circle cx="19.5" cy="12" r="2.5"/><path d="m13.8 17.7 3.9-3.9"/><circle cx="12" cy="19.5" r="2.5"/></svg> Граф госзакупок — аффилированность и сговор</h1>
   <div class="sub">Qalqan AI · экономические угрозы (ДЭР) · <span id="src">—</span></div></div>
   <div><a href="/">← На главную</a> &nbsp; <a href="/goszakup/graph/demo">JSON</a></div>
 </div>
@@ -1272,7 +1279,7 @@ svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
       <span><span class="dot" style="background:#f7768e"></span>— красная связь = подозрение</span>
     </div>
   </div>
-  <div class="card"><h3 style="font-size:14px;margin-bottom:12px">🚩 Найденные схемы</h3><div id="findings"></div></div>
+  <div class="card"><h3 style="font-size:14px;margin-bottom:12px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-7.333-2q-2 0-3.067.8"/><path d="M4 22h16"/></svg> Найденные схемы</h3><div id="findings"></div></div>
 </div>
 <div class="foot">Qalqan AI · граф строится из данных закупок (заказчик↔поставщик↔учредитель↔адрес↔чиновник)</div>
 <script>
@@ -1355,10 +1362,11 @@ nav button{flex:1;background:none;border:none;color:var(--mut);padding:11px 0;fo
 nav button.on{color:var(--cyan)} nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid #06121a;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-3px}
 @keyframes s{to{transform:rotate(360deg)}}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style></head>
 <body>
 <header>
-  <div class="logo">🛡 Qalqan AI</div>
+  <div class="logo"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI</div>
   <div style="display:flex;gap:10px;align-items:center">
     <button id="install">Орнату</button>
     <span class="net" id="net"><span class="d"></span><span id="nett">онлайн</span></span>
@@ -1427,7 +1435,7 @@ function renderHist(){const h=getHist();$('#hist').innerHTML=h.length?h.map(x=>`
 
 function showRes(el,v,score,detail,flags){
   el.className='res show '+v;
-  let h=`<div class="verdict">${v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅'} ${v}</div><div class="score">Қауіп: ${score}/100</div><div class="detail">${detail||''}</div>`;
+  let h=`<div class="verdict">${v==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>':v==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>'} ${v}</div><div class="score">Қауіп: ${score}/100</div><div class="detail">${detail||''}</div>`;
   if(flags&&flags.length)h+='<div class="flags">'+flags.slice(0,5).map(f=>`<div class="flag">• ${f}</div>`).join('')+'</div>';
   el.innerHTML=h;
 }
@@ -1543,8 +1551,9 @@ pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14p
 .method{color:var(--green);font-weight:700}
 .tag{display:inline-block;font-size:11px;font-weight:700;color:#06121a;background:var(--cyan);padding:3px 9px;border-radius:999px}
 .foot{color:var(--mut);font-size:12px;margin-top:30px;text-align:center}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style></head><body>
-<h1>🛡 Qalqan AI — Партнёрский API <span class="tag">B2G</span></h1>
+<h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI — Партнёрский API <span class="tag">B2G</span></h1>
 <div class="sub">Для банков, Антифрод-центра Нацбанка, KZ-CERT, АФМ. Проверка угроз в реальном времени.</div>
 
 <h2>Авторизация</h2>
@@ -1617,6 +1626,7 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 .btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(122,162,247,.35)}
 .links{margin-top:22px;font-size:14px;color:#6f7a8f}.links a{color:#7aa2f7;text-decoration:none;margin:0 9px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style></head>
 <body>
 <div class="bg"></div>
@@ -1626,7 +1636,7 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 <h1>Бет табылмады</h1>
 <p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
 <a class="btn" href="/">← Басты бетке</a>
-<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/leak"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
 </div>
 </body></html>"""
 
@@ -1671,26 +1681,27 @@ input:focus{border-color:var(--cyan)}
 .tabs{display:flex;gap:8px;margin-bottom:14px}
 .tabb{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:10px;color:var(--mut);font-family:inherit;font-size:13.5px;font-weight:700;padding:10px;cursor:pointer}
 .tabb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🔑 Пароль утёк?</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Құпиясөзіңіз деректер утечкаларында бар ма? · Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.</div>
 
   <div class="tabs">
-    <button class="tabb on" data-t="pw">🔑 Пароль</button>
-    <button class="tabb" data-t="em">📧 Email</button>
+    <button class="tabb on" data-t="pw"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</button>
+    <button class="tabb" data-t="em"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Email</button>
   </div>
 
   <div class="card" id="card-pw">
     <div class="inrow">
       <input id="pw" type="password" placeholder="Введите пароль для проверки" autocomplete="off">
-      <button class="eye" id="eye" aria-label="Показать пароль">👁</button>
+      <button class="eye" id="eye" aria-label="Показать пароль"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
     </div>
     <button class="btn" id="go">Проверить утечку</button>
     <div class="priv">
-      <span style="font-size:16px">🔒</span>
+      <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Пароль не покидает ваше устройство.</b> Считается SHA-1 хэш прямо в браузере, наружу уходят только первые 5 символов хэша (k-анонимность). Ни мы, ни HIBP не видим пароль и даже его полный хэш.</span>
     </div>
     <div class="res" id="res"></div>
@@ -1703,30 +1714,31 @@ input:focus{border-color:var(--cyan)}
     </div>
     <button class="btn" id="goem">Проверить email</button>
     <div class="priv">
-      <span style="font-size:16px">🔒</span>
+      <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Email не сохраняется.</b> Запрос уходит в открытую базу утечек XposedOrNot; Qalqan не логирует и не хранит адрес.</span>
     </div>
     <div class="res" id="resem"></div>
   </div>
 
   <div class="card" style="margin-top:14px">
-    <div style="font-weight:700;font-size:14px;margin-bottom:10px">🔐 Генератор надёжных паролей</div>
+    <div style="font-weight:700;font-size:14px;margin-bottom:10px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Генератор надёжных паролей</div>
     <div class="inrow">
       <input id="genout" type="text" readonly placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
-      <button class="eye" id="gencopy" aria-label="Скопировать">📋</button>
+      <button class="eye" id="gencopy" aria-label="Скопировать"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
     </div>
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--mut)">
       <label><input type="checkbox" id="gensym" checked> символы</label>
       <label>длина <select id="genlen"><option>16</option><option>20</option><option selected>24</option><option>32</option></select></label>
     </div>
     <button class="btn" id="gengo" style="margin-top:12px">Сгенерировать</button>
-    <div class="priv" style="margin-top:10px"><span style="font-size:16px">🔒</span><span>Генерируется в браузере (crypto.getRandomValues), никуда не отправляется.</span></div>
+    <div class="priv" style="margin-top:10px"><span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Генерируется в браузере (crypto.getRandomValues), никуда не отправляется.</span></div>
   </div>
 
 <div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · </div>
 </div>
 
 <script>
+const QI={octagon:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',alert:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',checkc:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',check:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',copy:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'};
 const $=s=>document.querySelector(s);
 $('#eye').onclick=()=>{const p=$('#pw');p.type=p.type==='password'?'text':'password';};
 
@@ -1753,7 +1765,7 @@ async function checkLeak(){
     }
     if(count>0){
       res.className='res show bad';
-      res.innerHTML=`<div class="big">🚨 Пароль скомпрометирован!</div>
+      res.innerHTML=`<div class="big"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg> Пароль скомпрометирован!</div>
         Этот пароль встречается в утечках <span class="cnt">${count.toLocaleString('ru-RU')}</span> раз.
         <ul>
           <li>Смени его ВЕЗДЕ, где используешь — прямо сейчас</li>
@@ -1762,13 +1774,13 @@ async function checkLeak(){
         </ul>`;
     }else{
       res.className='res show ok';
-      res.innerHTML=`<div class="big">✅ В известных утечках не найден</div>
+      res.innerHTML=`<div class="big"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> В известных утечках не найден</div>
         Это не гарантия абсолютной безопасности, но в 900+ млн утёкших паролей его нет.
         Совет: длина 12+ символов и уникальность для каждого сервиса важнее сложности.`;
     }
   }catch(e){
     res.className='res show bad';
-    res.innerHTML='<div class="big">⚠️ Сервис недоступен</div>Попробуйте позже — проверка идёт напрямую в HaveIBeenPwned.';
+    res.innerHTML='<div class="big"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Сервис недоступен</div>Попробуйте позже — проверка идёт напрямую в HaveIBeenPwned.';
   }
   btn.disabled=false; btn.textContent='Проверить утечку';
 }
@@ -1785,21 +1797,21 @@ document.querySelectorAll('.tabb').forEach(b=>b.onclick=()=>{
 async function checkEmail(){
   const em=document.getElementById('em').value.trim();
   const R=document.getElementById('resem');
-  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(em)){R.className='res show';R.innerHTML='⚠️ Введите корректный email.';return}
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(em)){R.className='res show';R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Введите корректный email.';return}
   R.className='res show';R.innerHTML='Проверяем базы утечек...';
   try{
     const r=await fetch('/leak/email?email='+encodeURIComponent(em));
-    if(r.status===429){R.innerHTML='⏳ Слишком часто — подождите минуту.';return}
-    if(!r.ok){R.innerHTML='⚠️ Сервис утечек недоступен, попробуйте позже.';return}
+    if(r.status===429){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Слишком часто — подождите минуту.';return}
+    if(!r.ok){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Сервис утечек недоступен, попробуйте позже.';return}
     const d=await r.json();
-    if(!d.breached){R.innerHTML='<b style="color:var(--green,#9ece6a)">✅ Не найден в известных утечках.</b><br>Это не гарантия — используйте уникальные пароли и 2FA.';}
+    if(!d.breached){R.innerHTML='<b style="color:var(--green,#9ece6a)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Не найден в известных утечках.</b><br>Это не гарантия — используйте уникальные пароли и 2FA.';}
     else{
       const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
-      R.innerHTML='<b style="color:var(--red,#f7768e)">🚨 Найден в '+d.count+' утечках:</b><br>'+
+      R.innerHTML='<b style="color:var(--red,#f7768e)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg> Найден в '+d.count+' утечках:</b><br>'+
         d.breaches.map(b=>'• '+esc(b)).join('<br>')+
         '<br><br><b>Что делать:</b> смените пароли на этих сервисах, включите 2FA, не переиспользуйте пароли.';
     }
-  }catch(e){R.innerHTML='⚠️ Ошибка сети.'}
+  }catch(e){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Ошибка сети.'}
 }
 document.getElementById('goem').onclick=checkEmail;
 document.getElementById('em').addEventListener('keydown',e=>{if(e.key==='Enter')checkEmail()});
@@ -1815,8 +1827,8 @@ function genPw(){
 document.getElementById('gengo').onclick=genPw;
 document.getElementById('gencopy').onclick=async()=>{
   const v=document.getElementById('genout').value;if(!v)return;
-  try{await navigator.clipboard.writeText(v);document.getElementById('gencopy').textContent='✅';
-      setTimeout(()=>document.getElementById('gencopy').textContent='📋',1200);}catch(e){}
+  try{await navigator.clipboard.writeText(v);document.getElementById('gencopy').innerHTML=QI.check;
+      setTimeout(()=>document.getElementById('gencopy').innerHTML=QI.copy,1200);}catch(e){}
 };
 </script>
 </body>
@@ -1857,16 +1869,17 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
 .org .ph{font-size:15px;font-weight:800;color:var(--cyan);margin-top:5px}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:26px;line-height:1.7}
 .foot a{color:var(--cyan);text-decoration:none}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🆘 Обманули? Действуй быстро</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Обманули? Действуй быстро</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Алдап кетті ме? Тез әрекет ет — алғашқы сағаттар шешуші. · Первые часы решают: чем быстрее заблокируешь операцию, тем выше шанс вернуть деньги.</div>
 
   <div class="urgent">
-    <div class="t">⚡ Деньги ушли только что — звони НЕМЕДЛЕННО</div>
-    <div class="n">📞 1477</div>
+    <div class="t"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg> Деньги ушли только что — звони НЕМЕДЛЕННО</div>
+    <div class="n"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> 1477</div>
     <div class="d">Контакт-центр Нацбанка РК · круглосуточно · блокировка перевода через Антифрод-центр</div>
   </div>
 
@@ -1882,37 +1895,37 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
   <div class="sec-t">Официальные службы Казахстана</div>
   <div class="grid">
     <a class="org" href="tel:1477">
-      <span class="ic">🏦</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg></span>
       <div><div class="nm">Нацбанк РК · Антифрод-центр</div>
       <div class="ds">Блокировка мошеннических переводов, возврат средств. Работает с банками и операторами 24/7.</div>
       <div class="ph">1477</div></div>
     </a>
     <a class="org" href="tel:102">
-      <span class="ic">🚓</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg></span>
       <div><div class="nm">Полиция · киберпреступления</div>
       <div class="ds">Заявление о мошенничестве. Единый номер экстренных служб.</div>
       <div class="ph">102</div></div>
     </a>
     <a class="org" href="https://www.cert.gov.kz/" target="_blank" rel="noopener">
-      <span class="ic">🛡️</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg></span>
       <div><div class="nm">KZ-CERT · Нацинтех</div>
       <div class="ds">Национальная служба реагирования на киберинциденты — фишинг, взломы, вредоносные сайты.</div>
       <div class="ph">cert.gov.kz →</div></div>
     </a>
     <a class="org" href="https://www.gov.kz/memleket/entities/ardfm" target="_blank" rel="noopener">
-      <span class="ic">📉</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
       <div><div class="nm">АРРФР / АФМ</div>
       <div class="ds">Финансовые пирамиды, нелегальные инвестиции, обманутые вкладчики. Реестр пирамид.</div>
       <div class="ph">gov.kz/ardfm →</div></div>
     </a>
     <a class="org" href="https://egov.kz/" target="_blank" rel="noopener">
-      <span class="ic">🏛️</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg></span>
       <div><div class="nm">eGov · онлайн-заявление</div>
       <div class="ds">Подать обращение в органы онлайн, проверить статус дела.</div>
       <div class="ph">egov.kz →</div></div>
     </a>
     <a class="org" href="tel:1406">
-      <span class="ic">🎰</span>
+      <span class="ic"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h.01"/><path d="M16 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 12h.01"/></svg></span>
       <div><div class="nm">Помощь при лудомании</div>
       <div class="ds">Игровая зависимость — это болезнь, которую лечат. Бесплатная психологическая помощь.</div>
       <div class="ph">1406 · 8-800-080-88-87</div></div>
@@ -1921,7 +1934,7 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
 
   <div class="foot">
     Qalqan AI · Бұл ресми қызметтер тізімі, кеңес емес · Список официальных служб, не является юр. консультацией<br>
-    <a href="/leak">🔑 Пароль</a> · <a href="/">🛡️ Проверить сайт</a>
+    <a href="/leak"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</a> · <a href="/"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Проверить сайт</a>
   </div>
 </div>
 </body>
@@ -1974,11 +1987,12 @@ input:focus{border-color:var(--cyan)}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
 .liveok{background:rgba(158,206,106,.1);border:1px solid rgba(158,206,106,.3);border-radius:10px;padding:12px;font-size:13.5px;color:var(--green,#9ece6a)}
 .livebad{color:var(--red,#f7768e);font-weight:700;font-size:14px;margin-bottom:8px}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🎯 Защита бренда от фишинга</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Защита бренда от фишинга</h1><a href="/">← Qalqan AI</a></div>
   <div class="b2b">ДЛЯ БАНКОВ · ГОСОРГАНОВ · БИЗНЕСА</div>
   <div class="sub">Брендіңіздің фишингтік домен-егіздерін табыңыз. · Введите домен вашего бренда — покажем домены-двойники, которые регистрируют мошенники, чтобы красть у ваших клиентов.</div>
 
@@ -1994,8 +2008,8 @@ input:focus{border-color:var(--cyan)}
   <div class="advice" id="advice"></div>
   <div id="liveblock" style="display:none;margin-top:14px">
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn" id="livego" style="flex:1;min-width:220px">🔎 Live-проверка регистраций</button>
-      <button class="btn" id="watchgo" style="flex:1;min-width:200px;background:transparent;border:1px solid var(--bd);color:var(--tx)">🔔 На ежедневный мониторинг</button>
+      <button class="btn" id="livego" style="flex:1;min-width:220px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
+      <button class="btn" id="watchgo" style="flex:1;min-width:200px;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
     </div>
     <div id="liveres" style="margin-top:12px"></div>
   </div>
@@ -2012,12 +2026,12 @@ async function scan(dom){
   try{
     const r=await fetch('/brand/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
     const d=await r.json();
-    if(d.error){ $('#status').innerHTML='<div class="spin">⚠️ Введите корректный домен, напр. kaspi.kz</div>'; btn.disabled=false; btn.textContent='Сканировать'; return; }
+    if(d.error){ $('#status').innerHTML='<div class="spin"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Введите корректный домен, напр. kaspi.kz</div>'; btn.disabled=false; btn.textContent='Сканировать'; return; }
     const c=d.risk_counts||{};
     $('#summary').innerHTML=
-      `<div class="pill c">🔴 Критичных: ${c.critical||0}</div>`+
-      `<div class="pill h">🟠 Высоких: ${c.high||0}</div>`+
-      `<div class="pill m">🔵 Средних: ${c.medium||0}</div>`;
+      `<div class="pill c"><svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> Критичных: ${c.critical||0}</div>`+
+      `<div class="pill h"><svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#e08f68"/></svg> Высоких: ${c.high||0}</div>`+
+      `<div class="pill m"><svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#7aa2f7"/></svg> Средних: ${c.medium||0}</div>`;
     $('#summary').className='summary show';
     $('#grid').innerHTML=(d.variants||[]).map(v=>
       `<div class="row"><span class="dot ${v.risk}"></span><div><div class="dm">${v.domain}</div><div class="nt">${v.note}</div></div></div>`).join('');
@@ -2040,19 +2054,19 @@ $('#livego').onclick=async()=>{
   $('#liveres').innerHTML='<div class="spin">RDAP-запросы к доменным реестрам (до 15 сек)...</div>';
   try{
     const r=await fetch('/brand/live-scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
-    if(r.status===429){ $('#liveres').innerHTML='<div class="spin">⏳ Слишком часто — подождите минуту.</div>'; b.disabled=false; b.textContent='🔎 Live-проверка регистраций'; return; }
+    if(r.status===429){ $('#liveres').innerHTML='<div class="spin"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Слишком часто — подождите минуту.</div>'; b.disabled=false; b.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций'; return; }
     const d=await r.json();
-    if(d.error){ $('#liveres').innerHTML='<div class="spin">⚠️ Некорректный домен.</div>'; }
+    if(d.error){ $('#liveres').innerHTML='<div class="spin"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Некорректный домен.</div>'; }
     else if(!d.registered_count){
-      $('#liveres').innerHTML=`<div class="liveok">✅ Из ${d.answered} проверенных вариантов — ни один не зарегистрирован. Атакующей инфраструктуры не обнаружено.</div>`;
+      $('#liveres').innerHTML=`<div class="liveok"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Из ${d.answered} проверенных вариантов — ни один не зарегистрирован. Атакующей инфраструктуры не обнаружено.</div>`;
     } else {
       $('#liveres').innerHTML=
-        `<div class="livebad">🚨 Зарегистрировано ${d.registered_count} из ${d.answered} проверенных:</div>`+
+        `<div class="livebad"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg> Зарегистрировано ${d.registered_count} из ${d.answered} проверенных:</div>`+
         d.registered.map(v=>`<div class="row"><span class="dot critical"></span><div><div class="dm">${v.domain}</div><div class="nt">${v.note}${v.age_days!=null?` · возраст ${v.age_days} дн.`:''} · <b style="color:var(--red)">СУЩЕСТВУЕТ</b></div></div></div>`).join('')+
         `<div class="disc" style="margin-top:8px">${d.note_ru||''}</div>`;
     }
   }catch(e){ $('#liveres').innerHTML='<div class="spin">Ошибка сети.</div>'; }
-  b.disabled=false; b.textContent='🔎 Live-проверка регистраций';
+  b.disabled=false; b.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций';
 };
 
 // ── Subscribe to daily monitoring ──
@@ -2062,8 +2076,8 @@ $('#watchgo').onclick=async()=>{
   try{
     const r=await fetch('/brand/watch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
     const d=await r.json();
-    b.textContent=d.ok?'✅ На мониторинге':'⚠️ Недоступно';
-  }catch(e){ b.textContent='⚠️ Ошибка'; b.disabled=false; }
+    b.textContent=d.ok?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> На мониторинге':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Недоступно';
+  }catch(e){ b.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Ошибка'; b.disabled=false; }
 };
 </script>
 <div class="foot">Qalqan AI · Domain typosquatting radar · <a href="/partners">B2G API</a> · <a href="/">Проверить сайт</a></div>
@@ -2108,11 +2122,12 @@ input:focus{border-color:var(--cyan)}
 .spin{color:var(--mut);font-size:13px;margin-top:16px}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
 .disc{color:var(--mut);font-size:11px;text-align:center;padding:0 18px 16px}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🔬 Оценка безопасности сайта</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg> Оценка безопасности сайта</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Сайттың қауіпсіздік бағасы: A+ ден F дейін. · Комплексная оценка любого сайта: HTTPS/SSL, возраст домена, репутация, гомоглифы, хостинг.</div>
 
   <div class="inrow">
@@ -2147,14 +2162,14 @@ async function scan(dom){
     const r=await fetch('/scan/'+encodeURIComponent(dom));
     if(!r.ok) throw new Error('http '+r.status);
     const d=await r.json();
-    if(d.error){ $('#status').innerHTML='<div class="spin">⚠️ '+d.error+'</div>'; btn.disabled=false; btn.textContent='Оценить'; return; }
+    if(d.error){ $('#status').innerHTML='<div class="spin"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> '+d.error+'</div>'; btn.disabled=false; btn.textContent='Оценить'; return; }
     $('#badge').textContent=d.grade; $('#badge').style.background=d.grade_color;
     $('#dm').textContent=d.domain;
-    const vlabel=d.verdict==='DANGEROUS'?'🔴 Опасный':d.verdict==='SUSPICIOUS'?'🟡 Подозрительный':'🟢 Чистый';
+    const vlabel=d.verdict==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#f7768e"/></svg> Опасный':d.verdict==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#e0af68"/></svg> Подозрительный':'<svg class="qi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="#9ece6a"/></svg> Чистый';
     $('#vv').textContent=vlabel+' · риск '+d.risk_score+'/100';
-    $('#pc').innerHTML='<span style="color:var(--green)">✓ '+d.passed+'</span> из '+d.total_checks+' проверок пройдено';
+    $('#pc').innerHTML='<span style="color:var(--green)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> '+d.passed+'</span> из '+d.total_checks+' проверок пройдено';
     $('#factors').innerHTML=(d.factors||[]).map(f=>{
-      const ic=f.status==='pass'?'✓':f.status==='warn'?'▲':'✕';
+      const ic=f.status==='pass'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>':f.status==='warn'?'▲':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
       return `<div class="f ${f.status}"><span class="i">${ic}</span><span>${f.ru}</span></div>`;
     }).join('');
     $('#card').className='card show'; $('#status').innerHTML='';
@@ -2206,12 +2221,13 @@ input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
 .r:last-child{border:none}.r .rl{color:var(--mut)}.r .rv{font-weight:700}
 .disc{color:var(--mut);font-size:11px;margin-top:14px;line-height:1.5}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <h1 id="h1">💸 Экономический эффект</h1>
+    <h1 id="h1"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg> Экономический эффект</h1>
     <div style="display:flex;gap:10px;align-items:center">
       <div class="lang"><button data-l="kk">ҚАЗ</button><button data-l="ru" class="on">РУС</button></div>
       <a href="/">← Qalqan AI</a>
@@ -2244,7 +2260,7 @@ input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
     <div class="disc" id="disc">Оценка. Источник базовых цифр: официальная статистика МВД/Нацбанка РК за 2025 г. Расчёт: (население-риск × частота × средний ущерб × охват × эффективность).</div>
   </div>
 
-  <div class="foot">Qalqan AI · Экономика кибербезопасности · <a href="/">Проверить сайт</a> · <a href="/help">🆘 Обманули?</a></div>
+  <div class="foot">Qalqan AI · Экономика кибербезопасности · <a href="/">Проверить сайт</a> · <a href="/help"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Обманули?</a></div>
 </div>
 
 <script>
@@ -2256,13 +2272,13 @@ const ADULTS_KZ = 13500000;             // ~adult population exposed
 const CASE_RATE = CASES_YR / ADULTS_KZ; // annual victim probability
 
 const I18N={
-  ru:{h1:'💸 Экономический эффект',sub:'Сколько денег Qalqan AI может сберечь для граждан Казахстана. Расчёт основан на официальной статистике 2025 года.',
+  ru:{h1:'Экономический эффект',sub:'Сколько денег Qalqan AI может сберечь для граждан Казахстана. Расчёт основан на официальной статистике 2025 года.',
     s1:'украдено за 10 мес. 2025 (×29 к 2024)',s2:'случаев кибермошенничества (+86%)',
     lb1:'Пользователей Qalqan AI: ',lb2:'Эффективность блокировки: ',outLbl:'Предотвращённый ущерб в год',
     r1:'Средний ущерб на случай',r2:'Ожидаемых жертв среди пользователей/год',r3:'Из них защищено Qalqan AI',
     perUser:u=>`≈ ${u} ₸ сбережено на пользователя в год`,
     disc:'Оценка. Источник базовых цифр: официальная статистика МВД/Нацбанка РК за 2025 г. Расчёт: (население-риск × частота × средний ущерб × охват × эффективность).'},
-  kk:{h1:'💸 Экономикалық әсер',sub:'Qalqan AI Қазақстан азаматтары үшін қанша ақша үнемдей алады. Есеп 2025 жылғы ресми статистикаға негізделген.',
+  kk:{h1:'Экономикалық әсер',sub:'Qalqan AI Қазақстан азаматтары үшін қанша ақша үнемдей алады. Есеп 2025 жылғы ресми статистикаға негізделген.',
     s1:'2025 жылдың 10 айында ұрланды (2024-ке ×29)',s2:'кибералаяқтық дерегі (+86%)',
     lb1:'Qalqan AI қолданушылары: ',lb2:'Блоктау тиімділігі: ',outLbl:'Жылына болдырмаған залал',
     r1:'Бір дерекке орташа залал',r2:'Қолданушылар арасында күтілетін құрбандар/жыл',r3:'Оның ішінде Qalqan AI қорғады',
@@ -2349,17 +2365,18 @@ td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
 .v-SAFE{color:var(--green);font-weight:700}
 .hint{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.6}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>📄 Массовая проверка URL</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg> Массовая проверка URL</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Для банков, регуляторов и служб безопасности: вставьте список ссылок (по одной на строку) или загрузите CSV — каждый URL пройдёт полный 7-уровневый pipeline. До 15 URL параллельно, крупные списки идут батчами.</div>
 
   <div class="card">
     <textarea id="urls" placeholder="kaspi-bonus.tk&#10;1xbet.com&#10;https://example.com/login&#10;..."></textarea>
     <div class="row">
-      <button class="btn sec" id="upload">📎 Загрузить CSV/TXT</button>
+      <button class="btn sec" id="upload"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Загрузить CSV/TXT</button>
       <button class="btn" id="go">Проверить список</button>
       <input id="file" type="file" accept=".csv,.txt">
     </div>
@@ -2368,7 +2385,7 @@ td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
     <div class="tblwrap" id="tblwrap">
       <table><thead><tr><th>URL</th><th>Вердикт</th><th>Балл</th><th>Источник</th></tr></thead><tbody id="tbody"></tbody></table>
     </div>
-    <div class="row" id="dlrow" style="display:none"><button class="btn sec" id="dl">⬇️ Скачать отчёт CSV</button></div>
+    <div class="row" id="dlrow" style="display:none"><button class="btn sec" id="dl"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> Скачать отчёт CSV</button></div>
     <div class="hint">Лимит: 15 URL за запрос, крупные списки проверяются частями с паузой (rate-limit). Для интеграции без лимитов — <a href="/partners" style="color:var(--cyan)">B2G API с X-API-Key</a>.</div>
   </div>
 
@@ -2422,7 +2439,7 @@ async function run(){
   const d=results.filter(r=>r.verdict==='DANGEROUS').length,
         s2=results.filter(r=>r.verdict==='SUSPICIOUS').length,
         ok=results.filter(r=>r.verdict==='SAFE').length;
-  $('#sum').innerHTML=`<div class="pill d">🛑 Опасных: ${d}</div><div class="pill s">⚠️ Подозрительных: ${s2}</div><div class="pill ok">✅ Чистых: ${ok}</div><div class="pill">Всего: ${results.length}</div>`;
+  $('#sum').innerHTML=`<div class="pill d"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg> Опасных: ${d}</div><div class="pill s"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Подозрительных: ${s2}</div><div class="pill ok"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Чистых: ${ok}</div><div class="pill">Всего: ${results.length}</div>`;
   $('#sum').style.display='flex';$('#dlrow').style.display='flex';
   btn.disabled=false;btn.textContent='Проверить список';
 }
@@ -2470,16 +2487,17 @@ h1{font-size:24px;font-weight:800}
 .res.ok{border-color:rgba(158,206,106,.5);background:rgba(158,206,106,.07)}
 .priv{font-size:11.5px;color:var(--mut);margin-top:12px;line-height:1.5}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
+.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🖼 Проверка скриншота</h1><a href="/">← Qalqan AI</a></div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Проверка скриншота</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Пришло подозрительное SMS, сообщение «из банка», объявление об «инвестициях»? Сделай скриншот и загрузи — AI прочитает текст и скажет, мошенничество ли это. Каз/рус/англ.</div>
 
   <div class="card">
     <div class="drop" id="drop">
-      <div class="big">📸</div>
+      <div class="big"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
       <div class="t">Нажми или перетащи скриншот</div>
       <div class="h">JPG/PNG до 3 МБ · переписка, SMS, сайт, объявление</div>
     </div>
@@ -2487,13 +2505,14 @@ h1{font-size:24px;font-weight:800}
     <img id="preview" alt="preview">
     <button class="btn" id="go">Проверить</button>
     <div class="res" id="res"></div>
-    <div class="priv">🔒 Скриншот анализируется на лету и не сохраняется. Не загружай фото с личными данными без необходимости — закрась лишнее.</div>
+    <div class="priv"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Скриншот анализируется на лету и не сохраняется. Не загружай фото с личными данными без необходимости — закрась лишнее.</div>
   </div>
 
-  <div class="foot">Qalqan AI · Groq Vision + Gemini · <a href="/">Проверить сайт</a> · <a href="/help">🆘 Обманули?</a></div>
+  <div class="foot">Qalqan AI · Groq Vision + Gemini · <a href="/">Проверить сайт</a> · <a href="/help"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m4.93 19.07 4.24-4.24"/></svg> Обманули?</a></div>
 </div>
 
 <script>
+const QI={octagon:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',alert:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',checkc:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',check:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',copy:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'};
 const $=s=>document.querySelector(s);
 let b64=null;
 const drop=$('#drop'),file=$('#file');
@@ -2521,13 +2540,14 @@ $('#go').onclick=async()=>{
   try{
     const lang=localStorage.getItem('qlang')||'ru';
     const r=await fetch('/analyze-screen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:b64,lang:lang==='kk'?'kk':lang==='en'?'en':'ru'})});
-    if(r.status===429){R.textContent='⏳ Слишком часто — максимум 5 скриншотов в минуту.';btn.disabled=false;btn.textContent='Проверить';return}
+    if(r.status===429){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Слишком часто — максимум 5 скриншотов в минуту.';btn.disabled=false;btn.textContent='Проверить';return}
     const d=await r.json();
     const v=(d.verdict||'').toUpperCase();
-    const em=v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅';
+    const em=v==='DANGEROUS'?QI.octagon:v==='SUSPICIOUS'?QI.alert:QI.checkc;
     R.className='res '+(v==='DANGEROUS'?'d':v==='SUSPICIOUS'?'s':'ok');
-    R.textContent=`${em} ${v} · ${d.threat_score??'?'}/100\\n\\n${d.detail||d.detail_ru||''}`;
-  }catch(e){R.textContent='⚠️ Ошибка анализа. Попробуйте позже.'}
+    const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
+    R.innerHTML=`${em} <b>${esc(v)} · ${esc(String(d.threat_score??'?'))}/100</b><br><br>${esc(d.detail||d.detail_ru||'')}`;
+  }catch(e){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Ошибка анализа. Попробуйте позже.'}
   btn.disabled=false;btn.textContent='Проверить';
 };
 </script>

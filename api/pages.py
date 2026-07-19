@@ -71,7 +71,7 @@ h1{{font-size:28px;font-weight:700;margin-bottom:6px}}
 footer{{text-align:center;padding:32px;color:#334155;font-size:12px;border-top:1px solid #1e2d4a;margin-top:40px}}
 </style></head><body>
 <div class="navbar">
-  <a class="logo" href="/">🛡 Qalqan AI</a>
+  <a class="logo" href="/"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.14em"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI</a>
   <a class="nav-back" href="/">← Басты бет</a>
 </div>
 <div class="page">
@@ -132,7 +132,7 @@ def _rows_logs(logs: list[dict]) -> str:
             f"<td><span style='color:{c};font-weight:bold'>{_e(r.get('verdict',''))}</span></td>"
             f"<td>{_e(r.get('score',''))}</td>"
             f"<td>{_e(r.get('top_source',''))}</td>"
-            f"<td>{'✓' if r.get('ai_used') else '—'}</td>"
+            f"<td>{'AI' if r.get('ai_used') else '—'}</td>"
             f"<td>{_e(r.get('latency_ms',''))}</td>"
             f"</tr>"
         )
@@ -217,7 +217,7 @@ def render_admin_page(data: dict) -> str:
 </head>
 <body>
 <div class="topbar">
-  <div style="font-size:24px">🛡️</div>
+  <div style="font-size:24px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.14em"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg></div>
   <h1>Qalqan AI — Admin Dashboard</h1>
   <span id="clock"></span>
 </div>

@@ -3,37 +3,37 @@ import { useRef, useEffect, useState } from "react";
 
 const STEPS = [
   {
-    n: "01", icon: "🌐", color: "#3b82f6",
+    n: "01", icon: "", color: "#3b82f6",
     title: "Сайтты ашасыз",
     desc: "Chrome-де кез келген сайтқа кіресіз. Qalqan AI фонда автоматты тексеруді бастайды немесе батырма арқылы қолмен іске қосасыз.",
     tags: ["Auto-check", "Manual trigger", "0ms start"],
   },
   {
-    n: "02", icon: "⚡", color: "#f59e0b",
+    n: "02", icon: "", color: "#f59e0b",
     title: "Офлайн + KZ тексеру",
     desc: "200+ белгілі домен API-сыз тексеріледі. Whitelist, Pyramid DB, KZ Intel, Gambling DB — жергілікті тізімдерде. 0ms нәтиже.",
     tags: ["0ms", "Pyramid DB", "KZ Intel", "Gambling DB"],
   },
   {
-    n: "03", icon: "🔬", color: "#6366f1",
+    n: "03", icon: "", color: "#6366f1",
     title: "URL + Domain талдауы",
     desc: "30+ параметр параллельді тексеріледі: URL белгілері, RDAP домен жасы, SSL сертификат, homoglyph шабуыл, KZ бренд имитациясы.",
     tags: ["RDAP", "SSL", "30+ features", "Homoglyph"],
   },
   {
-    n: "04", icon: "🌍", color: "#10b981",
+    n: "04", icon: "", color: "#10b981",
     title: "Сыртқы дерекқорлар",
     desc: "PhishTank, Google Safe Browsing, URLhaus, OpenPhish — параллельді asyncio.gather арқылы. Нақты уақыт threat intelligence.",
     tags: ["PhishTank", "SafeBrowsing", "URLhaus", "OpenPhish"],
   },
   {
-    n: "05", icon: "🤖", color: "#8b5cf6",
+    n: "05", icon: "", color: "#8b5cf6",
     title: "AI талдауы + XAI",
     desc: "Groq Llama + Gemini Vision — беттің мазмұнын оқиды, скриншоттан алаяқтықты анықтайды. XAI факторлар неге қауіпті екенін түсіндіреді.",
     tags: ["Groq AI", "Gemini Vision", "XAI", "SHAP-style"],
   },
   {
-    n: "06", icon: "🛡️", color: "#ef4444",
+    n: "06", icon: "", color: "#ef4444",
     title: "Вердикт + Қорғаныс",
     desc: "SAFE / SUSPICIOUS / DANGEROUS вердикт 0.8с ішінде. Қауіпті сайт автоматты бұғатталады. 5с кері санау + апелляция мүмкіндігі.",
     tags: ["Auto-block", "Appeal", "5s countdown", "Notification"],

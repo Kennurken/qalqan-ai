@@ -18,7 +18,7 @@ export default function TextCheck({ onCheck, loading, t }) {
           display: "flex", alignItems: "center", gap: "6px", justifyContent: "center"
         }}
       >
-        ⚡ {t("analyzeText")}
+        {t("analyzeText")}
       </button>
     );
   }
@@ -46,7 +46,7 @@ export default function TextCheck({ onCheck, loading, t }) {
         </span>
         <button onClick={() => { setExpanded(false); setText(""); }}
           style={{ background: "transparent", border: "none", color: "#64748b", cursor: "pointer", fontSize: "13px", padding: "0 4px" }}>
-          ✕
+          ×
         </button>
       </div>
       <button
@@ -60,7 +60,7 @@ export default function TextCheck({ onCheck, loading, t }) {
           fontWeight: 600, fontSize: "12px"
         }}
       >
-        {loading ? "⏳" : "⚡"} {t("analyzeText")}
+        {loading ? "…" : ""} {t("analyzeText")}
       </button>
     </div>
   );

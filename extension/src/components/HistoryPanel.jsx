@@ -85,7 +85,7 @@ export default function HistoryPanel({ t, onBack }) {
     a.download = `qalqan_history_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    setExportMsg("✓ CSV saved!");
+    setExportMsg("CSV saved!");
     setTimeout(() => setExportMsg(""), 2000);
   };
 

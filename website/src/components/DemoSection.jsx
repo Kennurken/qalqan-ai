@@ -11,7 +11,7 @@ const demos = [
     reason: "Kaspi Bank жалған клоны. Сайт kaspi.kz-ті имитациялайды. Тіркелу деректерін ұрлауға арналған.",
     indicators: ["kz_impersonation_kaspi", "free_tld_.tk", "domain_age_3d", "no_ssl"],
     color: "#ef4444",
-    emoji: "⛔",
+    emoji: "",
     tiers: ["offline_db", "kz_intel"],
   },
   {
@@ -23,7 +23,7 @@ const demos = [
     reason: "Қазақстандық пирамида тізімінде анықталды. 100 000 ₸ айлық кіреберіс — алаяқтық белгісі.",
     indicators: ["pyramid_scheme_kz", "unrealistic_returns", "social_engineering"],
     color: "#ef4444",
-    emoji: "⛔",
+    emoji: "",
     tiers: ["offline_db", "pyramid_db"],
   },
   {
@@ -35,7 +35,7 @@ const demos = [
     reason: "Сенімді сайт. Ешбір қауіп белгісі жоқ. Барлық дерекқорларда таза.",
     indicators: [],
     color: "#10b981",
-    emoji: "✅",
+    emoji: "",
     tiers: ["whitelist"],
   },
   {
@@ -47,7 +47,7 @@ const demos = [
     reason: "eGov.kz порталын имитациялайды. .net доменінде мемлекеттік сайт болмайды.",
     indicators: ["kz_impersonation_egov", "wrong_tld_gov", "domain_age_7d"],
     color: "#ef4444",
-    emoji: "⛔",
+    emoji: "",
     tiers: ["kz_intel", "domain_intel"],
   },
 ];
@@ -414,7 +414,7 @@ export default function DemoSection() {
                             background: `${tier.color}18`, color: tier.color,
                             border: `1px solid ${tier.color}35`, fontWeight: 700,
                           }}>
-                            ✓ {tier.label}
+                            {tier.label}
                           </span>
                         );
                       })}

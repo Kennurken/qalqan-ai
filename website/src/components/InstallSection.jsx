@@ -2,18 +2,18 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 
 const REQUIREMENTS = [
-  { icon: "🌐", text: "Chrome 90+" },
-  { icon: "🆓", text: "Тегін" },
-  { icon: "🔇", text: "Жарнамасыз" },
-  { icon: "📖", text: "Open Source" },
-  { icon: "🇰🇿", text: "Made in KZ" },
+  { icon: "", text: "Chrome 90+" },
+  { icon: "", text: "Тегін" },
+  { icon: "", text: "Жарнамасыз" },
+  { icon: "", text: "Open Source" },
+  { icon: "", text: "Made in KZ" },
 ];
 
 const STEPS = [
-  { n: "01", icon: "🌐", title: "Chrome Web Store", desc: "Дүкенге өтіңіз" },
-  { n: "02", icon: "🔍", title: "Іздеу", desc: '"QALQAN AI" теріңіз' },
-  { n: "03", icon: "📥", title: "Орнату", desc: '"Add to Chrome" басыңыз' },
-  { n: "04", icon: "🛡️", title: "Қорғаныс", desc: "Автоматты қосылады" },
+  { n: "01", icon: "", title: "Chrome Web Store", desc: "Дүкенге өтіңіз" },
+  { n: "02", icon: "", title: "Іздеу", desc: '"QALQAN AI" теріңіз' },
+  { n: "03", icon: "", title: "Орнату", desc: '"Add to Chrome" басыңыз' },
+  { n: "04", icon: "", title: "Қорғаныс", desc: "Автоматты қосылады" },
 ];
 
 export default function InstallSection() {
@@ -79,8 +79,7 @@ export default function InstallSection() {
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 style={{ fontSize: 72, lineHeight: 1 }}
               >
-                🛡️
-              </motion.div>
+                              </motion.div>
               {/* Orbit ring */}
               <motion.div
                 animate={{ rotate: 360 }}
@@ -207,7 +206,7 @@ export default function InstallSection() {
                   textDecoration: "none",
                 }}
               >
-                <span>🛡️</span> Chrome-ге орнату
+                <span></span> Chrome-ге орнату
               </motion.a>
               <motion.a
                 href="https://github.com/Kennurken/qalqan-ai"
@@ -226,7 +225,7 @@ export default function InstallSection() {
                   textDecoration: "none",
                 }}
               >
-                <span>⭐</span> GitHub
+                <span></span> GitHub
               </motion.a>
             </motion.div>
 

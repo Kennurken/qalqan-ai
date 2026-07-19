@@ -44,7 +44,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 28 }}>🛡️</span>
+              <span style={{ fontSize: 28 }}></span>
               <div>
                 <div style={{
                   fontSize: 18, fontWeight: 900, letterSpacing: "0.05em",
@@ -100,10 +100,10 @@ export default function Footer() {
               ДЭР БАЙҚАУЫ
             </div>
             <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.6 }}>
-              <div style={{ marginBottom: 6 }}>📅 2026 жылы 22 мамыр</div>
-              <div style={{ marginBottom: 6 }}>🏆 Республикалық кезең</div>
-              <div style={{ marginBottom: 6 }}>🇰🇿 Қазақстан</div>
-              <div>🧑‍💻 Автор: Елдос Кыдырбек</div>
+              <div style={{ marginBottom: 6 }}>2026 жылы 22 мамыр</div>
+              <div style={{ marginBottom: 6 }}>Республикалық кезең</div>
+              <div style={{ marginBottom: 6 }}>Қазақстан</div>
+              <div>‍Автор: Елдос Кыдырбек</div>
             </div>
           </div>
         </div>
@@ -136,8 +136,7 @@ export default function Footer() {
           flexWrap: "wrap", gap: 12,
         }}>
           <div style={{ fontSize: 12, color: "#334155" }}>
-            © 2025–2026 QALQAN AI. Made with ❤️ in Kazakhstan 🇰🇿
-          </div>
+            © 2025–2026 QALQAN AI. Made with in Kazakhstan           </div>
           <div style={{ display: "flex", gap: 16 }}>
             <motion.a
               href="https://github.com/Kennurken/qalqan-ai"
@@ -153,7 +152,7 @@ export default function Footer() {
               onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"}
               onMouseLeave={e => e.currentTarget.style.color = "#475569"}
             >
-              ⭐ GitHub
+              GitHub
             </motion.a>
             <motion.a
               href="https://github.com/Kennurken/qalqan-ai"
@@ -166,7 +165,7 @@ export default function Footer() {
                 textDecoration: "none",
               }}
             >
-              🛡️ Орнату
+              Орнату
             </motion.a>
           </div>
         </div>

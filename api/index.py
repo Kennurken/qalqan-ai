@@ -1272,7 +1272,8 @@ def _badge_svg(label: str, grade: str, color: str) -> str:
         f'<rect rx="4" width="{left_w+right_w}" height="24" fill="#1e293b"/>'
         f'<rect rx="4" x="{left_w}" width="{right_w}" height="24" fill="{color}"/>'
         f'<rect x="{left_w}" width="4" height="24" fill="{color}"/>'
-        f'<text x="{left_w//2+8}" y="16" text-anchor="middle" fill="#e7ebf3" font-family="Verdana,sans-serif" font-size="11">🛡 {label}</text>'
+        f'<path transform="translate(6,4) scale(0.67)" d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z" fill="none" stroke="#e7ebf3" stroke-width="2"/>'
+        f'<text x="{left_w//2+14}" y="16" text-anchor="middle" fill="#e7ebf3" font-family="Verdana,sans-serif" font-size="11">{label}</text>'
         f'<text x="{left_w+right_w//2}" y="16" text-anchor="middle" fill="#04121a" font-family="Verdana,sans-serif" font-size="12" font-weight="bold">{grade}</text>'
         f'</svg>'
     )
@@ -1481,7 +1482,7 @@ async def admin_dashboard(req: Request, key: str | None = None):
         return HTMLResponse(
             '<html><body style="background:#0f172a;color:#ef4444;font-family:monospace;'
             'display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">'
-            '<div style="text-align:center"><div style="font-size:48px">🛡️</div>'
+            '<div style="text-align:center"><div><svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg></div>'
             '<h1>401 — Unauthorized</h1>'
             '<p>Use <code>X-Admin-Key</code> header (preferred) or <code>?key=</code> once</p></div></body></html>',
             status_code=401,

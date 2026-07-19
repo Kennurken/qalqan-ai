@@ -74,8 +74,7 @@ export default function Navbar() {
             transition={{ duration: 0.4 }}
             style={{ fontSize: 26, display: "inline-block" }}
           >
-            🛡️
-          </motion.span>
+                      </motion.span>
           <div>
             <div style={{
               fontSize: 17, fontWeight: 900, letterSpacing: "0.05em",
@@ -153,7 +152,7 @@ export default function Navbar() {
           }}
           className="burger-btn"
         >
-          {menuOpen ? "✕" : "☰"}
+          {menuOpen ? "" : ""}
         </button>
       </div>
 
@@ -200,7 +199,7 @@ export default function Navbar() {
                   textAlign: "center", textDecoration: "none",
                 }}
               >
-                🛡️ Орнату
+                Орнату
               </motion.a>
             </div>
           </motion.div>

@@ -1,4 +1,4 @@
-# 🛡️ Qalqan AI
+# Qalqan AI
 
 AI-powered protection for Kazakhstan against phishing, phone-call fraud, financial
 pyramids, illegal gambling, and public-procurement fraud — across a browser

@@ -76,12 +76,12 @@ function ThreatPill({ label, color, bg, delay, style }) {
 }
 
 const PILLS = [
-  { label: "⛔ kaspi-login.tk — DANGEROUS", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 0.3, style: { left: "4%", top: "22%" } },
-  { label: "⚠️ Күдікті URL анықталды", color: "#fbbf24", bg: "rgba(245,158,11,0.15)", delay: 2.1, style: { right: "5%", top: "18%" } },
-  { label: "✅ google.com — SAFE", color: "#34d399", bg: "rgba(16,185,129,0.15)", delay: 3.8, style: { right: "6%", top: "55%" } },
-  { label: "⛔ Финансовая пирамида", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 1.4, style: { left: "3%", top: "65%" } },
-  { label: "🛡️ KZ Intel: egov жалған", color: "#a5b4fc", bg: "rgba(99,102,241,0.15)", delay: 5.0, style: { left: "20%", top: "80%" } },
-  { label: "🔒 SSL жоқ — +30 score", color: "#fb923c", bg: "rgba(249,115,22,0.15)", delay: 2.8, style: { right: "18%", top: "78%" } },
+  { label: "kaspi-login.tk — DANGEROUS", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 0.3, style: { left: "4%", top: "22%" } },
+  { label: "Күдікті URL анықталды", color: "#fbbf24", bg: "rgba(245,158,11,0.15)", delay: 2.1, style: { right: "5%", top: "18%" } },
+  { label: "google.com — SAFE", color: "#34d399", bg: "rgba(16,185,129,0.15)", delay: 3.8, style: { right: "6%", top: "55%" } },
+  { label: "Финансовая пирамида", color: "#f87171", bg: "rgba(239,68,68,0.15)", delay: 1.4, style: { left: "3%", top: "65%" } },
+  { label: "KZ Intel: egov жалған", color: "#a5b4fc", bg: "rgba(99,102,241,0.15)", delay: 5.0, style: { left: "20%", top: "80%" } },
+  { label: "SSL жоқ — +30 score", color: "#fb923c", bg: "rgba(249,115,22,0.15)", delay: 2.8, style: { right: "18%", top: "78%" } },
 ];
 
 const STATS = [
@@ -200,7 +200,7 @@ export default function Hero() {
               letterSpacing: "0.02em",
             }}
           >
-            🛡️ Chrome-ге орнату
+            Chrome-ге орнату
           </motion.a>
           <motion.a
             href="#features"

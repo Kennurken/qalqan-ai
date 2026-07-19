@@ -42,7 +42,7 @@ const _I18N = {
     back: "← Қауіпсіз жерге қайту",
     appeal: "Қателік деп ойласаңыз — кеңейтімдегі «Апелляция» батырмасын басыңыз",
     domainAge: "Домен жасы", days: "күн",
-    ssl: { valid: "✅ SSL жарамды", expired: "❌ SSL мерзімі өткен", self_signed: "⚠️ Өзі қол қойған", no_ssl: "🔓 SSL жоқ", expiring_soon: "⚠️ SSL жақында аяқталады" }
+    ssl: { valid: "SSL жарамды", expired: "SSL мерзімі өткен", self_signed: "Өзі қол қойған", no_ssl: "SSL жоқ", expiring_soon: "SSL жақында аяқталады" }
   },
   ru: {
     brand: "QALQAN AI — КИБЕР ЩИТ",
@@ -55,7 +55,7 @@ const _I18N = {
     back: "← Вернуться в безопасное место",
     appeal: "Считаете это ошибкой? Нажмите «Апелляция» в расширении",
     domainAge: "Возраст домена", days: "дн.",
-    ssl: { valid: "✅ SSL действителен", expired: "❌ SSL просрочен", self_signed: "⚠️ Самоподписанный", no_ssl: "🔓 Нет SSL", expiring_soon: "⚠️ SSL скоро истекает" }
+    ssl: { valid: "SSL действителен", expired: "SSL просрочен", self_signed: "Самоподписанный", no_ssl: "Нет SSL", expiring_soon: "SSL скоро истекает" }
   },
   en: {
     brand: "QALQAN AI — CYBER SHIELD",
@@ -68,7 +68,7 @@ const _I18N = {
     back: "← Return to Safety",
     appeal: "Think this is an error? Click 'Appeal' in the extension",
     domainAge: "Domain age", days: "days",
-    ssl: { valid: "✅ SSL valid", expired: "❌ SSL expired", self_signed: "⚠️ Self-signed", no_ssl: "🔓 No SSL", expiring_soon: "⚠️ SSL expiring soon" }
+    ssl: { valid: "SSL valid", expired: "SSL expired", self_signed: "Self-signed", no_ssl: "No SSL", expiring_soon: "SSL expiring soon" }
   }
 };
 

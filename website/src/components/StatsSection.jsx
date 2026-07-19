@@ -45,7 +45,7 @@ const statCards = [
     label: "Тексерілген URL",
     sub: "Kazakhstan users",
     color: "#3b82f6",
-    icon: "🔍",
+    icon: "",
     delay: 0,
   },
   {
@@ -53,7 +53,7 @@ const statCards = [
     label: "Бұғатталған сайт",
     sub: "Dangerous blocked",
     color: "#ef4444",
-    icon: "⛔",
+    icon: "",
     delay: 0.1,
   },
   {
@@ -61,7 +61,7 @@ const statCards = [
     label: "Анықтау дәлдігі",
     sub: "Detection accuracy",
     color: "#10b981",
-    icon: "✅",
+    icon: "",
     delay: 0.2,
   },
   {
@@ -69,7 +69,7 @@ const statCards = [
     label: "Орташа уақыт",
     sub: "Average check time",
     color: "#f59e0b",
-    icon: "⚡",
+    icon: "",
     delay: 0.3,
   },
 ];
@@ -236,7 +236,7 @@ export default function StatsSection() {
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
-            <span style={{ fontSize: 20 }}>🎯</span>
+            <span style={{ fontSize: 20 }}></span>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: "#f1f5f9" }}>
               Қауіп түрлері бойынша бөлінім
             </h3>

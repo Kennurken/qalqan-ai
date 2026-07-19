@@ -55,9 +55,10 @@
   function badge(verdict, score) {
     const b = document.createElement("span");
     b.className = BADGE_CLASS + " " + (verdict === "DANGEROUS" ? "d" : verdict === "SUSPICIOUS" ? "s" : "k");
-    if (verdict === "DANGEROUS") b.textContent = "🛡 Қауіпті · Qalqan";
-    else if (verdict === "SUSPICIOUS") b.textContent = "🛡 Күдікті";
-    else b.textContent = "🛡 ✓";
+    const SH = '<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.14em"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>';
+    if (verdict === "DANGEROUS") b.innerHTML = SH + " Қауіпті · Qalqan";
+    else if (verdict === "SUSPICIOUS") b.innerHTML = SH + " Күдікті";
+    else b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.14em"><path d="M20 6 9 17l-5-5"/></svg>';
     b.title = "Qalqan AI: " + verdict + (score != null ? " (" + score + "/100)" : "");
     return b;
   }

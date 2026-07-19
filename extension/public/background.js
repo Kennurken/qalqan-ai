@@ -81,7 +81,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   try {
     chrome.contextMenus.create({
       id: "qalqan-check-link",
-      title: "🛡 Qalqan AI: сілтемені тексеру",
+      title: "Qalqan AI: сілтемені тексеру",
       contexts: ["link"],
     });
   } catch (e) { /* already exists on update */ }
@@ -93,7 +93,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.notifications.create("qalqan_welcome", {
       type: "basic",
       iconUrl: "icons/icon48.png",
-      title: "🛡️ QALQAN AI орнатылды!",
+      title: "QALQAN AI орнатылды!",
       message: "Сайттарды автоматты тексеру қосылды. Фишинг, пирамида, алаяқтықтан қорғаныс іске қосылды.",
       priority: 1
     });

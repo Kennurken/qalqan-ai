@@ -49,9 +49,9 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
   };
 
   const languages = [
-    { code: "kk", label: "Қазақша", flag: "🇰🇿" },
-    { code: "ru", label: "Русский", flag: "🇷🇺" },
-    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "kk", label: "Қазақша", flag: "KK" },
+    { code: "ru", label: "Русский", flag: "RU" },
+    { code: "en", label: "English", flag: "EN" },
   ];
 
   return (
@@ -83,7 +83,7 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
             >
               <span style={{ fontSize: "18px" }}>{l.flag}</span>
               {l.label}
-              {lang === l.code && <span style={{ marginLeft: "auto" }}>✓</span>}
+              {lang === l.code && <span style={{ marginLeft: "auto" }}>·</span>}
             </button>
           ))}
         </div>
@@ -163,7 +163,7 @@ export default function SettingsPanel({ lang, onLangChange, t, onBack, onWhiteli
           Qalqan AI v5.1.0 — Cyber Shield
         </div>
         <div style={{ fontSize: "10px", color: "#475569", marginTop: "4px" }}>
-          Made in Kazakhstan 🇰🇿
+          Qalqan AI · Kazakhstan
         </div>
       </div>
     </div>
