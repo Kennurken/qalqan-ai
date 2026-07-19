@@ -1285,9 +1285,9 @@ async def leak_email(email: str, req: Request):
 
 @app.get("/cron/refresh-feeds")
 async def cron_refresh_feeds(req: Request):
-    """Force-reload OpenPhish/URLhaus feeds (Vercel cron every 6h, CRON_SECRET-gated).
-    The lazy TTL reload still applies per instance; this keeps the warm instance's
-    feeds no older than the cron interval."""
+    """Force-reload OpenPhish/URLhaus feeds (daily Vercel cron — Hobby plan allows
+    daily precision only; the lazy 12h-TTL reload still applies per instance,
+    CRON_SECRET-gated)."""
     if not _authorize_cron(req):
         return JSONResponse(status_code=403, content={"error": "forbidden"})
     from .services.threat_db import load_threat_feeds, feed_stats
