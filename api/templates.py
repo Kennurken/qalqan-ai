@@ -71,6 +71,9 @@ nav{position:fixed;top:14px;left:0;right:0;z-index:50}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 4px}
 .chip{font-size:12.5px;font-weight:600;color:var(--text2);border:1px solid var(--line);border-radius:999px;padding:7px 13px;transition:all .2s var(--ease)}
 .proof{margin:14px 0 2px;font-size:13px;font-weight:600;color:var(--accent);opacity:.92}
+.livewrap{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:12.5px;color:var(--text2);background:rgba(247,118,142,.06);border:1px solid rgba(247,118,142,.18);border-radius:999px;padding:6px 14px}
+.livedot{width:7px;height:7px;border-radius:50%;background:#f7768e;box-shadow:0 0 0 0 rgba(247,118,142,.6);animation:livep 2s infinite}
+@keyframes livep{0%{box-shadow:0 0 0 0 rgba(247,118,142,.5)}70%{box-shadow:0 0 0 7px rgba(247,118,142,0)}100%{box-shadow:0 0 0 0 rgba(247,118,142,0)}}
 .chip:hover{color:var(--text);border-color:var(--accent)}
 .hero{padding:170px 0 80px;text-align:center;position:relative}
 .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
@@ -240,6 +243,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a class="chip" href="/scan">🔬 Оценка сайта</a>
       <a class="chip" href="/brand">🎯 Защита бренда</a>
       <a class="chip" href="/help">🆘 Обманули?</a>
+      <a class="chip" href="/impact">💸 Эконом-эффект</a>
       <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
     </div>
     <div class="stats reveal">
@@ -247,6 +251,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <div class="stat"><div class="n" id="statBlocked" data-to="0">—</div><div class="l" data-i18n="st_blocked">Бұғатталды</div></div>
       <div class="stat"><div class="n" id="statDomains" data-to="390" data-suffix="+">390+</div><div class="l" data-i18n="st_offline">Офлайн база</div></div>
       <div class="stat"><div class="n" data-to="7">7</div><div class="l" data-i18n="st_levels">Деңгей</div></div>
+    </div>
+    <div class="livewrap reveal" id="livewrap" style="display:none">
+      <span class="livedot"></span><span class="livetxt" id="livetxt"></span>
     </div>
   </div>
 </header>
@@ -532,8 +539,17 @@ input.addEventListener('keydown',e=>{if(e.key==='Enter')runCheck()});
 fetch('/trends').then(r=>r.json()).then(t=>{
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null){el.dataset.to=v;countUp(el)}};
   const dist=t.verdict_distribution||{};
-  set('statChecked',t.total_checks||0);
+  const checks=t.total_checks||0;
+  set('statChecked',checks);
   set('statBlocked',(dist.DANGEROUS||0)+(dist.SUSPICIOUS||0));
+  // Live pilot ticker: most-reported domain from real crowd data (only when we have activity)
+  const rep=(t.top_reported_domains||[]);
+  if(checks>0){
+    const L={kk:'🔴 Соңғы бұғатталған қауіп: ',ru:'🔴 Недавно заблокировано: ',en:'🔴 Recently blocked: '}[currentLang]||'🔴 ';
+    const dom=rep.length?rep[0].domain:null;
+    const w=document.getElementById('livewrap'), tx=document.getElementById('livetxt');
+    if(w&&tx){ tx.textContent = dom ? (L+dom) : ({kk:'🟢 Пилот белсенді — нақты уақыттағы қорғаныс',ru:'🟢 Пилот активен — защита в реальном времени',en:'🟢 Pilot live — real-time protection'}[currentLang]||''); w.style.display='inline-flex'; }
+  }
 }).catch(()=>{});
 
 /* scroll progress */
@@ -1534,45 +1550,87 @@ h1{font-size:22px;font-weight:800}
 .final .desc{color:var(--mut);font-size:14px;line-height:1.6;margin-bottom:22px}
 .share{background:var(--card2);border:1.5px solid var(--cyan);color:var(--cyan);border-radius:12px;padding:14px 22px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin:4px}
 .restart{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin:4px}
+.qlang{display:inline-flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
+.qlang button{background:none;border:none;color:var(--mut);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+.qlang button.on{background:var(--cyan);color:#04121a}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
 .foot a{color:var(--cyan);text-decoration:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1>🎯 Скам-тренажёр</h1><a href="/">← Qalqan AI</a></div>
-  <div class="sub">Алаяқтықты тани аласың ба? · Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.</div>
+  <div class="top"><h1 id="qh1">🎯 Скам-тренажёр</h1>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="qlang"><button data-l="kk">ҚАЗ</button><button data-l="ru" class="on">РУС</button></div>
+      <a href="/">← Qalqan AI</a>
+    </div>
+  </div>
+  <div class="sub" id="qsub">Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.</div>
   <div class="progress" id="prog"></div>
   <div id="game"></div>
   <div class="foot">Qalqan AI · Скам-тренажёр · Обучение кибергигиене · <a href="/">Проверить сайт</a></div>
 </div>
 
 <script>
+const UI = {
+  ru:{scam:"🚨 Скам",legit:"✅ Не скам",next:"Дальше →",result:"Результат →",
+      right:"✅ Верно!",wrong:"❌ Ошибка!",yourres:"Твой результат",
+      restart:"🔄 Ещё раз",share:"📤 Поделиться",install:"🛡️ Установить защиту Qalqan AI →",
+      sub:"Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.",
+      of:"из",from:"От:"},
+  kk:{scam:"🚨 Алаяқтық",legit:"✅ Таза",next:"Келесі →",result:"Нәтиже →",
+      right:"✅ Дұрыс!",wrong:"❌ Қате!",yourres:"Сенің нәтижең",
+      restart:"🔄 Қайталау",share:"📤 Бөлісу",install:"🛡️ Qalqan AI қорғанысын орнату →",
+      sub:"Алаяқты нағыз хабарламадан ажырата аласың ба? Қазақстаннан 10 нақты мысал.",
+      of:"/",from:"Кімнен:"}
+};
+const TYPES_KK={"SMS":"SMS","ЗВОНОК":"ҚОҢЫРАУ","САЙТ":"САЙТ","TELEGRAM":"TELEGRAM","EMAIL":"EMAIL","WHATSAPP":"WHATSAPP","QR-КОД":"QR-КОД","ГОЛОСОВОЕ":"ДАУЫСТЫҚ"};
+
 const QUESTIONS = [
  {type:"SMS", from:"+7 707 123 45 67", text:"KASPI: Ваша карта Kaspi Gold заблокирована! Срочно подтвердите данные: kaspi-verify.top/unlock", scam:true,
-  expl:"СКАМ. Kaspi шлёт SMS только с короткого номера, а не с мобильного +7 707. Домен kaspi-verify.top — не kaspi.kz. Срочность («срочно!») — классический приём давления."},
+  expl:"СКАМ. Kaspi шлёт SMS только с короткого номера, а не с мобильного +7 707. Домен kaspi-verify.top — не kaspi.kz. Срочность («срочно!») — классический приём давления.",
+  expl_kk:"АЛАЯҚТЫҚ. Kaspi тек қысқа нөмірден SMS жібереді, +7 707 ұялы нөмірден емес. kaspi-verify.top домені — kaspi.kz емес. «Шұғыл» деген қысым — классикалық алаяқтық тәсіл."},
  {type:"SMS", from:"Kaspi", text:"Kaspi: Сіздің растау кодыңыз: 1234. Ешкімге айтпаңыз!", scam:false,
-  expl:"НЕ СКАМ — это обычный код подтверждения, который приходит, когда ВЫ сами входите в приложение. Но если код пришёл сам по себе и кто-то звонит и просит его назвать — это уже мошенники."},
+  expl:"НЕ СКАМ — это обычный код подтверждения, который приходит, когда ВЫ сами входите в приложение. Но если код пришёл сам по себе и кто-то звонит и просит его назвать — это уже мошенники.",
+  expl_kk:"АЛАЯҚТЫҚ ЕМЕС — бұл өзіңіз қосымшаға кіргенде келетін кәдімгі растау коды. Бірақ код өздігінен келсе әрі біреу қоңырау шалып оны сұраса — бұл алаяқтар."},
  {type:"ЗВОНОК", from:"«Служба безопасности банка»", text:"— Здравствуйте! С вашей карты пытаются снять деньги. Для защиты срочно переведите средства на безопасный счёт. Никому не говорите — идёт спецоперация.", scam:true,
-  expl:"СКАМ, всегда. «Безопасных счетов» не существует. Банк НИКОГДА не просит переводить деньги или называть коды. «Никому не говорите» — признак манипуляции. Клади трубку и звони в банк по номеру с карты."},
+  expl:"СКАМ, всегда. «Безопасных счетов» не существует. Банк НИКОГДА не просит переводить деньги или называть коды. «Никому не говорите» — признак манипуляции. Клади трубку и звони в банк по номеру с карты.",
+  expl_kk:"ӘРҚАШАН АЛАЯҚТЫҚ. «Қауіпсіз шот» деген жоқ. Банк ЕШҚАШАН ақша аударуды не код айтуды сұрамайды. «Ешкімге айтпаңыз» — манипуляция белгісі. Тұтқаны қой да, картадағы нөмірге қоңырау шал."},
  {type:"САЙТ", from:"egov-kz.support", text:"Электрондық үкімет порталы\\n\\nЖеке кабинетке кіру үшін ЖСН мен құпиясөзіңізді енгізіңіз.", scam:true,
-  expl:"СКАМ. Официальный портал — только egov.kz. Домен egov-kz.support — подделка (клон). Проверяй адресную строку: до первого «/» должно быть ровно egov.kz."},
+  expl:"СКАМ. Официальный портал — только egov.kz. Домен egov-kz.support — подделка (клон). Проверяй адресную строку: до первого «/» должно быть ровно egov.kz.",
+  expl_kk:"АЛАЯҚТЫҚ. Ресми портал — тек egov.kz. egov-kz.support домені — жалған көшірме. Мекенжай жолын тексер: алғашқы «/» дейін нақ egov.kz болуы керек."},
  {type:"TELEGRAM", from:"@invest_kz_pro", text:"🚀 Инвестируй 50 000 ₸ — гарантированный доход 30% в месяц! Приведи друга — получи бонус 10%. Уже 5000+ участников!", scam:true,
-  expl:"СКАМ — финансовая пирамида. «Гарантированный доход» + «приведи друга» = формула пирамиды. Легальные инвестиции никогда не гарантируют 30% в месяц. Проверить компанию можно в реестре АФМ через Qalqan AI."},
+  expl:"СКАМ — финансовая пирамида. «Гарантированный доход» + «приведи друга» = формула пирамиды. Легальные инвестиции никогда не гарантируют 30% в месяц. Проверить компанию можно в реестре АФМ через Qalqan AI.",
+  expl_kk:"АЛАЯҚТЫҚ — қаржылық пирамида. «Кепілдендірілген табыс» + «досыңды әкел» = пирамида формуласы. Заңды инвестиция айына 30% кепілдік бермейді. Компанияны АФМ реестрінен Qalqan AI арқылы тексер."},
  {type:"EMAIL", from:"info@halykbank.kz", text:"Құрметті клиент! 1 тамыздан бастап аударымдар тарифі өзгереді. Толығырақ: halykbank.kz/tariffs", scam:false,
-  expl:"НЕ СКАМ. Отправитель — официальный домен halykbank.kz, ссылка ведёт на официальный сайт, данные не запрашиваются. Информационная рассылка — норма."},
+  expl:"НЕ СКАМ. Отправитель — официальный домен halykbank.kz, ссылка ведёт на официальный сайт, данные не запрашиваются. Информационная рассылка — норма.",
+  expl_kk:"АЛАЯҚТЫҚ ЕМЕС. Жіберуші — ресми halykbank.kz домені, сілтеме ресми сайтқа апарады, дербес дерек сұралмайды. Ақпараттық хабарлама — қалыпты жағдай."},
  {type:"WHATSAPP", from:"Неизвестный номер", text:"Мама, это я! Телефон сломался, пишу с чужого номера. Срочно нужны деньги, переведи 40 000 ₸ на эту карту, потом всё объясню!", scam:true,
-  expl:"СКАМ «мама, я с нового номера». Всегда перезванивай на СТАРЫЙ номер близкого человека. Мошенники давят на эмоции и срочность."},
+  expl:"СКАМ «мама, я с нового номера». Всегда перезванивай на СТАРЫЙ номер близкого человека. Мошенники давят на эмоции и срочность.",
+  expl_kk:"АЛАЯҚТЫҚ «ана, мен жаңа нөмірден». Әрқашан жақыныңның ЕСКІ нөміріне қайта қоңырау шал. Алаяқтар эмоция мен шұғылдыққа қысым жасайды."},
  {type:"QR-КОД", from:"Касса магазина", text:"Продавец показывает Kaspi QR для оплаты покупки. В приложении видно имя получателя: «ИП Айгуль С.», сумма 3 500 ₸.", scam:false,
-  expl:"НЕ СКАМ — обычная оплата через Kaspi QR. Главное: перед подтверждением проверь ИМЯ получателя и СУММУ в своём приложении. Подмена QR-наклейки существует — поэтому Qalqan AI умеет сканировать QR."},
+  expl:"НЕ СКАМ — обычная оплата через Kaspi QR. Главное: перед подтверждением проверь ИМЯ получателя и СУММУ в своём приложении. Подмена QR-наклейки существует — поэтому Qalqan AI умеет сканировать QR.",
+  expl_kk:"АЛАЯҚТЫҚ ЕМЕС — Kaspi QR арқылы кәдімгі төлем. Ең бастысы: растамас бұрын қосымшада алушының АТЫ мен СОМАСЫН тексер. QR-жапсырманы алмастыру болады — сондықтан Qalqan AI QR сканерлей алады."},
  {type:"SMS", from:"+7 776 999 00 11", text:"Поздравляем! Вы выиграли 1 000 000 ₸ в лотерее Kaspi! Для получения приза оплатите комиссию 5 000 ₸: kaspi-lottery.win", scam:true,
-  expl:"СКАМ. Настоящий выигрыш никогда не требует предоплаты «комиссии». Лотереи Kaspi с таким механизмом не существует, домен — фальшивый."},
+  expl:"СКАМ. Настоящий выигрыш никогда не требует предоплаты «комиссии». Лотереи Kaspi с таким механизмом не существует, домен — фальшивый.",
+  expl_kk:"АЛАЯҚТЫҚ. Нағыз ұтыс ешқашан «комиссияны» алдын ала төлеуді талап етпейді. Мұндай Kaspi лотереясы жоқ, домен — жалған."},
  {type:"ГОЛОСОВОЕ", from:"«Директор» в WhatsApp", text:"🎤 Голосовое сообщение голосом вашего руководителя: «Я на совещании, срочно оплати счёт поставщика 800 000 ₸, реквизиты скину. Никому не говори, это конфиденциально».", scam:true,
-  expl:"СКАМ — AI-дипфейк голоса (тренд 2025-2026). Голос легко клонируется по 10 секундам записи. Правило: любая «срочная оплата» подтверждается только звонком руководителю по известному номеру."},
+  expl:"СКАМ — AI-дипфейк голоса (тренд 2025-2026). Голос легко клонируется по 10 секундам записи. Правило: любая «срочная оплата» подтверждается только звонком руководителю по известному номеру.",
+  expl_kk:"АЛАЯҚТЫҚ — AI-дипфейк дауыс (2025-2026 тренді). Дауыс 10 секундтық жазба бойынша оңай көшіріледі. Ереже: кез келген «шұғыл төлем» тек басшыға белгілі нөмірмен қоңырау шалу арқылы расталады."},
 ];
 
 let idx=0, score=0, answers=[];
+let L=localStorage.getItem('qlang')||'ru'; if(L!=='kk'&&L!=='ru')L='ru';
 const $=s=>document.querySelector(s);
+function T(k){return (UI[L]||UI.ru)[k];}
+
+function applyQuizLang(l){
+  L=(l==='kk'||l==='ru')?l:'ru'; localStorage.setItem('qlang',L);
+  document.querySelectorAll('.qlang button').forEach(b=>b.classList.toggle('on',b.dataset.l===L));
+  $('#qsub').textContent=T('sub');
+  document.documentElement.lang=L;
+  if(answers.length>=QUESTIONS.length) renderFinal(); else renderQ();
+}
 
 function renderProgress(){
   $('#prog').innerHTML = QUESTIONS.map((_,i)=>{
@@ -1583,36 +1641,45 @@ function renderProgress(){
   }).join('');
 }
 
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function qtype(q){return L==='kk'?(TYPES_KK[q.type]||q.type):q.type;}
+function qexpl(q){return L==='kk'?(q.expl_kk||q.expl):q.expl;}
 
 function renderQ(){
   renderProgress();
   const q=QUESTIONS[idx];
+  const answered=idx<answers.length;
   $('#game').innerHTML=`
     <div class="qcard">
-      <span class="qtype">${q.type} · ${idx+1}/${QUESTIONS.length}</span>
-      <div class="qmsg"><div class="from">От: ${esc(q.from)}</div>${esc(q.text)}</div>
+      <span class="qtype">${qtype(q)} · ${idx+1}${T('of')}${QUESTIONS.length}</span>
+      <div class="qmsg"><div class="from">${T('from')} ${esc(q.from)}</div>${esc(q.text)}</div>
       <div class="btns">
-        <button class="abtn scam" onclick="answer(true)">🚨 Скам</button>
-        <button class="abtn legit" onclick="answer(false)">✅ Не скам</button>
+        <button class="abtn scam" onclick="answer(true)">${T('scam')}</button>
+        <button class="abtn legit" onclick="answer(false)">${T('legit')}</button>
       </div>
       <div class="expl" id="expl"></div>
-      <button class="next" id="next" onclick="nextQ()">Келесі → Дальше</button>
+      <button class="next" id="next" onclick="nextQ()">${idx===QUESTIONS.length-1?T('result'):T('next')}</button>
     </div>`;
+  if(answered){ // re-render an already answered question (after lang switch mid-quiz)
+    const right=answers[idx];
+    const e=$('#expl'); e.className='expl show '+(right?'right':'wrong');
+    e.innerHTML=`<div class="verdict">${right?T('right'):T('wrong')}</div>${esc(qexpl(q))}`;
+    document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
+    $('#next').classList.add('show');
+  }
 }
 
 function answer(saidScam){
   const q=QUESTIONS[idx];
   const right = saidScam===q.scam;
   if(right) score++;
-  answers.push(right);
+  answers[idx]=right;
   renderProgress();
   const e=$('#expl');
   e.className='expl show '+(right?'right':'wrong');
-  e.innerHTML=`<div class="verdict">${right?'✅ Дұрыс! Верно!':'❌ Қате! Ошибка!'}</div>${esc(q.expl)}`;
+  e.innerHTML=`<div class="verdict">${right?T('right'):T('wrong')}</div>${esc(qexpl(q))}`;
   document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
   $('#next').classList.add('show');
-  $('#next').textContent = idx===QUESTIONS.length-1 ? 'Нәтиже → Результат' : 'Келесі → Дальше';
 }
 
 function nextQ(){
@@ -1621,35 +1688,44 @@ function nextQ(){
   renderQ();
 }
 
+const GRADES={
+  ru:[[90,'🛡️ Кибер-сарбаз!','Отлично! Тебя не проведёшь. Поделись тренажёром с родными — особенно со старшими.'],
+      [70,'👍 Хороший уровень','Ты распознаёшь большинство схем. Помни: срочность + деньги + секретность = скам.'],
+      [50,'⚠️ Осторожно!','Половина ловушек сработала бы. Установи расширение Qalqan AI — оно проверит сайты за тебя.'],
+      [0,'🚨 Ты в зоне риска','Мошенники легко могут тебя обмануть. Правило №1: никому не говори коды из SMS. Правило №2: клади трубку и перезванивай сам.']],
+  kk:[[90,'🛡️ Кибер-сарбаз!','Тамаша! Сені алдау мүмкін емес. Тренажёрді жақындарыңмен бөліс — әсіресе егде адамдармен.'],
+      [70,'👍 Жақсы деңгей','Схемалардың көбін танисың. Есте сақта: шұғылдық + ақша + құпия = алаяқтық.'],
+      [50,'⚠️ Абайла!','Тұзақтардың жартысы жұмыс істер еді. Qalqan AI кеңейтімін орнат — ол сайттарды сенің орныңа тексереді.'],
+      [0,'🚨 Қауіп аймағындасың','Алаяқтар сені оңай алдай алады. №1 ереже: SMS кодтарын ешкімге айтпа. №2 ереже: тұтқаны қойып, өзің қайта қоңырау шал.']]
+};
+
 function renderFinal(){
   renderProgress();
   const pct=Math.round(score/QUESTIONS.length*100);
-  let grade, desc;
-  if(pct>=90){grade='🛡️ Кибер-сарбаз!'; desc='Отлично! Тебя не проведёшь. Поделись тренажёром с родными — особенно со старшими.';}
-  else if(pct>=70){grade='👍 Жақсы! Хороший уровень'; desc='Ты распознаёшь большинство схем. Помни главное: срочность + деньги + секретность = скам.';}
-  else if(pct>=50){grade='⚠️ Осторожно!'; desc='Половина ловушек сработала бы. Установи расширение Qalqan AI — оно проверит сайты за тебя.';}
-  else {grade='🚨 Ты в зоне риска'; desc='Мошенники легко могут тебя обмануть. Правило №1: никому не говори коды из SMS. Правило №2: клади трубку и перезванивай сам.';}
+  const tbl=(GRADES[L]||GRADES.ru).find(g=>pct>=g[0]);
+  const grade=tbl[1], desc=tbl[2];
   $('#game').innerHTML=`
     <div class="qcard final">
-      <div>Твой результат</div>
+      <div>${T('yourres')}</div>
       <div class="big" style="color:${pct>=70?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}">${score}/${QUESTIONS.length}</div>
       <div class="grade">${grade}</div>
       <div class="desc">${desc}</div>
-      <button class="restart" onclick="restart()">🔄 Қайталау · Ещё раз</button>
-      <button class="share" onclick="shareResult(${score})">📤 Бөлісу · Поделиться</button>
-      <div style="margin-top:18px"><a href="/install" style="color:var(--cyan);font-size:14px">🛡️ Установить защиту Qalqan AI →</a></div>
+      <button class="restart" onclick="restart()">${T('restart')}</button>
+      <button class="share" onclick="shareResult(${score})">${T('share')}</button>
+      <div style="margin-top:18px"><a href="/install" style="color:var(--cyan);font-size:14px">${T('install')}</a></div>
     </div>`;
 }
 
 function shareResult(s){
-  const text=`Я набрал ${s}/10 в Скам-тренажёре Qalqan AI! Проверь себя:`;
+  const text=(L==='kk'?`Мен Qalqan AI скам-тренажёрінде ${s}/10 жинадым! Өзіңді тексер:`:`Я набрал ${s}/10 в Скам-тренажёре Qalqan AI! Проверь себя:`);
   const url=location.origin+'/quiz';
   if(navigator.share){ navigator.share({title:'Qalqan AI',text,url}).catch(()=>{}); }
   else { navigator.clipboard.writeText(text+' '+url).then(()=>alert('Ссылка скопирована!')).catch(()=>{}); }
 }
 
 function restart(){ idx=0; score=0; answers=[]; renderQ(); }
-renderQ();
+document.querySelectorAll('.qlang button').forEach(b=>b.addEventListener('click',()=>applyQuizLang(b.dataset.l)));
+applyQuizLang(L);
 </script>
 </body>
 </html>"""
@@ -2069,5 +2145,145 @@ $('#dom').addEventListener('keydown',e=>{if(e.key==='Enter')scan();});
 document.querySelectorAll('.ex b').forEach(b=>b.onclick=()=>scan(b.dataset.d));
 </script>
 <div class="foot">Qalqan AI · Website security grade · <a href="/brand">Защита бренда</a> · <a href="/">Главная</a></div>
+</body>
+</html>"""
+
+IMPACT_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Экономический эффект</title>
+<meta name="description" content="Сколько денег экономит Qalqan AI для Казахстана. Интерактивный расчёт предотвращённого ущерба от киберскама.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:680px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+.lang{display:inline-flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
+.lang button{background:none;border:none;color:var(--mut);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+.lang button.on{background:var(--cyan);color:#04121a}
+h1{font-size:24px;font-weight:800;line-height:1.2}
+.sub{color:var(--mut);font-size:13.5px;margin:8px 0 20px;line-height:1.6}
+.stat-src{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.ss{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.ss .n{font-size:22px;font-weight:800;color:var(--red)}
+.ss .l{font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.4}
+.calc{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;margin-bottom:16px}
+.calc label{display:block;font-size:13px;font-weight:600;margin-bottom:10px;color:var(--tx)}
+.calc .val{color:var(--cyan);font-weight:800}
+input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
+.big-out{text-align:center;padding:26px 18px;background:linear-gradient(135deg,rgba(158,206,106,.12),rgba(122,162,247,.06));border:1px solid rgba(158,206,106,.3);border-radius:18px;margin-top:18px}
+.big-out .lbl{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.big-out .amt{font-size:clamp(30px,8vw,52px);font-weight:900;color:var(--green);line-height:1.1;margin:8px 0;font-variant-numeric:tabular-nums}
+.big-out .per{font-size:13px;color:var(--mut)}
+.rows{margin-top:14px}
+.r{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(30,41,59,.6);font-size:13.5px}
+.r:last-child{border:none}.r .rl{color:var(--mut)}.r .rv{font-weight:700}
+.disc{color:var(--mut);font-size:11px;margin-top:14px;line-height:1.5}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 id="h1">💸 Экономический эффект</h1>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="lang"><button data-l="kk">ҚАЗ</button><button data-l="ru" class="on">РУС</button></div>
+      <a href="/">← Qalqan AI</a>
+    </div>
+  </div>
+  <div class="sub" id="sub">Сколько денег Qalqan AI может сберечь для граждан Казахстана. Расчёт основан на официальной статистике 2025 года.</div>
+
+  <div class="stat-src">
+    <div class="ss"><div class="n">16,4 млрд ₸</div><div class="l" id="s1">украдено за 10 мес. 2025 (×29 к 2024)</div></div>
+    <div class="ss"><div class="n">26 300</div><div class="l" id="s2">случаев кибермошенничества (+86%)</div></div>
+  </div>
+
+  <div class="calc">
+    <label id="lb1">Пользователей Qalqan AI: <span class="val" id="vUsers">100 000</span></label>
+    <input type="range" id="users" min="10000" max="5000000" step="10000" value="100000">
+    <label style="margin-top:18px" id="lb2">Эффективность блокировки: <span class="val" id="vEff">75%</span></label>
+    <input type="range" id="eff" min="30" max="95" step="5" value="75">
+
+    <div class="big-out">
+      <div class="lbl" id="outLbl">Предотвращённый ущерб в год</div>
+      <div class="amt" id="amount">—</div>
+      <div class="per" id="perUser">—</div>
+    </div>
+
+    <div class="rows">
+      <div class="r"><span class="rl" id="r1">Средний ущерб на случай</span><span class="rv" id="avgLoss">—</span></div>
+      <div class="r"><span class="rl" id="r2">Ожидаемых жертв среди пользователей/год</span><span class="rv" id="victims">—</span></div>
+      <div class="r"><span class="rl" id="r3">Из них защищено Qalqan AI</span><span class="rv" id="saved">—</span></div>
+    </div>
+    <div class="disc" id="disc">Оценка. Источник базовых цифр: официальная статистика МВД/Нацбанка РК за 2025 г. Расчёт: (население-риск × частота × средний ущерб × охват × эффективность).</div>
+  </div>
+
+  <div class="foot">Qalqan AI · Экономика кибербезопасности · <a href="/">Проверить сайт</a> · <a href="/help">🆘 Обманули?</a></div>
+</div>
+
+<script>
+// Base facts (KZ 2025): ~26 300 cases, 16.4bn ₸ over 10 months → annualized.
+const CASES_YR = 26300 * 12/10;         // annualized cases ≈ 31 560
+const LOSS_YR = 16.4e9 * 12/10;         // annualized ₸ loss ≈ 19.68bn
+const AVG_LOSS = LOSS_YR / CASES_YR;    // ≈ 623 000 ₸ per case
+const ADULTS_KZ = 13500000;             // ~adult population exposed
+const CASE_RATE = CASES_YR / ADULTS_KZ; // annual victim probability
+
+const I18N={
+  ru:{h1:'💸 Экономический эффект',sub:'Сколько денег Qalqan AI может сберечь для граждан Казахстана. Расчёт основан на официальной статистике 2025 года.',
+    s1:'украдено за 10 мес. 2025 (×29 к 2024)',s2:'случаев кибермошенничества (+86%)',
+    lb1:'Пользователей Qalqan AI: ',lb2:'Эффективность блокировки: ',outLbl:'Предотвращённый ущерб в год',
+    r1:'Средний ущерб на случай',r2:'Ожидаемых жертв среди пользователей/год',r3:'Из них защищено Qalqan AI',
+    perUser:u=>`≈ ${u} ₸ сбережено на пользователя в год`,
+    disc:'Оценка. Источник базовых цифр: официальная статистика МВД/Нацбанка РК за 2025 г. Расчёт: (население-риск × частота × средний ущерб × охват × эффективность).'},
+  kk:{h1:'💸 Экономикалық әсер',sub:'Qalqan AI Қазақстан азаматтары үшін қанша ақша үнемдей алады. Есеп 2025 жылғы ресми статистикаға негізделген.',
+    s1:'2025 жылдың 10 айында ұрланды (2024-ке ×29)',s2:'кибералаяқтық дерегі (+86%)',
+    lb1:'Qalqan AI қолданушылары: ',lb2:'Блоктау тиімділігі: ',outLbl:'Жылына болдырмаған залал',
+    r1:'Бір дерекке орташа залал',r2:'Қолданушылар арасында күтілетін құрбандар/жыл',r3:'Оның ішінде Qalqan AI қорғады',
+    perUser:u=>`≈ жылына бір қолданушыға ${u} ₸ үнемделді`,
+    disc:'Бағалау. Негізгі сандар көзі: ҚР ІІМ/Ұлттық банктің 2025 ж. ресми статистикасы. Есеп: (тәуекел-халық × жиілік × орташа залал × қамту × тиімділік).'}
+};
+let L=localStorage.getItem('qlang')||'ru'; if(L!=='kk'&&L!=='ru')L='ru';
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString('ru-RU').replace(/,/g,' ');
+function money(n){
+  if(n>=1e9) return (n/1e9).toFixed(1).replace('.',',')+' млрд ₸';
+  if(n>=1e6) return (n/1e6).toFixed(1).replace('.',',')+' млн ₸';
+  return fmt(n)+' ₸';
+}
+function calc(){
+  const users=+$('#users').value, eff=+$('#eff').value/100;
+  const victims=users*CASE_RATE;
+  const saved=victims*eff;
+  const prevented=saved*AVG_LOSS;
+  const perUser=prevented/users;
+  $('#vUsers').textContent=fmt(users);
+  $('#vEff').textContent=(eff*100)+'%';
+  $('#amount').textContent=money(prevented);
+  $('#perUser').textContent=I18N[L].perUser(fmt(perUser));
+  $('#avgLoss').textContent=money(AVG_LOSS);
+  $('#victims').textContent=fmt(victims);
+  $('#saved').textContent=fmt(saved);
+}
+function applyLang(l){
+  L=(l==='kk'||l==='ru')?l:'ru'; localStorage.setItem('qlang',L);
+  const D=I18N[L];
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===L));
+  $('#h1').textContent=D.h1; $('#sub').textContent=D.sub; $('#s1').textContent=D.s1; $('#s2').textContent=D.s2;
+  $('#lb1').firstChild.textContent=D.lb1; $('#lb2').firstChild.textContent=D.lb2;
+  $('#outLbl').textContent=D.outLbl; $('#r1').textContent=D.r1; $('#r2').textContent=D.r2; $('#r3').textContent=D.r3;
+  $('#disc').textContent=D.disc; document.documentElement.lang=L;
+  calc();
+}
+$('#users').addEventListener('input',calc);
+$('#eff').addEventListener('input',calc);
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.l)));
+applyLang(L);
+</script>
 </body>
 </html>"""

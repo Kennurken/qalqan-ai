@@ -118,3 +118,18 @@ def test_scan_and_brand_in_sitemap():
 def test_landing_has_accuracy_proof():
     t = client.get("/", headers={"Accept": "text/html"}).text
     assert 'class="proof' in t and "97%" in t
+
+
+def test_impact_calculator_page():
+    r = client.get("/impact")
+    assert r.status_code == 200
+    assert "16,4 млрд" in r.text            # KZ 2025 fraud stat
+    assert "applyLang" in r.text            # kk/ru toggle wired
+    assert "/impact" in client.get("/sitemap.xml").text
+
+
+def test_quiz_bilingual():
+    t = client.get("/quiz").text
+    assert t.count("expl_kk:") == 10        # all 10 questions translated
+    assert "applyQuizLang" in t
+    assert "qlang" in t

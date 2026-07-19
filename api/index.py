@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -1180,8 +1180,14 @@ async def scan_page():
     return HTMLResponse(SCAN_HTML, headers=_HTML_CACHE)
 
 
+@app.get("/impact")
+async def impact_page():
+    """Economic-effect calculator — prevented fraud loss in ₸ (ДЭР economic framing)."""
+    return HTMLResponse(IMPACT_HTML, headers=_HTML_CACHE)
+
+
 _PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/help",
-                 "/brand", "/scan", "/m", "/partners", "/goszakup/graph"]
+                 "/brand", "/scan", "/impact", "/m", "/partners", "/goszakup/graph"]
 
 
 @app.get("/robots.txt")
