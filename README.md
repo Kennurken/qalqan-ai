@@ -19,7 +19,6 @@ Three languages (Қазақша / Русский / English).
 | Website security grade (A–F) | [`/scan`](https://qalqan-ai-nu.vercel.app/scan) |
 | Brand-protection radar (typosquats) | [`/brand`](https://qalqan-ai-nu.vercel.app/brand) |
 | Password-leak check (HIBP, k-anonymity) | [`/leak`](https://qalqan-ai-nu.vercel.app/leak) |
-| Scam trainer (quiz, kk/ru) | [`/quiz`](https://qalqan-ai-nu.vercel.app/quiz) |
 | Economic-impact calculator | [`/impact`](https://qalqan-ai-nu.vercel.app/impact) |
 | Regulator dashboard + threat map | [`/dashboard`](https://qalqan-ai-nu.vercel.app/dashboard) |
 | Procurement-fraud graph | [`/goszakup/graph`](https://qalqan-ai-nu.vercel.app/goszakup/graph) |

@@ -595,3 +595,64 @@ async def update_brand_watch_snapshot(row_id: int, snapshot: str) -> bool:
     except Exception as e:
         logger.warning(f"update_brand_watch_snapshot failed: {e}")
         return False
+
+
+# --- Weekly-digest subscriptions (reports table, category='digest_sub',
+#     domain='tg:<chat_id>') ---
+
+async def add_digest_sub(chat_id: int | str) -> bool:
+    if not _available():
+        return False
+    dom = f"tg:{chat_id}"
+    try:
+        client = get_client()
+        chk = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{dom}", "category": "eq.digest_sub",
+                    "select": "id", "limit": "1"})
+        if chk.status_code == 200 and chk.json():
+            return True
+        r = await client.post(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            json={"domain": dom, "url_hash": _hash(dom), "category": "digest_sub",
+                  "comment": None, "lang": "kk", "reporter_ip_hash": _hash(dom)})
+        return r.status_code in (200, 201)
+    except Exception as e:
+        logger.warning(f"add_digest_sub failed: {e}")
+        return False
+
+
+async def remove_digest_sub(chat_id: int | str) -> bool:
+    if not _available():
+        return False
+    try:
+        client = get_client()
+        r = await client.delete(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.tg:{chat_id}", "category": "eq.digest_sub"})
+        return r.status_code in (200, 204)
+    except Exception as e:
+        logger.warning(f"remove_digest_sub failed: {e}")
+        return False
+
+
+async def list_digest_subs(limit: int = 200) -> list[str]:
+    """Chat ids subscribed to the weekly digest (tg: prefix stripped)."""
+    if not _available():
+        return []
+    try:
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"category": "eq.digest_sub", "select": "domain", "limit": str(limit)})
+        if r.status_code != 200:
+            return []
+        out = []
+        for row in r.json():
+            d = row.get("domain") or ""
+            if d.startswith("tg:") and d[3:].lstrip("-").isdigit():
+                out.append(d[3:])
+        return list(dict.fromkeys(out))
+    except Exception as e:
+        logger.warning(f"list_digest_subs failed: {e}")
+        return []

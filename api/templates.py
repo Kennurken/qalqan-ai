@@ -214,7 +214,6 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <a href="#features" data-i18n="nav_feat">Функциялар</a>
       <a href="#pipeline" data-i18n="nav_arch">Архитектура</a>
       <a href="#demo" data-i18n="nav_demo">Демо</a>
-      <a href="/quiz" data-i18n="n_quiz">🎯 Тренажёр</a>
       <a href="/dashboard" data-i18n="n_map">🗺️ Карта</a>
       <a href="#faq">FAQ</a>
     </div>
@@ -241,11 +240,11 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
     <div class="proof reveal" data-i18n="proof">🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
     <div class="chips reveal">
-      <a class="chip" href="/quiz" data-i18n="chip_quiz">🎯 Скам-тренажёр</a>
       <a class="chip" href="/leak" data-i18n="chip_leak">🔑 Пароль утёк?</a>
       <a class="chip" href="/dashboard" data-i18n="chip_map">🗺️ Карта угроз</a>
       <a class="chip" href="/scan">🔬 Оценка сайта</a>
       <a class="chip" href="/brand">🎯 Защита бренда</a>
+      <a class="chip" href="/screen">🖼 Скриншот-тест</a>
       <a class="chip" href="/help">🆘 Обманули?</a>
       <a class="chip" href="/impact">💸 Эконом-эффект</a>
       <a class="chip" href="https://t.me/QalqanAI_bot">🤖 Telegram-бот</a>
@@ -404,7 +403,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     </div>
     <div class="flinks">
       <a href="https://github.com/Kennurken/qalqan-ai" target="_blank" rel="noopener">GitHub</a>
-      <a href="/m">Мобилка</a><a href="/scan">Оценка сайта</a><a href="/brand">Защита бренда</a><a href="/help">🆘 Помощь</a><a href="/quiz">Тренажёр</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
+      <a href="/m">Мобилка</a><a href="/scan">Оценка сайта</a><a href="/brand">Защита бренда</a><a href="/help">🆘 Помощь</a><a href="/leak">Пароль-чек</a><a href="/docs">API</a><a href="/dashboard">Панель</a><a href="/feed/kz">Feed</a><a href="/health">Health</a>
     </div>
     <div class="fnote">Қазақстандық пайдаланушыларды цифрлық қауіптерден қорғау · v5.1<br>Республикалық конкурс ДЭР 2026 · Деректер анонимді (url_hash / ip_hash)</div>
   </div>
@@ -439,7 +438,7 @@ if(!reduce){
 }
 /* i18n — kk/ru/en. AI/verdict comes back in currentLang (sent to /check). */
 const I18N={
- kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',proof:'🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)',
+ kk:{nav_feat:'Функциялар',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологиялар',nav_install:'Орнату',n_map:'🗺️ Карта',chip_leak:'🔑 Құпиясөз утечкасы',chip_map:'🗺️ Қауіп картасы',proof:'🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)',
      badge:'v5.1 · Қазақстан үшін · Open source',h1a:'Алаяқтықтан',h1b:'AI қорғанысы',
      lead:'Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.',
      checkPh:'kaspi-bonus.kz немесе https://...',checkBtn:'Тексеру',
@@ -458,7 +457,7 @@ const I18N={
      d1t:'Реттеуші панелі',d2t:'Госзакуп графы',d3t:'Мобиль қосымша',d4t:'Telegram бот',d5t:'Тірі статистика',
      d1d:'Облыстар бойынша қауіп картасы, динамика, топ домендер.',d2d:'Аффилированность, сговор, картель — байланыс графы.',d3d:'Офлайн жұмыс істейді, телефонға орнатылады (PWA).',d4d:'Дауыс / SMS / сілтеме тексеру, KZ-CERT-ке хабарлау.',d5d:'Нақты деректер: тексерулер, вердиктер, трендтер.',d6d:'Ашық дерекқор (CC-BY) — басқа жүйелер пайдалана алады.',
      arrow:'Ашу →',tg_t:'Telegram-да тексер',tg_d:'Кез келген сілтемені, нөмірді, дауыстық хабарламаны жіберіп, бірден жауап ал.'},
- ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_quiz:'🎯 Тренажёр',n_map:'🗺️ Карта',chip_quiz:'🎯 Скам-тренажёр',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',proof:'🎯 97% точность · 0 ложных срабатываний · открытый бенчмарк (F1 0.98)',
+ ru:{nav_feat:'Функции',nav_arch:'Архитектура',nav_demo:'Демо',nav_tech:'Технологии',nav_install:'Установить',n_map:'🗺️ Карта',chip_leak:'🔑 Пароль утёк?',chip_map:'🗺️ Карта угроз',proof:'🎯 97% точность · 0 ложных срабатываний · открытый бенчмарк (F1 0.98)',
      badge:'v5.1 · Для Казахстана · Open source',h1a:'Защита от',h1b:'мошенников · AI',
      lead:'Фишинг, телефонный скам, финансовые пирамиды, гемблинг и госзакуп-фрод — ловим до загрузки страницы. Бесплатно.',
      checkPh:'kaspi-bonus.kz или https://...',checkBtn:'Проверить',
@@ -477,7 +476,7 @@ const I18N={
      d1t:'Панель регулятора',d2t:'Граф госзакупок',d3t:'Мобильное приложение',d4t:'Telegram бот',d5t:'Живая статистика',
      d1d:'Карта угроз по областям, динамика, топ-домены.',d2d:'Аффилированность, сговор, картель — граф связей.',d3d:'Работает офлайн, ставится на телефон (PWA).',d4d:'Голос / SMS / ссылка, сообщение в KZ-CERT.',d5d:'Реальные данные: проверки, вердикты, тренды.',d6d:'Открытая база (CC-BY) — могут использовать другие системы.',
      arrow:'Открыть →',tg_t:'Проверь в Telegram',tg_d:'Отправь любую ссылку, номер или голосовое — получи ответ сразу.'},
- en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_quiz:'🎯 Trainer',n_map:'🗺️ Map',chip_quiz:'🎯 Scam trainer',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',proof:'🎯 97% accuracy · 0 false positives · open benchmark (F1 0.98)',
+ en:{nav_feat:'Features',nav_arch:'Architecture',nav_demo:'Demo',nav_tech:'Tech',nav_install:'Install',n_map:'🗺️ Map',chip_leak:'🔑 Password leak check',chip_map:'🗺️ Threat map',proof:'🎯 97% accuracy · 0 false positives · open benchmark (F1 0.98)',
      badge:'v5.1 · For Kazakhstan · Open source',h1a:'AI shield',h1b:'against scams',
      lead:'Phishing, phone scams, financial pyramids, gambling and procurement fraud — caught before the page loads. Free.',
      checkPh:'kaspi-bonus.kz or https://...',checkBtn:'Check',
@@ -515,6 +514,12 @@ document.querySelectorAll('#langSw button').forEach(b=>b.addEventListener('click
 applyLang(currentLang);
 
 const box=$('#resultBox'),verdict=$('#resultVerdict'),detail=$('#resultDetail'),btn=$('#checkBtn'),input=$('#urlInput');
+// Context-menu / deep-link entry: /?check=<url> pre-fills and runs the checker.
+try{
+  const _q=new URLSearchParams(location.search).get('check');
+  if(_q){ input.value=_q.slice(0,2048); setTimeout(()=>btn.click(),600);
+          window.scrollTo({top:0}); }
+}catch(e){}
 async function runCheck(){
   const url=input.value.trim(); if(!url)return;
   btn.disabled=true; const old=btn.textContent; btn.textContent='...';
@@ -1102,7 +1107,6 @@ textarea{min-height:84px;resize:vertical}
 </div>
 
 <div style="display:flex;gap:8px;margin-top:14px">
-  <a href="/quiz" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🎯 Скам-тренажёр</a>
   <a href="/leak" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🔑 Пароль утёк?</a>
   <a href="/help" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);text-decoration:none;font-size:13px;font-weight:700">🆘 Помощь</a>
 </div>
@@ -1571,6 +1575,14 @@ pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14p
 <div class="card">Демо-ключ: <b>30 запросов/мин</b>. Партнёрский ключ: <b>600/мин</b> (настраивается).<br>
 Ответ <code>429</code> при превышении.</div>
 
+<h2>Бейдж «Qalqan Verified» для вашего сайта</h2>
+<div class="card">Встраиваемый SVG-бейдж с грейдом безопасности вашего домена (обновляется раз в сутки):<br><br>
+<img src="/badge/kaspi.kz" alt="Qalqan badge" style="vertical-align:middle"><br><br>
+<pre>&lt;a href="https://qalqan-ai-nu.vercel.app/scan"&gt;
+  &lt;img src="https://qalqan-ai-nu.vercel.app/badge/ВАШ-ДОМЕН.kz" alt="Qalqan Security Grade"&gt;
+&lt;/a&gt;</pre>
+Зелёный A/A+ — сайт прошёл проверку; жёлтый/красный — есть проблемы (смотрите /scan).</div>
+
 <h2>Получить боевой ключ</h2>
 <div class="card">Напишите на <a href="mailto:kmarukob76@gmail.com">kmarukob76@gmail.com</a> с указанием организации.
 Ключ выдаётся под конкретного партнёра, лимиты и логирование — индивидуально.</div>
@@ -1614,231 +1626,9 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 <h1>Бет табылмады</h1>
 <p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
 <a class="btn" href="/">← Басты бетке</a>
-<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/quiz" data-i18n="n_quiz">🎯 Тренажёр</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/leak">🔑 Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
 </div>
 </body></html>"""
-
-QUIZ_HTML = """<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Qalqan AI — Скам-тренажёр</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px}
-.wrap{max-width:640px;margin:0 auto}
-.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.top a{color:var(--mut);text-decoration:none;font-size:14px}
-.top a:hover{color:var(--cyan)}
-h1{font-size:22px;font-weight:800}
-.sub{color:var(--mut);font-size:13px;margin:6px 0 20px}
-.progress{display:flex;gap:5px;margin-bottom:18px}
-.pseg{flex:1;height:6px;border-radius:4px;background:var(--card2)}
-.pseg.ok{background:var(--green)}.pseg.bad{background:var(--red)}.pseg.cur{background:var(--cyan)}
-.qcard{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;margin-bottom:14px}
-.qtype{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cyan);background:rgba(122,162,247,.1);border:1px solid rgba(122,162,247,.25);padding:4px 10px;border-radius:999px;margin-bottom:14px}
-.qmsg{background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:16px;font-size:15px;line-height:1.55;white-space:pre-wrap;margin-bottom:18px}
-.qmsg .from{font-size:12px;color:var(--mut);margin-bottom:8px}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.abtn{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s}
-.abtn:active{transform:scale(.97)}
-.abtn.scam{background:rgba(247,118,142,.12);color:var(--red);border:1.5px solid rgba(247,118,142,.4)}
-.abtn.legit{background:rgba(158,206,106,.12);color:var(--green);border:1.5px solid rgba(158,206,106,.4)}
-.expl{border-radius:12px;padding:16px;font-size:14px;line-height:1.6;margin-top:14px;display:none}
-.expl.show{display:block}
-.expl.right{background:rgba(158,206,106,.08);border:1px solid rgba(158,206,106,.3)}
-.expl.wrong{background:rgba(247,118,142,.08);border:1px solid rgba(247,118,142,.3)}
-.expl .verdict{font-weight:800;font-size:15px;margin-bottom:6px}
-.next{width:100%;margin-top:14px;background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:none;font-family:inherit}
-.next.show{display:block}
-.final{text-align:center;padding:30px 20px}
-.final .big{font-size:52px;font-weight:800;margin:10px 0}
-.final .grade{font-size:19px;font-weight:700;margin-bottom:8px}
-.final .desc{color:var(--mut);font-size:14px;line-height:1.6;margin-bottom:22px}
-.share{background:var(--card2);border:1.5px solid var(--cyan);color:var(--cyan);border-radius:12px;padding:14px 22px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin:4px}
-.restart{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:14px 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin:4px}
-.qlang{display:inline-flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
-.qlang button{background:none;border:none;color:var(--mut);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
-.qlang button.on{background:var(--cyan);color:#04121a}
-.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}
-.foot a{color:var(--cyan);text-decoration:none}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="top"><h1 id="qh1">🎯 Скам-тренажёр</h1>
-    <div style="display:flex;gap:10px;align-items:center">
-      <div class="qlang"><button data-l="kk">ҚАЗ</button><button data-l="ru" class="on">РУС</button></div>
-      <a href="/">← Qalqan AI</a>
-    </div>
-  </div>
-  <div class="sub" id="qsub">Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.</div>
-  <div class="progress" id="prog"></div>
-  <div id="game"></div>
-  <div class="foot">Qalqan AI · Скам-тренажёр · Обучение кибергигиене · <a href="/">Проверить сайт</a></div>
-</div>
-
-<script>
-const UI = {
-  ru:{scam:"🚨 Скам",legit:"✅ Не скам",next:"Дальше →",result:"Результат →",
-      right:"✅ Верно!",wrong:"❌ Ошибка!",yourres:"Твой результат",
-      restart:"🔄 Ещё раз",share:"📤 Поделиться",install:"🛡️ Установить защиту Qalqan AI →",
-      sub:"Отличишь мошенника от настоящего сообщения? 10 реальных примеров из Казахстана.",
-      of:"из",from:"От:"},
-  kk:{scam:"🚨 Алаяқтық",legit:"✅ Таза",next:"Келесі →",result:"Нәтиже →",
-      right:"✅ Дұрыс!",wrong:"❌ Қате!",yourres:"Сенің нәтижең",
-      restart:"🔄 Қайталау",share:"📤 Бөлісу",install:"🛡️ Qalqan AI қорғанысын орнату →",
-      sub:"Алаяқты нағыз хабарламадан ажырата аласың ба? Қазақстаннан 10 нақты мысал.",
-      of:"/",from:"Кімнен:"}
-};
-const TYPES_KK={"SMS":"SMS","ЗВОНОК":"ҚОҢЫРАУ","САЙТ":"САЙТ","TELEGRAM":"TELEGRAM","EMAIL":"EMAIL","WHATSAPP":"WHATSAPP","QR-КОД":"QR-КОД","ГОЛОСОВОЕ":"ДАУЫСТЫҚ"};
-
-const QUESTIONS = [
- {type:"SMS", from:"+7 707 123 45 67", text:"KASPI: Ваша карта Kaspi Gold заблокирована! Срочно подтвердите данные: kaspi-verify.top/unlock", scam:true,
-  expl:"СКАМ. Kaspi шлёт SMS только с короткого номера, а не с мобильного +7 707. Домен kaspi-verify.top — не kaspi.kz. Срочность («срочно!») — классический приём давления.",
-  expl_kk:"АЛАЯҚТЫҚ. Kaspi тек қысқа нөмірден SMS жібереді, +7 707 ұялы нөмірден емес. kaspi-verify.top домені — kaspi.kz емес. «Шұғыл» деген қысым — классикалық алаяқтық тәсіл."},
- {type:"SMS", from:"Kaspi", text:"Kaspi: Сіздің растау кодыңыз: 1234. Ешкімге айтпаңыз!", scam:false,
-  expl:"НЕ СКАМ — это обычный код подтверждения, который приходит, когда ВЫ сами входите в приложение. Но если код пришёл сам по себе и кто-то звонит и просит его назвать — это уже мошенники.",
-  expl_kk:"АЛАЯҚТЫҚ ЕМЕС — бұл өзіңіз қосымшаға кіргенде келетін кәдімгі растау коды. Бірақ код өздігінен келсе әрі біреу қоңырау шалып оны сұраса — бұл алаяқтар."},
- {type:"ЗВОНОК", from:"«Служба безопасности банка»", text:"— Здравствуйте! С вашей карты пытаются снять деньги. Для защиты срочно переведите средства на безопасный счёт. Никому не говорите — идёт спецоперация.", scam:true,
-  expl:"СКАМ, всегда. «Безопасных счетов» не существует. Банк НИКОГДА не просит переводить деньги или называть коды. «Никому не говорите» — признак манипуляции. Клади трубку и звони в банк по номеру с карты.",
-  expl_kk:"ӘРҚАШАН АЛАЯҚТЫҚ. «Қауіпсіз шот» деген жоқ. Банк ЕШҚАШАН ақша аударуды не код айтуды сұрамайды. «Ешкімге айтпаңыз» — манипуляция белгісі. Тұтқаны қой да, картадағы нөмірге қоңырау шал."},
- {type:"САЙТ", from:"egov-kz.support", text:"Электрондық үкімет порталы\\n\\nЖеке кабинетке кіру үшін ЖСН мен құпиясөзіңізді енгізіңіз.", scam:true,
-  expl:"СКАМ. Официальный портал — только egov.kz. Домен egov-kz.support — подделка (клон). Проверяй адресную строку: до первого «/» должно быть ровно egov.kz.",
-  expl_kk:"АЛАЯҚТЫҚ. Ресми портал — тек egov.kz. egov-kz.support домені — жалған көшірме. Мекенжай жолын тексер: алғашқы «/» дейін нақ egov.kz болуы керек."},
- {type:"TELEGRAM", from:"@invest_kz_pro", text:"🚀 Инвестируй 50 000 ₸ — гарантированный доход 30% в месяц! Приведи друга — получи бонус 10%. Уже 5000+ участников!", scam:true,
-  expl:"СКАМ — финансовая пирамида. «Гарантированный доход» + «приведи друга» = формула пирамиды. Легальные инвестиции никогда не гарантируют 30% в месяц. Проверить компанию можно в реестре АФМ через Qalqan AI.",
-  expl_kk:"АЛАЯҚТЫҚ — қаржылық пирамида. «Кепілдендірілген табыс» + «досыңды әкел» = пирамида формуласы. Заңды инвестиция айына 30% кепілдік бермейді. Компанияны АФМ реестрінен Qalqan AI арқылы тексер."},
- {type:"EMAIL", from:"info@halykbank.kz", text:"Құрметті клиент! 1 тамыздан бастап аударымдар тарифі өзгереді. Толығырақ: halykbank.kz/tariffs", scam:false,
-  expl:"НЕ СКАМ. Отправитель — официальный домен halykbank.kz, ссылка ведёт на официальный сайт, данные не запрашиваются. Информационная рассылка — норма.",
-  expl_kk:"АЛАЯҚТЫҚ ЕМЕС. Жіберуші — ресми halykbank.kz домені, сілтеме ресми сайтқа апарады, дербес дерек сұралмайды. Ақпараттық хабарлама — қалыпты жағдай."},
- {type:"WHATSAPP", from:"Неизвестный номер", text:"Мама, это я! Телефон сломался, пишу с чужого номера. Срочно нужны деньги, переведи 40 000 ₸ на эту карту, потом всё объясню!", scam:true,
-  expl:"СКАМ «мама, я с нового номера». Всегда перезванивай на СТАРЫЙ номер близкого человека. Мошенники давят на эмоции и срочность.",
-  expl_kk:"АЛАЯҚТЫҚ «ана, мен жаңа нөмірден». Әрқашан жақыныңның ЕСКІ нөміріне қайта қоңырау шал. Алаяқтар эмоция мен шұғылдыққа қысым жасайды."},
- {type:"QR-КОД", from:"Касса магазина", text:"Продавец показывает Kaspi QR для оплаты покупки. В приложении видно имя получателя: «ИП Айгуль С.», сумма 3 500 ₸.", scam:false,
-  expl:"НЕ СКАМ — обычная оплата через Kaspi QR. Главное: перед подтверждением проверь ИМЯ получателя и СУММУ в своём приложении. Подмена QR-наклейки существует — поэтому Qalqan AI умеет сканировать QR.",
-  expl_kk:"АЛАЯҚТЫҚ ЕМЕС — Kaspi QR арқылы кәдімгі төлем. Ең бастысы: растамас бұрын қосымшада алушының АТЫ мен СОМАСЫН тексер. QR-жапсырманы алмастыру болады — сондықтан Qalqan AI QR сканерлей алады."},
- {type:"SMS", from:"+7 776 999 00 11", text:"Поздравляем! Вы выиграли 1 000 000 ₸ в лотерее Kaspi! Для получения приза оплатите комиссию 5 000 ₸: kaspi-lottery.win", scam:true,
-  expl:"СКАМ. Настоящий выигрыш никогда не требует предоплаты «комиссии». Лотереи Kaspi с таким механизмом не существует, домен — фальшивый.",
-  expl_kk:"АЛАЯҚТЫҚ. Нағыз ұтыс ешқашан «комиссияны» алдын ала төлеуді талап етпейді. Мұндай Kaspi лотереясы жоқ, домен — жалған."},
- {type:"ГОЛОСОВОЕ", from:"«Директор» в WhatsApp", text:"🎤 Голосовое сообщение голосом вашего руководителя: «Я на совещании, срочно оплати счёт поставщика 800 000 ₸, реквизиты скину. Никому не говори, это конфиденциально».", scam:true,
-  expl:"СКАМ — AI-дипфейк голоса (тренд 2025-2026). Голос легко клонируется по 10 секундам записи. Правило: любая «срочная оплата» подтверждается только звонком руководителю по известному номеру.",
-  expl_kk:"АЛАЯҚТЫҚ — AI-дипфейк дауыс (2025-2026 тренді). Дауыс 10 секундтық жазба бойынша оңай көшіріледі. Ереже: кез келген «шұғыл төлем» тек басшыға белгілі нөмірмен қоңырау шалу арқылы расталады."},
-];
-
-let idx=0, score=0, answers=[];
-let L=localStorage.getItem('qlang')||'ru'; if(L!=='kk'&&L!=='ru')L='ru';
-const $=s=>document.querySelector(s);
-function T(k){return (UI[L]||UI.ru)[k];}
-
-function applyQuizLang(l){
-  L=(l==='kk'||l==='ru')?l:'ru'; localStorage.setItem('qlang',L);
-  document.querySelectorAll('.qlang button').forEach(b=>b.classList.toggle('on',b.dataset.l===L));
-  $('#qsub').textContent=T('sub');
-  document.documentElement.lang=L;
-  if(answers.length>=QUESTIONS.length) renderFinal(); else renderQ();
-}
-
-function renderProgress(){
-  $('#prog').innerHTML = QUESTIONS.map((_,i)=>{
-    let c='pseg';
-    if(i<answers.length) c+=answers[i]?' ok':' bad';
-    else if(i===idx) c+=' cur';
-    return `<div class="${c}"></div>`;
-  }).join('');
-}
-
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
-function qtype(q){return L==='kk'?(TYPES_KK[q.type]||q.type):q.type;}
-function qexpl(q){return L==='kk'?(q.expl_kk||q.expl):q.expl;}
-
-function renderQ(){
-  renderProgress();
-  const q=QUESTIONS[idx];
-  const answered=idx<answers.length;
-  $('#game').innerHTML=`
-    <div class="qcard">
-      <span class="qtype">${qtype(q)} · ${idx+1}${T('of')}${QUESTIONS.length}</span>
-      <div class="qmsg"><div class="from">${T('from')} ${esc(q.from)}</div>${esc(q.text)}</div>
-      <div class="btns">
-        <button class="abtn scam" onclick="answer(true)">${T('scam')}</button>
-        <button class="abtn legit" onclick="answer(false)">${T('legit')}</button>
-      </div>
-      <div class="expl" id="expl"></div>
-      <button class="next" id="next" onclick="nextQ()">${idx===QUESTIONS.length-1?T('result'):T('next')}</button>
-    </div>`;
-  if(answered){ // re-render an already answered question (after lang switch mid-quiz)
-    const right=answers[idx];
-    const e=$('#expl'); e.className='expl show '+(right?'right':'wrong');
-    e.innerHTML=`<div class="verdict">${right?T('right'):T('wrong')}</div>${esc(qexpl(q))}`;
-    document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
-    $('#next').classList.add('show');
-  }
-}
-
-function answer(saidScam){
-  const q=QUESTIONS[idx];
-  const right = saidScam===q.scam;
-  if(right) score++;
-  answers[idx]=right;
-  renderProgress();
-  const e=$('#expl');
-  e.className='expl show '+(right?'right':'wrong');
-  e.innerHTML=`<div class="verdict">${right?T('right'):T('wrong')}</div>${esc(qexpl(q))}`;
-  document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
-  $('#next').classList.add('show');
-}
-
-function nextQ(){
-  idx++;
-  if(idx>=QUESTIONS.length){ renderFinal(); return; }
-  renderQ();
-}
-
-const GRADES={
-  ru:[[90,'🛡️ Кибер-сарбаз!','Отлично! Тебя не проведёшь. Поделись тренажёром с родными — особенно со старшими.'],
-      [70,'👍 Хороший уровень','Ты распознаёшь большинство схем. Помни: срочность + деньги + секретность = скам.'],
-      [50,'⚠️ Осторожно!','Половина ловушек сработала бы. Установи расширение Qalqan AI — оно проверит сайты за тебя.'],
-      [0,'🚨 Ты в зоне риска','Мошенники легко могут тебя обмануть. Правило №1: никому не говори коды из SMS. Правило №2: клади трубку и перезванивай сам.']],
-  kk:[[90,'🛡️ Кибер-сарбаз!','Тамаша! Сені алдау мүмкін емес. Тренажёрді жақындарыңмен бөліс — әсіресе егде адамдармен.'],
-      [70,'👍 Жақсы деңгей','Схемалардың көбін танисың. Есте сақта: шұғылдық + ақша + құпия = алаяқтық.'],
-      [50,'⚠️ Абайла!','Тұзақтардың жартысы жұмыс істер еді. Qalqan AI кеңейтімін орнат — ол сайттарды сенің орныңа тексереді.'],
-      [0,'🚨 Қауіп аймағындасың','Алаяқтар сені оңай алдай алады. №1 ереже: SMS кодтарын ешкімге айтпа. №2 ереже: тұтқаны қойып, өзің қайта қоңырау шал.']]
-};
-
-function renderFinal(){
-  renderProgress();
-  const pct=Math.round(score/QUESTIONS.length*100);
-  const tbl=(GRADES[L]||GRADES.ru).find(g=>pct>=g[0]);
-  const grade=tbl[1], desc=tbl[2];
-  $('#game').innerHTML=`
-    <div class="qcard final">
-      <div>${T('yourres')}</div>
-      <div class="big" style="color:${pct>=70?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}">${score}/${QUESTIONS.length}</div>
-      <div class="grade">${grade}</div>
-      <div class="desc">${desc}</div>
-      <button class="restart" onclick="restart()">${T('restart')}</button>
-      <button class="share" onclick="shareResult(${score})">${T('share')}</button>
-      <div style="margin-top:18px"><a href="/install" style="color:var(--cyan);font-size:14px">${T('install')}</a></div>
-    </div>`;
-}
-
-function shareResult(s){
-  const text=(L==='kk'?`Мен Qalqan AI скам-тренажёрінде ${s}/10 жинадым! Өзіңді тексер:`:`Я набрал ${s}/10 в Скам-тренажёре Qalqan AI! Проверь себя:`);
-  const url=location.origin+'/quiz';
-  if(navigator.share){ navigator.share({title:'Qalqan AI',text,url}).catch(()=>{}); }
-  else { navigator.clipboard.writeText(text+' '+url).then(()=>alert('Ссылка скопирована!')).catch(()=>{}); }
-}
-
-function restart(){ idx=0; score=0; answers=[]; renderQ(); }
-document.querySelectorAll('.qlang button').forEach(b=>b.addEventListener('click',()=>applyQuizLang(b.dataset.l)));
-applyQuizLang(L);
-</script>
-</body>
-</html>"""
 
 LEAK_HTML = """<!DOCTYPE html>
 <html lang="ru">
@@ -1919,7 +1709,21 @@ input:focus{border-color:var(--cyan)}
     <div class="res" id="resem"></div>
   </div>
 
-<div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · <a href="/quiz">🎯 Скам-тренажёр</a></div>
+  <div class="card" style="margin-top:14px">
+    <div style="font-weight:700;font-size:14px;margin-bottom:10px">🔐 Генератор надёжных паролей</div>
+    <div class="inrow">
+      <input id="genout" type="text" readonly placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
+      <button class="eye" id="gencopy" aria-label="Скопировать">📋</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--mut)">
+      <label><input type="checkbox" id="gensym" checked> символы</label>
+      <label>длина <select id="genlen"><option>16</option><option>20</option><option selected>24</option><option>32</option></select></label>
+    </div>
+    <button class="btn" id="gengo" style="margin-top:12px">Сгенерировать</button>
+    <div class="priv" style="margin-top:10px"><span style="font-size:16px">🔒</span><span>Генерируется в браузере (crypto.getRandomValues), никуда не отправляется.</span></div>
+  </div>
+
+<div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · </div>
 </div>
 
 <script>
@@ -1999,6 +1803,21 @@ async function checkEmail(){
 }
 document.getElementById('goem').onclick=checkEmail;
 document.getElementById('em').addEventListener('keydown',e=>{if(e.key==='Enter')checkEmail()});
+
+// ── Password generator (client-side only) ──
+function genPw(){
+  const L=+document.getElementById('genlen').value;
+  const sym=document.getElementById('gensym').checked;
+  const abc='abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'+(sym?'!@#$%^&*-_=+?':'');
+  const buf=new Uint32Array(L);crypto.getRandomValues(buf);
+  document.getElementById('genout').value=[...buf].map(n=>abc[n%abc.length]).join('');
+}
+document.getElementById('gengo').onclick=genPw;
+document.getElementById('gencopy').onclick=async()=>{
+  const v=document.getElementById('genout').value;if(!v)return;
+  try{await navigator.clipboard.writeText(v);document.getElementById('gencopy').textContent='✅';
+      setTimeout(()=>document.getElementById('gencopy').textContent='📋',1200);}catch(e){}
+};
 </script>
 </body>
 </html>"""
@@ -2102,7 +1921,7 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
 
   <div class="foot">
     Qalqan AI · Бұл ресми қызметтер тізімі, кеңес емес · Список официальных служб, не является юр. консультацией<br>
-    <a href="/quiz">🎯 Тренажёр</a> · <a href="/leak">🔑 Пароль</a> · <a href="/">🛡️ Проверить сайт</a>
+    <a href="/leak">🔑 Пароль</a> · <a href="/">🛡️ Проверить сайт</a>
   </div>
 </div>
 </body>
@@ -2613,6 +2432,103 @@ $('#dl').onclick=()=>{
   const body=results.map(r=>`"${String(r.url||'').replace(/"/g,'""')}",${r.verdict||''},${r.threat_score??''},${r.source||r.top_source||''}`).join('\\n');
   const blob=new Blob([head+body],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='qalqan-batch-report.csv';a.click();
+};
+</script>
+</body>
+</html>"""
+
+SCREEN_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Проверка скриншота</title>
+<meta name="description" content="Загрузи скриншот подозрительной переписки, SMS или сайта — AI прочитает и скажет, мошенничество ли это.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+h1{font-size:24px;font-weight:800}
+.sub{color:var(--mut);font-size:13.5px;margin:8px 0 18px;line-height:1.6}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px}
+.drop{border:2px dashed var(--bd);border-radius:14px;padding:34px 18px;text-align:center;cursor:pointer;transition:border-color .15s}
+.drop:hover,.drop.over{border-color:var(--cyan)}
+.drop .big{font-size:34px}
+.drop .t{font-weight:700;margin-top:8px}
+.drop .h{font-size:12.5px;color:var(--mut);margin-top:6px;line-height:1.5}
+#file{display:none}
+#preview{max-width:100%;max-height:260px;border-radius:10px;margin-top:14px;display:none}
+.btn{width:100%;margin-top:14px;background:var(--cyan);border:none;border-radius:10px;color:#04121a;font-weight:800;font-size:14px;padding:13px;cursor:pointer;font-family:inherit;display:none}
+.btn:disabled{opacity:.5}
+.res{margin-top:16px;padding:16px;border-radius:12px;border:1px solid var(--bd);display:none;font-size:13.5px;line-height:1.65;white-space:pre-wrap}
+.res.d{border-color:rgba(247,118,142,.5);background:rgba(247,118,142,.07)}
+.res.s{border-color:rgba(224,175,104,.5);background:rgba(224,175,104,.07)}
+.res.ok{border-color:rgba(158,206,106,.5);background:rgba(158,206,106,.07)}
+.priv{font-size:11.5px;color:var(--mut);margin-top:12px;line-height:1.5}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>🖼 Проверка скриншота</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Пришло подозрительное SMS, сообщение «из банка», объявление об «инвестициях»? Сделай скриншот и загрузи — AI прочитает текст и скажет, мошенничество ли это. Каз/рус/англ.</div>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <div class="big">📸</div>
+      <div class="t">Нажми или перетащи скриншот</div>
+      <div class="h">JPG/PNG до 3 МБ · переписка, SMS, сайт, объявление</div>
+    </div>
+    <input id="file" type="file" accept="image/*">
+    <img id="preview" alt="preview">
+    <button class="btn" id="go">Проверить</button>
+    <div class="res" id="res"></div>
+    <div class="priv">🔒 Скриншот анализируется на лету и не сохраняется. Не загружай фото с личными данными без необходимости — закрась лишнее.</div>
+  </div>
+
+  <div class="foot">Qalqan AI · Groq Vision + Gemini · <a href="/">Проверить сайт</a> · <a href="/help">🆘 Обманули?</a></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let b64=null;
+const drop=$('#drop'),file=$('#file');
+drop.onclick=()=>file.click();
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0])});
+file.addEventListener('change',()=>{if(file.files[0])load(file.files[0])});
+function load(f){
+  if(f.size>3.2*1024*1024){alert('Файл больше 3 МБ — сожмите или обрежьте скриншот.');return}
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const s=String(rd.result);
+    b64=s.substring(s.indexOf(',')+1);
+    $('#preview').src=s;$('#preview').style.display='block';
+    $('#go').style.display='block';
+    $('#res').style.display='none';
+  };
+  rd.readAsDataURL(f);
+}
+$('#go').onclick=async()=>{
+  if(!b64)return;
+  const btn=$('#go');btn.disabled=true;btn.textContent='AI читает скриншот...';
+  const R=$('#res');R.className='res';R.style.display='block';R.textContent='Анализ (до 20 сек)...';
+  try{
+    const lang=localStorage.getItem('qlang')||'ru';
+    const r=await fetch('/analyze-screen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:b64,lang:lang==='kk'?'kk':lang==='en'?'en':'ru'})});
+    if(r.status===429){R.textContent='⏳ Слишком часто — максимум 5 скриншотов в минуту.';btn.disabled=false;btn.textContent='Проверить';return}
+    const d=await r.json();
+    const v=(d.verdict||'').toUpperCase();
+    const em=v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅';
+    R.className='res '+(v==='DANGEROUS'?'d':v==='SUSPICIOUS'?'s':'ok');
+    R.textContent=`${em} ${v} · ${d.threat_score??'?'}/100\\n\\n${d.detail||d.detail_ru||''}`;
+  }catch(e){R.textContent='⚠️ Ошибка анализа. Попробуйте позже.'}
+  btn.disabled=false;btn.textContent='Проверить';
 };
 </script>
 </body>

@@ -77,6 +77,14 @@ async function loadCachedOfflineDb() {
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
   console.log(`Qalqan AI v5.1 installed (${details.reason})`);
+  // Right-click any link → check it through Qalqan (opens the landing pre-filled)
+  try {
+    chrome.contextMenus.create({
+      id: "qalqan-check-link",
+      title: "🛡 Qalqan AI: сілтемені тексеру",
+      contexts: ["link"],
+    });
+  } catch (e) { /* already exists on update */ }
   if (details.reason === "install") {
     chrome.storage.local.set({
       qalqan_stats: { checked: 0, blocked: 0, suspicious: 0, safe: 0, since: new Date().toISOString() },
@@ -581,3 +589,12 @@ async function getLanguage() {
 }
 
 console.log("Qalqan AI v5.1 — Background Service Worker started");
+
+
+chrome.contextMenus.onClicked.addListener((info) => {
+  if (info.menuItemId === "qalqan-check-link" && info.linkUrl) {
+    chrome.tabs.create({
+      url: "https://qalqan-ai-nu.vercel.app/?check=" + encodeURIComponent(info.linkUrl),
+    });
+  }
+});

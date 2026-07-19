@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML, BATCH_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML, BATCH_HTML, SCREEN_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -33,7 +33,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block, health_alert
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed, add_brand_watch as supabase_add_brand_watch, list_brand_watches as supabase_list_brand_watches, update_brand_watch_snapshot as supabase_update_brand_watch
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed, add_brand_watch as supabase_add_brand_watch, list_brand_watches as supabase_list_brand_watches, update_brand_watch_snapshot as supabase_update_brand_watch, list_digest_subs as supabase_list_digest_subs
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
@@ -637,7 +637,12 @@ async def check_phone(request: PhoneRequest, req: Request):
     if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="phone"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
     from .services.phone_sms import analyze_phone
-    return analyze_phone(request.phone, request.lang)
+    result = analyze_phone(request.phone, request.lang)
+    if not result.get("error") and result.get("formatted"):
+        key = "phone:" + result["formatted"].replace(" ", "")
+        crowd = await get_community_stats(key)
+        result["crowd_reports"] = crowd.get("reports", 0) + crowd.get("confirms", 0)
+    return result
 
 
 @app.post("/check-text")
@@ -1030,7 +1035,9 @@ async def telegram_weekly_report(req: Request):
     Protected by CRON_SECRET so outsiders can't trigger broadcasts."""
     if not _authorize_cron(req):
         return JSONResponse(status_code=403, content={"error": "Forbidden"})
-    from .utils.telegram import send_message as _tg_send
+    # send_message lives in bot_handler (utils.telegram has no such symbol —
+    # the old import made this cron 500 every Sunday)
+    from .services.bot_handler import send_message as _tg_send
     chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
     if not chat_id:
         return {"error": "TELEGRAM_CHAT_ID not set"}
@@ -1057,8 +1064,18 @@ async def telegram_weekly_report(req: Request):
             f"🌐 <a href='https://qalqan-ai-nu.vercel.app/stats'>Толық статистика</a>"
         )
         await _tg_send(int(chat_id), text)
-        logger.info("Weekly Telegram report sent")
-        return {"ok": True, "sent_to": chat_id, "total_checks": total}
+        # Personal digest fan-out (/subscribe in the bot)
+        subs = await supabase_list_digest_subs()
+        sent = 0
+        for s_id in subs[:100]:
+            try:
+                await _tg_send(int(s_id), text)
+                sent += 1
+                await asyncio.sleep(0.05)   # stay under Telegram's ~30 msg/s
+            except Exception:
+                continue
+        logger.info(f"Weekly Telegram report sent (+{sent} subscribers)")
+        return {"ok": True, "sent_to": chat_id, "subscribers": sent, "total_checks": total}
     except Exception as e:
         logger.error(f"Weekly report failed: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)[:100]})
@@ -1090,7 +1107,6 @@ async def pwa_manifest():
         "categories": ["security", "utilities"],
         "shortcuts": [
             {"name": "URL тексеру", "url": "/", "description": "Check a URL for threats"},
-            {"name": "Скам-тренажёр", "url": "/quiz", "description": "Scam recognition trainer"},
             {"name": "Статистика", "url": "/stats", "description": "View threat statistics"},
             {"name": "Орнату", "url": "/install", "description": "Install the extension"}
         ]
@@ -1109,12 +1125,6 @@ async def install_page():
 @app.get("/m")
 async def mobile_app():
     return HTMLResponse(content=MOBILE_HTML, headers=_HTML_CACHE)
-
-
-@app.get("/quiz")
-async def scam_quiz():
-    """Скам-тренажёр — interactive scam-recognition trainer (digital literacy)."""
-    return HTMLResponse(QUIZ_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/leak")
@@ -1246,6 +1256,66 @@ async def impact_page():
     return HTMLResponse(IMPACT_HTML, headers=_HTML_CACHE)
 
 
+@app.get("/screen")
+async def screen_page():
+    """Screenshot analysis page — Groq/Gemini Vision reads the image and verdicts it."""
+    return HTMLResponse(SCREEN_HTML, headers=_HTML_CACHE)
+
+
+_BADGE_MEM: dict[str, tuple[str, float]] = {}   # domain → (svg, expires)
+
+
+def _badge_svg(label: str, grade: str, color: str) -> str:
+    left_w, right_w = 88, 42
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{left_w+right_w}" height="24" role="img" aria-label="{label}: {grade}">'
+        f'<rect rx="4" width="{left_w+right_w}" height="24" fill="#1e293b"/>'
+        f'<rect rx="4" x="{left_w}" width="{right_w}" height="24" fill="{color}"/>'
+        f'<rect x="{left_w}" width="4" height="24" fill="{color}"/>'
+        f'<text x="{left_w//2+8}" y="16" text-anchor="middle" fill="#e7ebf3" font-family="Verdana,sans-serif" font-size="11">🛡 {label}</text>'
+        f'<text x="{left_w+right_w//2}" y="16" text-anchor="middle" fill="#04121a" font-family="Verdana,sans-serif" font-size="12" font-weight="bold">{grade}</text>'
+        f'</svg>'
+    )
+
+
+@app.get("/badge/{domain}")
+async def qalqan_badge(domain: str, req: Request):
+    """Embeddable SVG badge: <img src="https://.../badge/example.kz">.
+    Shows the site's Qalqan security grade; cached 24h per domain."""
+    from fastapi.responses import Response as _R
+    dom = _to_domain(domain.removesuffix(".svg"))
+    if not dom or "." not in dom or len(dom) > 100:
+        return _R(_badge_svg("Qalqan", "?", "#7d8aa0"), media_type="image/svg+xml")
+    hit = _BADGE_MEM.get(dom)
+    if hit and hit[1] > time.time():
+        return _R(hit[0], media_type="image/svg+xml",
+                  headers={"Cache-Control": "public, max-age=86400"})
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_CHECK, endpoint="badge"):
+        return _R(_badge_svg("Qalqan", "…", "#7d8aa0"), media_type="image/svg+xml")
+    try:
+        creq = CheckRequest(url=dom, lang="ru")
+        url_feats = extract_features(creq.url)
+        verdict_result, domain_info = await asyncio.gather(
+            run_pipeline_internal(creq.url, "ru"),
+            check_domain_intelligence(extract_domain(creq.url), creq.url),
+        )
+        from .services.security_scan import build_grade
+        grade = build_grade(verdict_result, domain_info if isinstance(domain_info, dict) else None, url_feats)
+        g = grade.get("grade", "?")
+        color = {"A+": "#9ece6a", "A": "#9ece6a", "B": "#b8d68c", "C": "#e0af68",
+                 "D": "#e08f68", "E": "#f7768e", "F": "#f7768e"}.get(g, "#7d8aa0")
+        svg = _badge_svg("Qalqan", g, color)
+        _BADGE_MEM[dom] = (svg, time.time() + 86400)
+        if len(_BADGE_MEM) > 500:
+            _BADGE_MEM.pop(next(iter(_BADGE_MEM)))
+        return _R(svg, media_type="image/svg+xml",
+                  headers={"Cache-Control": "public, max-age=86400"})
+    except Exception as e:
+        logger.warning(f"badge failed for {dom}: {e}")
+        return _R(_badge_svg("Qalqan", "?", "#7d8aa0"), media_type="image/svg+xml")
+
+
 @app.get("/batch-check")
 async def batch_check_page():
     """Bulk URL screening page (banks / regulators / corporate security)."""
@@ -1295,8 +1365,8 @@ async def cron_refresh_feeds(req: Request):
     return {"ok": True, "feeds": feed_stats()}
 
 
-_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/help",
-                 "/brand", "/scan", "/impact", "/batch-check", "/m", "/partners",
+_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/leak", "/help",
+                 "/brand", "/scan", "/impact", "/screen", "/batch-check", "/m", "/partners",
                  "/goszakup/graph"]
 
 

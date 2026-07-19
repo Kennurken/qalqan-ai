@@ -100,3 +100,42 @@ def test_brand_page_has_live_scan():
     assert "livego" in t
     assert "/brand/live-scan" in t
     assert "watchgo" in t
+
+
+# --- Round 8: screen page, badge, quiz removal, phone crowd ---
+
+def test_screen_page():
+    r = client.get("/screen")
+    assert r.status_code == 200
+    assert "analyze-screen" in r.text
+    assert "/screen" in client.get("/sitemap.xml").text
+
+
+def test_badge_svg():
+    r = client.get("/badge/definitely-not-a-domain")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("image/svg")
+    assert "Qalqan" in r.text
+
+
+def test_quiz_removed():
+    assert client.get("/quiz").status_code == 404
+    assert "/quiz" not in client.get("/sitemap.xml").text
+    t = client.get("/", headers={"accept": "text/html"}).text
+    assert "/quiz" not in t
+
+
+def test_leak_has_generator():
+    t = client.get("/leak").text
+    assert "genout" in t
+    assert "getRandomValues" in t
+
+
+def test_landing_check_deeplink():
+    t = client.get("/", headers={"accept": "text/html"}).text
+    assert "URLSearchParams" in t and "'check'" in t
+
+
+def test_partners_badge_docs():
+    t = client.get("/partners").text
+    assert "/badge/" in t

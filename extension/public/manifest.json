@@ -11,7 +11,8 @@
         "storage",
         "notifications",
         "scripting",
-        "alarms"
+        "alarms",
+        "contextMenus"
     ],
     "host_permissions": [
         "https://*/*",
@@ -60,6 +61,28 @@
                 "search-guard.js"
             ],
             "run_at": "document_end",
+            "all_frames": false
+        },
+        {
+            "matches": [
+                "*://web.telegram.org/*",
+                "*://web.whatsapp.com/*"
+            ],
+            "js": [
+                "messenger-guard.js"
+            ],
+            "run_at": "document_end",
+            "all_frames": false
+        },
+        {
+            "matches": [
+                "https://*/*",
+                "http://*/*"
+            ],
+            "js": [
+                "form-guard.js"
+            ],
+            "run_at": "document_idle",
             "all_frames": false
         }
     ],

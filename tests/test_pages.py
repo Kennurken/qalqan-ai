@@ -31,12 +31,6 @@ def test_templates_module_exposes_constants():
                for n in ("LANDING_HTML", "DASHBOARD_HTML", "INSTALL_HTML"))
 
 
-def test_quiz_page_renders():
-    r = client.get("/quiz")
-    assert r.status_code == 200
-    assert "Скам-тренажёр" in r.text
-    assert "QUESTIONS" in r.text
-
 
 def test_kz_regions_geometry():
     r = client.get("/kz-regions.js")
@@ -70,7 +64,7 @@ def test_robots_and_sitemap():
     r = client.get("/robots.txt")
     assert r.status_code == 200 and "Disallow: /admin" in r.text
     s = client.get("/sitemap.xml")
-    assert s.status_code == 200 and "/quiz" in s.text and "/leak" in s.text
+    assert s.status_code == 200 and "/leak" in s.text
 
 
 def test_hero_has_seven_tiers_and_chips():
@@ -128,8 +122,3 @@ def test_impact_calculator_page():
     assert "/impact" in client.get("/sitemap.xml").text
 
 
-def test_quiz_bilingual():
-    t = client.get("/quiz").text
-    assert t.count("expl_kk:") == 10        # all 10 questions translated
-    assert "applyQuizLang" in t
-    assert "qlang" in t

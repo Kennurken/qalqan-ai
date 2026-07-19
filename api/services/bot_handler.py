@@ -118,8 +118,8 @@ async def register_bot_ui() -> None:
         {"command": "tender", "description": "Тендер фрод тексеру"},
         {"command": "report", "description": "Алаяқтықты хабарлау"},
         {"command": "app", "description": "Қосымшаны ашу"},
-        {"command": "quiz", "description": "Скам-тренажёр — өзіңді тексер"},
         {"command": "leak", "description": "Құпиясөз утечкасын тексеру"},
+        {"command": "subscribe", "description": "Апталық дайджестке жазылу"},
         {"command": "sos", "description": "🆘 Алдап кетті ме? Не істеу керек"},
         {"command": "stats", "description": "Статистика"},
         {"command": "help", "description": "Көмек"},
@@ -434,14 +434,23 @@ async def handle_phone_check(chat_id: int, phone: str, message_id: int | None = 
         await send_message(chat_id, f"⚠️ {_esc(r.get('detail', ''))}", reply_to=message_id)
         return
     icon = _VERDICT_EMOJI.get(r["verdict"], "⚠️")
+    # Crowd intelligence for this number (Truecaller-style community reports)
+    phone_key = "phone:" + r["formatted"].replace(" ", "")
+    from ..utils.supabase import get_community_stats
+    crowd = await get_community_stats(phone_key)
+    crowd_n = crowd.get("reports", 0) + crowd.get("confirms", 0)
+    crowd_line = (f"\n👥 Қоғам шағымдары: <b>{crowd_n}</b>" if crowd_n else "")
     text = (
         f"{icon} <b>Телефон тексеру: {r['formatted']}</b>\n\n"
         f"Вердикт: <b>{r['verdict']}</b> ({r['threat_score']}/100)\n"
         f"RU: {_esc(r['detail_ru'])}\n"
-        f"KK: {_esc(r['detail_kk'])}\n\n"
+        f"KK: {_esc(r['detail_kk'])}{crowd_line}\n\n"
         f"ℹ️ Толық тексеру үшін: <a href='https://qalqan-ai-nu.vercel.app'>qalqan-ai-nu.vercel.app</a>"
     )
-    await send_message(chat_id, text, reply_to=message_id)
+    cb = f"p:r:{r['formatted'].replace(' ', '')}"
+    kb = {"inline_keyboard": [[{"text": "🚨 Бұл нөмір — алаяқ", "callback_data": cb}]]} \
+        if len(cb.encode()) <= 64 else None
+    await send_message(chat_id, text, reply_to=message_id, reply_markup=kb)
 
 
 async def handle_sms_check(chat_id: int, sms_text: str, message_id: int | None = None):
@@ -771,6 +780,19 @@ async def handle_callback(cb: dict) -> None:
     data = cb.get("data", "")
     user_id = cb.get("from", {}).get("id", "anon")
 
+    if data.startswith("p:r:"):
+        phone = data[4:]
+        from ..utils.supabase import record_vote
+        res = await record_vote(f"phone:{phone}", "confirm", f"tg:{user_id}")
+        if res.get("already_voted"):
+            await answer_callback(cb_id, "Сіз бұл нөмірді белгілегенсіз ✓")
+        elif res.get("ok"):
+            n = res.get("stats", {}).get("confirms", 0) + res.get("stats", {}).get("reports", 0)
+            await answer_callback(cb_id, f"Рақмет! Бұл нөмірге {n} шағым 🚨")
+        else:
+            await answer_callback(cb_id, "Сақталмады, кейінірек қайталаңыз")
+        return
+
     if data.startswith(("v:c:", "v:d:")):
         vote = "confirm" if data[2] == "c" else "dispute"
         domain = data[4:]
@@ -907,15 +929,20 @@ async def dispatch(update: dict) -> None:
     elif text.startswith("/app"):
         await handle_app(chat_id, message_id)
 
-    elif text.startswith("/quiz"):
-        base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
-        kb = {"inline_keyboard": [[{"text": "🎯 Тренажёрді бастау",
-                                    "web_app": {"url": f"{base}/quiz"}}]]}
+    elif text.startswith("/subscribe"):
+        from ..utils.supabase import add_digest_sub
+        ok = await add_digest_sub(chat_id)
         await send_message(chat_id,
-            "🎯 <b>Скам-тренажёр</b>\n\nАлаяқтықты тани аласың ба? 10 нақты мысал: "
-            "жалған Kaspi SMS, «банк қауіпсіздігі» қоңыраулары, дипфейк...\n"
-            "Нәтижеңмен бөліс — жақындарың да үйренсін!",
-            reply_to=message_id, reply_markup=kb)
+            "📬 <b>Апталық дайджест қосылды!</b>\n\nӘр жексенбіде: аптаның қауіптері, "
+            "жаңа бұғатталған сайттар, статистика.\nБас тарту: /unsubscribe"
+            if ok else "⚠️ Қазір қосылмады, кейінірек қайталаңыз.",
+            reply_to=message_id)
+
+    elif text.startswith("/unsubscribe"):
+        from ..utils.supabase import remove_digest_sub
+        await remove_digest_sub(chat_id)
+        await send_message(chat_id, "📭 Дайджесттен бас тарттыңыз. Қайта қосу: /subscribe",
+                           reply_to=message_id)
 
     elif text.startswith("/leak"):
         base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
