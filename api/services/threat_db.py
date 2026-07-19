@@ -243,6 +243,6 @@ async def check_all_databases(url: str) -> list[dict]:
             ),
             timeout=5.0
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         results = []
     return [r for r in results if isinstance(r, dict)]

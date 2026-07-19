@@ -10,6 +10,7 @@ import logging
 from ..utils.http import get_client
 from .brand_protect import generate_typosquats
 from .domain_intel import _RDAP_BOOTSTRAP, _RDAP_FALLBACK
+from datetime import UTC
 
 logger = logging.getLogger("qalqan")
 
@@ -31,11 +32,11 @@ async def check_domain_registered(domain: str) -> dict | None:
             if res.status_code == 200:
                 age_days = None
                 try:
-                    from datetime import datetime, timezone
+                    from datetime import datetime
                     for ev in res.json().get("events", []):
                         if ev.get("eventAction") == "registration" and ev.get("eventDate"):
                             dt = datetime.fromisoformat(ev["eventDate"].replace("Z", "+00:00"))
-                            age_days = max((datetime.now(timezone.utc) - dt).days, 0)
+                            age_days = max((datetime.now(UTC) - dt).days, 0)
                             break
                 except Exception:
                     pass

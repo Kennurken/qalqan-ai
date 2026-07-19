@@ -3,7 +3,6 @@
 
 import os
 import re
-import httpx
 
 from .http import get_client
 

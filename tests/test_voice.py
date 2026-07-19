@@ -24,5 +24,5 @@ def test_kazakh_patterns():
 
 
 def test_voice_route_registered():
-    routes = {r.path for r in __import__("api.index", fromlist=["app"]).app.routes}
+    routes = {r.path for r in __import__("api.index", fromlist=["app"]).app.routes if hasattr(r, "path")}
     assert "/voice" in routes

@@ -3,7 +3,6 @@ import os
 import hashlib
 import json
 import logging
-import httpx
 
 from .http import get_client
 

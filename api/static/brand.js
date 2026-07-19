@@ -33,7 +33,7 @@ document.querySelectorAll('.ex b').forEach(b=>b.onclick=()=>scan(b.dataset.d));
 $('#livego').onclick=async()=>{
   const dom=$('#dom').value.trim(); if(!dom) return;
   const b=$('#livego'); b.disabled=true; b.textContent='Проверяем реестры...';
-  $('#liveres').innerHTML='<div class="spin">RDAP-запросы к доменным реестрам (до 15 сек)...</div>';
+  $('#liveres').innerHTML='<div class="spin">RDAP-запросы к доменным реестрам (до 15 сек)...</div><div class="skl" style="height:44px;margin-top:10px"></div><div class="skl" style="height:44px;margin-top:8px"></div>';
   try{
     const r=await fetch('/brand/live-scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
     if(r.status===429){ $('#liveres').innerHTML='<div class="spin"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Слишком часто — подождите минуту.</div>'; b.disabled=false; b.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций'; return; }

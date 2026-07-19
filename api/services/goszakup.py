@@ -3,12 +3,10 @@
 # API: goszakup.gov.kz (open data, no key required for basic queries)
 # Дүниежүзінде бірінші KZ government procurement fraud AI detector
 
-import asyncio
 import logging
-import httpx
 
 from ..utils.http import get_client
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, UTC
 from urllib.parse import urlparse
 
 logger = logging.getLogger("qalqan")
@@ -171,7 +169,7 @@ def _analyse_supplier(supplier: dict, region_stats: dict | None = None) -> list[
     if reg_date:
         try:
             dt = datetime.fromisoformat(str(reg_date).replace("Z", "+00:00"))
-            age_days = (datetime.now(timezone.utc) - dt).days
+            age_days = (datetime.now(UTC) - dt).days
             if age_days < _NEW_SUPPLIER_DAYS:
                 signals.append(FraudSignal(
                     "new_supplier", 25,

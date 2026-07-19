@@ -4,7 +4,6 @@
 
 import json
 import os
-import re
 from .threat_db import extract_domain
 
 _data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")

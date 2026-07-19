@@ -7,10 +7,8 @@ import ssl
 import socket
 import asyncio
 import ipaddress
-import httpx
 import logging
-from datetime import datetime, timezone
-from urllib.parse import urlparse
+from datetime import datetime, UTC
 
 from ..utils.http import get_client
 
@@ -273,7 +271,7 @@ async def _get_domain_age_rdap(domain: str) -> int | None:
 
             if reg_date:
                 dt = datetime.fromisoformat(reg_date.replace("Z", "+00:00"))
-                age = (datetime.now(timezone.utc) - dt).days
+                age = (datetime.now(UTC) - dt).days
                 return max(age, 0)
         except Exception as e:
             logger.debug(f"RDAP error ({rdap_url}): {e}")
@@ -306,7 +304,7 @@ def _check_ssl_cert(domain: str, pinned_ip: str | None = None) -> dict:
                 return {"status": "valid", "days_left": days_left, "issuer": org}
     except ssl.SSLCertVerificationError:
         return {"status": "self_signed"}
-    except (socket.timeout, ConnectionRefusedError, OSError):
+    except (TimeoutError, ConnectionRefusedError, OSError):
         return {"status": "no_ssl"}
     except Exception as e:
         logger.debug(f"SSL check error for {domain}: {e}")

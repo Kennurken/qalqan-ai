@@ -7,7 +7,6 @@ import os
 import re
 import json
 import logging
-import httpx
 
 from ..utils.http import get_client
 
@@ -228,7 +227,7 @@ async def _call_groq(system_prompt: str, user_content: str, fast: bool = False) 
         })
         if res.status_code == 429 and not fast:
             # 70b rate-limited → retry with 8b fast model
-            logger.warning(f"Groq 70b rate limited, falling back to 8b")
+            logger.warning("Groq 70b rate limited, falling back to 8b")
             return await _call_groq(system_prompt, user_content, fast=True)
         if res.status_code != 200:
             logger.warning(f"Groq API error: {res.status_code} {res.text[:200]}")
@@ -292,7 +291,7 @@ async def _call_gemini_vision(system_prompt: str, image_base64: str) -> dict | N
             return None
         data = res.json()
         if "candidates" not in data or not data["candidates"]:
-            logger.warning(f"Gemini Vision: no candidates in response")
+            logger.warning("Gemini Vision: no candidates in response")
             return None
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
         parsed = _parse_ai_json(raw_text)

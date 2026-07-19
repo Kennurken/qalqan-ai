@@ -1,7 +1,6 @@
 # Features round 7: brand monitoring, channel dedupe, email leak, batch UI, feed cron.
 import asyncio
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.index import app

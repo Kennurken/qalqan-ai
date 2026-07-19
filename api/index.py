@@ -14,8 +14,8 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML, BATCH_HTML, SCREEN_HTML
-from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML
+from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
@@ -29,9 +29,9 @@ from .services.goszakup import check_goszakup_url, analyse_procurement_data, is_
 from .services.url_features import extract_features
 from .services.explainer import generate_explanation
 from .services.scoring import calculate_final_verdict
-from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_rate_limit, check_health as redis_health
+from .utils.cache import url_hash, get_cached, set_cached, check_rate_limit, check_health as redis_health
 from .evaluation.benchmark import run_benchmark
-from .utils.telegram import send_appeal, send_report, notify_block, health_alert
+from .utils.telegram import send_appeal, send_report, notify_block, notify_channel, health_alert
 from .utils.i18n import t
 from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed, add_brand_watch as supabase_add_brand_watch, list_brand_watches as supabase_list_brand_watches, update_brand_watch_snapshot as supabase_update_brand_watch, list_digest_subs as supabase_list_digest_subs
 
@@ -100,6 +100,7 @@ app = FastAPI(title="Qalqan AI", version="5.1.0",
 
 # gzip large HTML/JSON responses (landing, dashboard, graph are 30KB+ each)
 from fastapi.middleware.gzip import GZipMiddleware
+from datetime import UTC
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # Static HTML shells — let the CDN serve them (data loads via AJAX, not cached)
@@ -318,7 +319,7 @@ class ScreenRequest(BaseModel):
         try:
             decoded = base64.b64decode(v[:64], validate=True)  # check header only (fast)
         except Exception:
-            raise ValueError("image_base64 must be valid base64")
+            raise ValueError("image_base64 must be valid base64") from None
         # Check image magic bytes (JPEG: FF D8, PNG: 89 50, GIF: 47 49, WEBP: 52 49)
         if not (decoded[:2] in (b'\xff\xd8', b'\x89P') or
                 decoded[:4] in (b'GIF8', b'RIFF') or
@@ -849,7 +850,7 @@ async def report_site(request: ReportRequest, req: Request, background_tasks: Ba
     if result["auto_blocked"]:
         logger.warning(f"AUTO-BLOCKED (crowd): {domain}")
         # Broadcast crowd-blocks to the public threat channel (deduped inside)
-        _defer(notify_channel, domain, "CROWD-BLOCKED", 100)
+        background_tasks.add_task(notify_channel, domain, "CROWD-BLOCKED", 100)
     return result
 
 
@@ -1010,10 +1011,6 @@ async def dashboard_page():
     return HTMLResponse(DASHBOARD_HTML, headers=_HTML_CACHE)
 
 
-@app.get("/app")
-async def mini_app():
-    """Telegram Mini App (Web App): URL checker + AI advisor + KZ threat map."""
-    return HTMLResponse(MINIAPP_HTML, headers=_HTML_CACHE)
 
 
 # --- Weekly Telegram report (cron: every Sunday 09:00 UTC) ---
@@ -1051,8 +1048,8 @@ async def telegram_weekly_report(req: Request):
         top_rep = trends.get("top_reported_domains", [])[:3]
         rep_lines = "\n".join(f"  • <code>{d['domain']}</code> ({d['reports']} хабарлама)" for d in top_rep) or "  —"
 
-        from datetime import datetime, timezone
-        week = datetime.now(timezone.utc).strftime("%d.%m.%Y")
+        from datetime import datetime
+        week = datetime.now(UTC).strftime("%d.%m.%Y")
         text = (
             f"📊 <b>Qalqan AI — Апталық есеп</b>\n"
             f"<i>{week} ұяты</i>\n\n"
@@ -1127,16 +1124,8 @@ async def mobile_app():
     return HTMLResponse(content=MOBILE_HTML, headers=_HTML_CACHE)
 
 
-@app.get("/leak")
-async def leak_check():
-    """Password-leak checker (HIBP k-anonymity; hash prefix only, client-side)."""
-    return HTMLResponse(LEAK_HTML, headers=_HTML_CACHE)
 
 
-@app.get("/help")
-async def help_resources():
-    """«Обманули — куда обращаться»: official KZ fraud/cyber helplines + action plan."""
-    return HTMLResponse(HELP_HTML, headers=_HTML_CACHE)
 
 
 class BrandRequest(BaseModel):
@@ -1213,10 +1202,6 @@ async def cron_brand_watch(req: Request):
     return {"watched": len(watches), "alerts": alerted}
 
 
-@app.get("/brand")
-async def brand_page():
-    """Brand-protection radar page."""
-    return HTMLResponse(BRAND_HTML, headers=_HTML_CACHE)
 
 
 @app.get("/scan/{domain}")
@@ -1244,22 +1229,10 @@ async def security_scan(domain: str, req: Request):
     return grade
 
 
-@app.get("/scan")
-async def scan_page():
-    """Security-grade scanner page."""
-    return HTMLResponse(SCAN_HTML, headers=_HTML_CACHE)
 
 
-@app.get("/impact")
-async def impact_page():
-    """Economic-effect calculator — prevented fraud loss in ₸ (ДЭР economic framing)."""
-    return HTMLResponse(IMPACT_HTML, headers=_HTML_CACHE)
 
 
-@app.get("/screen")
-async def screen_page():
-    """Screenshot analysis page — Groq/Gemini Vision reads the image and verdicts it."""
-    return HTMLResponse(SCREEN_HTML, headers=_HTML_CACHE)
 
 
 _BADGE_MEM: dict[str, tuple[str, float]] = {}   # domain → (svg, expires)
@@ -1336,10 +1309,6 @@ async def static_js(fname: str):
                   headers={"Cache-Control": "public, max-age=86400, immutable"})
 
 
-@app.get("/batch-check")
-async def batch_check_page():
-    """Bulk URL screening page (banks / regulators / corporate security)."""
-    return HTMLResponse(BATCH_HTML, headers=_HTML_CACHE)
 
 
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,24}$")
@@ -1384,6 +1353,9 @@ async def cron_refresh_feeds(req: Request):
     await load_threat_feeds()
     return {"ok": True, "feeds": feed_stats()}
 
+
+from .routers_pages import router as _pages_router  # noqa: E402
+app.include_router(_pages_router)
 
 _PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/leak", "/help",
                  "/brand", "/scan", "/impact", "/screen", "/batch-check", "/m", "/partners",
@@ -1909,8 +1881,8 @@ async def kz_threat_feed(format: str | None = None):
                 "# github.com/Kennurken/qalqan-ai\n")
         body += "\n".join(e["domain"] for e in feed["entries"])
         return PlainTextResponse(body)
-    from datetime import datetime, timezone
-    return {**feed, "generated_at": datetime.now(timezone.utc).isoformat()}
+    from datetime import datetime
+    return {**feed, "generated_at": datetime.now(UTC).isoformat()}
 
 
 @app.get("/feed/federated")

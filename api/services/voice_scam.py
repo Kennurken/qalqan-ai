@@ -5,7 +5,6 @@
 import os
 import re
 import logging
-import httpx
 
 from ..utils.http import get_client
 

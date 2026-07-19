@@ -15,7 +15,7 @@ _registry: list[dict] | None = None
 # Legal-form / generic tokens stripped before matching (ТОО «Финико» == Финико)
 _LEGAL_FORMS = {
     "тоо", "жшс", "ип", "ооо", "оао", "зао", "ао", "пао", "llp", "llc", "ltd",
-    "inc", "corp", "co", "group", "групп", "групп", "invest", "инвест", "company",
+    "inc", "corp", "co", "group", "групп", "invest", "инвест", "company",
     "компания", "холдинг", "holding", "trade", "трейд", "capital", "капитал", "ag",
 }
 

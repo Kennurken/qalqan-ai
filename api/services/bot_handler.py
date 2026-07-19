@@ -9,7 +9,7 @@ import asyncio
 import httpx
 
 from ..utils.http import get_client
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 logger = logging.getLogger("qalqan")
 
@@ -294,7 +294,7 @@ def format_result(url: str, result: dict, lang: str = "kk") -> str:
     if verdict == "SAFE":
         lines = [
             f"{emoji} <b>ҚАУІПСІЗ</b>",
-            f"",
+            "",
             f"🌐 <code>{_esc(url[:80])}</code>",
             f"📊 Қауіп деңгейі: {score}/100 {score_bar}",
             f"🔍 Тексерді: <i>{_esc(source)}</i>",
@@ -302,26 +302,26 @@ def format_result(url: str, result: dict, lang: str = "kk") -> str:
     else:
         lines = [
             f"{emoji} <b>{'ҚАУІПТІ' if verdict == 'DANGEROUS' else 'КҮДІКТІ'}</b>",
-            f"",
+            "",
             f"🌐 <code>{_esc(url[:80])}</code>",
             f"📊 Қауіп деңгейі: <b>{score}/100</b> {score_bar}",
         ]
         if threat_label:
             lines.append(f"⚠️ Қауіп түрі: <b>{_esc(threat_label)}</b>")
         if reason:
-            lines.append(f"")
+            lines.append("")
             lines.append(f"📋 <i>{_esc(reason[:300])}</i>")
         lines += [
-            f"",
+            "",
             f"🔍 Дерек көзі: <i>{_esc(source)}</i>",
-            f"",
-            f"🛡️ <b>Бұл сайтқа кіруді ұсынбаймыз!</b>",
+            "",
+            "🛡️ <b>Бұл сайтқа кіруді ұсынбаймыз!</b>",
         ]
         if verdict == "DANGEROUS":
             base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
             lines.append(f"🆘 Ақшаңыз кетті ме? → <a href='{base}/help'>Не істеу керек</a> · ☎️ 1477")
 
-    lines.append(f"\n<i>Qalqan AI · qalqan-ai-nu.vercel.app</i>")
+    lines.append("\n<i>Qalqan AI · qalqan-ai-nu.vercel.app</i>")
     return "\n".join(lines)
 
 
@@ -359,29 +359,29 @@ async def handle_start(chat_id: int, first_name: str = ""):
 
 async def handle_help(chat_id: int):
     text = (
-        f"🛡️ <b>Qalqan AI — Нұсқаулық</b>\n\n"
-        f"<b>Командалар:</b>\n"
-        f"  /check kaspi-support.kz — URL тексеру\n"
-        f"  /phone +77771234567 — телефон нөмірін тексеру\n"
-        f"  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
-        f"  /pyramid Финико — қаржы пирамидасын атау бойынша тексеру (АФМ/АРРФР)\n"
-        f"  /ask Каспиден қоңырау, кодты сұрап жатыр — жағдайды сөзбен сипаттап, AI-кеңес ал\n"
-        f"  /deepfake — AI-дауыс/видео (deepfake) алаяқтығынан қорғану кеңесі\n"
-        f"  /tender 12345678 — тендер алаяқтығын тексеру\n"
-        f"  /report scam-site.kz — алаяқтықты хабарлау\n"
-        f"  /stats — бүгінгі қорғаныс статистикасы\n\n"
-        f"<b>Автоматты тексеру:</b>\n"
-        f"  Кез-келген URL жіберіңіз — бот автоматты тексереді\n"
-        f"  🎙 Дауыстық хабарлама/қоңырау жазбасын жіберіңіз — алаяқтық қоңырауды анықтаймыз\n\n"
-        f"<b>Inline режим:</b>\n"
-        f"  @QalqanAI_bot URL — кез-келген чатта тексеріңіз\n\n"
-        f"<b>Анықталатын қауіптер:</b>\n"
-        f"  🔴 Фишинг — Kaspi/eGov/Halyk жалған сайттар\n"
-        f"  🔴 Қаржылық пирамидалар\n"
-        f"  🟡 Gambling / ойын автоматтары\n"
-        f"  🟡 Күдікті SMS хабарламалар\n"
-        f"  🟡 Алаяқтық телефон нөмірлері\n\n"
-        f"<i>7-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
+        "🛡️ <b>Qalqan AI — Нұсқаулық</b>\n\n"
+        "<b>Командалар:</b>\n"
+        "  /check kaspi-support.kz — URL тексеру\n"
+        "  /phone +77771234567 — телефон нөмірін тексеру\n"
+        "  /sms Сіздің шотыңыз бұғатталды... — SMS тексеру\n"
+        "  /pyramid Финико — қаржы пирамидасын атау бойынша тексеру (АФМ/АРРФР)\n"
+        "  /ask Каспиден қоңырау, кодты сұрап жатыр — жағдайды сөзбен сипаттап, AI-кеңес ал\n"
+        "  /deepfake — AI-дауыс/видео (deepfake) алаяқтығынан қорғану кеңесі\n"
+        "  /tender 12345678 — тендер алаяқтығын тексеру\n"
+        "  /report scam-site.kz — алаяқтықты хабарлау\n"
+        "  /stats — бүгінгі қорғаныс статистикасы\n\n"
+        "<b>Автоматты тексеру:</b>\n"
+        "  Кез-келген URL жіберіңіз — бот автоматты тексереді\n"
+        "  🎙 Дауыстық хабарлама/қоңырау жазбасын жіберіңіз — алаяқтық қоңырауды анықтаймыз\n\n"
+        "<b>Inline режим:</b>\n"
+        "  @QalqanAI_bot URL — кез-келген чатта тексеріңіз\n\n"
+        "<b>Анықталатын қауіптер:</b>\n"
+        "  🔴 Фишинг — Kaspi/eGov/Halyk жалған сайттар\n"
+        "  🔴 Қаржылық пирамидалар\n"
+        "  🟡 Gambling / ойын автоматтары\n"
+        "  🟡 Күдікті SMS хабарламалар\n"
+        "  🟡 Алаяқтық телефон нөмірлері\n\n"
+        "<i>7-деңгейлі AI pipeline · Верификацияланған KZ дерекқор</i>"
     )
     await send_message(chat_id, text)
 
@@ -556,7 +556,7 @@ async def handle_stats(chat_id: int):
         safe    = dist.get("SAFE", 0)
         reports = data.get("total_reports", 0)
         top_rep = data.get("top_reported_domains", [])[:3]
-        today   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today   = datetime.now(UTC).strftime("%Y-%m-%d")
 
         rep_lines = "\n".join(
             f"  • <code>{_esc(d.get('domain',''))}</code> ({d.get('reports',0)})"
@@ -596,7 +596,7 @@ async def handle_tender_check(chat_id: int, tender_number: str, message_id: int 
 
         lines = [
             f"{emoji} <b>ТЕНДЕР #{_esc(tender_number)}</b>",
-            f"",
+            "",
             f"📊 Алаяқтық деңгейі: <b>{score}/100</b> {_score_bar(score)}",
             f"⚖️ Вердикт: <b>{'АЛАЯҚТЫҚ' if verdict == 'DANGEROUS' else 'КҮДІКТІ' if verdict == 'SUSPICIOUS' else 'ҚАЛЫПТЫ'}</b>",
         ]
@@ -608,7 +608,7 @@ async def handle_tender_check(chat_id: int, tender_number: str, message_id: int 
             lines.append("")
             lines.append("✅ Алаяқтық белгілері анықталмады")
 
-        lines.append(f"\n<i>Qalqan AI · Госзакупки Fraud Detector</i>")
+        lines.append("\n<i>Qalqan AI · Госзакупки Fraud Detector</i>")
         await send_message(chat_id, "\n".join(lines), reply_to=message_id)
     except Exception as e:
         logger.error(f"Tender check error {tender_number}: {e}")

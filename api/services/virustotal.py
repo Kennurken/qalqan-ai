@@ -3,9 +3,7 @@
 # URL scan via v3 API
 
 import os
-import hashlib
 import base64
-import httpx
 
 from ..utils.http import get_client
 import logging

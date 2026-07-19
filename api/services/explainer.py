@@ -207,7 +207,6 @@ _FACTOR_NAMES = {
         "database_hit_urlhaus": "URLhaus базасында жоқ",
         "not_in_threat_databases": "қауіп базаларында жоқ",
         "trusted_domain": "сенімді домен",
-        "gambling_blacklist": "құмар сайттар базасында жоқ",
     },
     "ru": {
         "domain_age": "возраст домена > 365 дней",
@@ -240,7 +239,6 @@ _FACTOR_NAMES = {
         "database_hit_urlhaus": "нет в базе URLhaus",
         "not_in_threat_databases": "нет в базах угроз",
         "trusted_domain": "доверенный домен",
-        "gambling_blacklist": "нет в базе азартных сайтов",
     },
     "en": {
         "domain_age": "domain age > 365 days",

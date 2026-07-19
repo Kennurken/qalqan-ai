@@ -3,7 +3,7 @@
 # founder ↔ address ↔ official. Detects affiliation, collusion, cartels —
 # the economic-threat core (ДЭР). Pure Python (no networkx dependency).
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 # Node type → display color (consumed by the graph viz)
 NODE_COLORS = {
@@ -20,8 +20,8 @@ def _days_ago(date_str) -> int | None:
     try:
         dt = datetime.fromisoformat(str(date_str).replace("Z", "+00:00"))
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return (datetime.now(timezone.utc) - dt).days
+            dt = dt.replace(tzinfo=UTC)
+        return (datetime.now(UTC) - dt).days
     except Exception:
         return None
 

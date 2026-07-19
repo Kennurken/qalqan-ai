@@ -22,7 +22,31 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r api/requirements.txt
-          pip install pytest
+          pip install pytest ruff
+
+      - name: Lint (ruff)
+        run: ruff check api/ tests/
 
       - name: Run tests
         run: pytest -q
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+          pip install pytest playwright pytest-playwright uvicorn
+          playwright install chromium --with-deps
+
+      - name: Run E2E flows
+        run: pytest tests_e2e/ -q --no-header

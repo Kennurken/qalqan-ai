@@ -1,0 +1,17 @@
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "B", "UP"]
+ignore = [
+  "E501",   # long lines — templates/strings
+  "E402",   # late imports are deliberate (lazy deps on serverless cold start)
+  "B008",   # FastAPI Depends() in defaults
+  "UP015",  # open() mode "r"
+  "E701", "E702",  # compact one-line style used across the codebase
+  "B905",   # zip strict — py3.9-compatible call sites in report generator
+]
+
+[lint.per-file-ignores]
+"api/templates/*" = ["ALL"]
+"api/services/threat_report.py" = ["F841"]  # unused palette consts document the report style

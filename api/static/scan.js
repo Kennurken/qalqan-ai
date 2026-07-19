@@ -3,7 +3,7 @@ async function scan(dom){
   dom=(dom||$('#dom').value).trim().replace(/^https?:\/\//,'').replace(/\/.*$/,''); if(!dom) return;
   $('#dom').value=dom;
   const btn=$('#go'); btn.disabled=true; btn.textContent='...';
-  $('#card').className='card'; $('#status').innerHTML='<div class="spin">Анализируем '+dom+' (SSL, домен, репутация)...</div>';
+  $('#card').className='card'; $('#status').innerHTML='<div class="spin">Анализируем '+dom+' (SSL, домен, репутация)...</div><div class="skl" style="height:64px;margin-top:10px"></div><div class="skl" style="height:14px;margin-top:8px;width:70%"></div><div class="skl" style="height:14px;margin-top:6px;width:55%"></div>';
   try{
     const r=await fetch('/scan/'+encodeURIComponent(dom));
     if(!r.ok) throw new Error('http '+r.status);

@@ -5,7 +5,7 @@ Entry point: generate_report(stats_dict) -> bytes (PDF)
 """
 import io
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import Any
 
 logger = logging.getLogger("qalqan")
@@ -117,7 +117,7 @@ def _make_pie_chart(data: dict[str, float], title: str,
         at.set_fontsize(9)
 
     ax.legend(
-        wedges, [f"{l}  ({v:.1f}%)" for l, v in zip(labels, values)],
+        wedges, [f"{lbl}  ({v:.1f}%)" for lbl, v in zip(labels, values)],
         loc="center left", bbox_to_anchor=(-0.05, 0.5),
         fontsize=8, framealpha=0,
         labelcolor=_LGRAY,
@@ -137,7 +137,6 @@ def _make_bar_chart(data: dict[str, int | float], title: str,
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    import numpy as np
 
     fig, ax = plt.subplots(figsize=size, facecolor=_DARK_BG)
     ax.set_facecolor(_CARD)
@@ -177,11 +176,11 @@ def _make_bar_chart(data: dict[str, int | float], title: str,
 def generate_report(stats: dict | None = None) -> bytes:
     """Generate KZ Cyber Threat Landscape PDF report. Returns PDF bytes."""
     from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import mm, cm
-    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.lib.units import mm
+    from reportlab.lib.colors import HexColor
     from reportlab.platypus import (
         SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-        Image as RLImage, HRFlowable, KeepTogether,
+        Image as RLImage, HRFlowable,
     )
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
@@ -545,7 +544,7 @@ def generate_report(stats: dict | None = None) -> bytes:
 
     # ─── Footer / Disclaimer ──────────────────────────────────────────────────
     hr(C_BORDER)
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     story.append(Paragraph(
         f"Generated: {now}  ·  Qalqan AI v5.1  ·  qalqan.kz  "
         f"·  Source: Qalqan detection pipeline + goszakup.gov.kz open data  "

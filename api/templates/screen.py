@@ -12,6 +12,9 @@ SCREEN_HTML = """<!DOCTYPE html>
 :root{--bg:oklch(16% .02 255);--card:oklch(21.5% .025 260);--card2:oklch(19% .028 258);--cyan:oklch(72% .12 265);--red:oklch(70% .15 15);--amber:oklch(78% .11 78);--green:oklch(80% .13 130);--tx:oklch(93% .01 250);--mut:oklch(63% .02 250);--bd:oklch(30% .03 258);--panel:var(--card);--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:36px}
 [data-theme="light"]{--bg:oklch(96.5% .006 250);--card:oklch(99.2% .003 250);--card2:oklch(94.5% .008 250);--cyan:oklch(50% .15 262);--red:oklch(54% .17 18);--amber:oklch(58% .12 78);--green:oklch(52% .12 140);--tx:oklch(26% .02 255);--mut:oklch(48% .02 250);--bd:oklch(87% .012 250)}
 [data-theme="light"] body{background:var(--bg)}
+.skl{position:relative;overflow:hidden;background:var(--card2);border-radius:8px;min-height:14px}
+.skl::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,oklch(100% 0 0/.07),transparent);animation:sklsh 1.1s infinite}
+@keyframes sklsh{to{transform:translateX(100%)}}
 .qtgl{background:var(--card2);border:1px solid var(--bd);border-radius:9px;color:var(--mut);cursor:pointer;padding:7px 9px;line-height:0;transition:color .2s,border-color .2s}
 .qtgl:hover{color:var(--tx);border-color:var(--cyan)}
 .qtgl .sun{display:none}.qtgl .moon{display:block}
