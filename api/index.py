@@ -1317,6 +1317,25 @@ async def qalqan_badge(domain: str, req: Request):
         return _R(_badge_svg("Qalqan", "?", "#7d8aa0"), media_type="image/svg+xml")
 
 
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+_STATIC_RE = re.compile(r"^[a-z_]+\.js$")
+
+
+@app.get("/static/{fname}")
+async def static_js(fname: str):
+    """Page scripts extracted from templates (H1.8). Whitelisted names only;
+    cache long — the ?v= commit-sha token busts on deploy."""
+    from fastapi.responses import Response as _R
+    if not _STATIC_RE.match(fname):
+        return JSONResponse(status_code=404, content={"error": "not found"})
+    path = os.path.join(_STATIC_DIR, fname)
+    if not os.path.isfile(path):
+        return JSONResponse(status_code=404, content={"error": "not found"})
+    with open(path, encoding="utf-8") as f:
+        return _R(f.read(), media_type="text/javascript; charset=utf-8",
+                  headers={"Cache-Control": "public, max-age=86400, immutable"})
+
+
 @app.get("/batch-check")
 async def batch_check_page():
     """Bulk URL screening page (banks / regulators / corporate security)."""

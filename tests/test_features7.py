@@ -74,6 +74,7 @@ def test_leak_page_has_email_tab():
     t = client.get("/leak").text
     assert "card-em" in t
     assert "XposedOrNot" in t
+    assert '/static/leak.js' in t
 
 
 # --- Batch page ---
@@ -92,14 +93,15 @@ def test_landing_has_advisor_and_qr():
     t = client.get("/", headers={"accept": "text/html"}).text
     assert "advPanel" in t          # advisor chat widget
     assert "qrBtn" in t             # QR check button
-    assert "BarcodeDetector" in t   # native decoder path
+    js = client.get("/static/landing.js").text
+    assert "BarcodeDetector" in js  # native decoder path
 
 
 def test_brand_page_has_live_scan():
     t = client.get("/brand").text
     assert "livego" in t
-    assert "/brand/live-scan" in t
     assert "watchgo" in t
+    assert "/brand/live-scan" in client.get("/static/brand.js").text
 
 
 # --- Round 8: screen page, badge, quiz removal, phone crowd ---
@@ -107,7 +109,8 @@ def test_brand_page_has_live_scan():
 def test_screen_page():
     r = client.get("/screen")
     assert r.status_code == 200
-    assert "analyze-screen" in r.text
+    assert "/static/screen.js" in r.text
+    assert "analyze-screen" in client.get("/static/screen.js").text
     assert "/screen" in client.get("/sitemap.xml").text
 
 
@@ -126,14 +129,21 @@ def test_quiz_removed():
 
 
 def test_leak_has_generator():
-    t = client.get("/leak").text
-    assert "genout" in t
-    assert "getRandomValues" in t
+    assert "genout" in client.get("/leak").text
+    assert "getRandomValues" in client.get("/static/leak.js").text
 
 
 def test_landing_check_deeplink():
-    t = client.get("/", headers={"accept": "text/html"}).text
-    assert "URLSearchParams" in t and "'check'" in t
+    js = client.get("/static/landing.js").text
+    assert "URLSearchParams" in js and "'check'" in js
+
+
+def test_static_route_hardened():
+    assert client.get("/static/../index.py").status_code in (404, 422)
+    assert client.get("/static/nope.js").status_code == 404
+    r = client.get("/static/landing.js")
+    assert r.status_code == 200
+    assert "javascript" in r.headers["content-type"]
 
 
 def test_partners_badge_docs():

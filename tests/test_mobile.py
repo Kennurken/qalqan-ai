@@ -9,7 +9,7 @@ client = TestClient(m.app)
 def test_mobile_app_shell():
     r = client.get("/m")
     assert r.status_code == 200
-    assert "serviceWorker" in r.text          # SW registration present
+    assert "serviceWorker" in client.get("/static/mobile.js").text or "serviceWorker" in r.text          # SW registration present
     assert "manifest.webmanifest" in r.text
     assert r.text.count("data-t=") == 4        # 4 bottom-nav tabs
 

@@ -44,7 +44,7 @@ def test_kz_regions_geometry():
 def test_leak_page_renders():
     r = client.get("/leak")
     assert r.status_code == 200
-    assert "pwnedpasswords.com" in r.text
+    assert "pwnedpasswords.com" in client.get("/static/leak.js").text
     assert "SHA-1" in r.text
 
 
@@ -118,7 +118,7 @@ def test_impact_calculator_page():
     r = client.get("/impact")
     assert r.status_code == 200
     assert "16,4 млрд" in r.text            # KZ 2025 fraud stat
-    assert "applyLang" in r.text            # kk/ru toggle wired
+    assert "applyLang" in client.get("/static/impact.js").text   # kk/ru toggle wired
     assert "/impact" in client.get("/sitemap.xml").text
 
 
