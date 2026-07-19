@@ -46,7 +46,7 @@ LANDING_HTML = """<!DOCTYPE html>
   --ease:cubic-bezier(.16,1,.3,1);
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
+body{background:var(--bg);color:var(--text);overflow-x:clip;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 .aurora{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(1200px 800px at 50% -10%, #101725 0%, var(--bg) 60%)}
@@ -79,16 +79,18 @@ nav{position:fixed;top:14px;left:0;right:0;z-index:50}
 .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:26px}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(158,206,106,.18)}
 h1{font-size:clamp(40px,7vw,76px);font-weight:800;line-height:1.04;letter-spacing:-.035em;margin-bottom:22px}
-h1 .grad{background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3),var(--accent2));background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 7s linear infinite}
+h1 .grad{color:var(--accent)}
 @keyframes shimmer{to{background-position:220% center}}
 .lead{font-size:clamp(16px,2.2vw,20px);color:var(--text2);max-width:620px;margin:0 auto 38px;line-height:1.6}
 .checker{max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;display:flex;gap:9px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);transition:border-color .3s var(--ease)}
 .checker:focus-within{border-color:var(--border2)}
-.checker input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:15.5px;padding:13px 16px;font-family:inherit}
+.checker input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-size:15.5px;padding:13px 16px;font-family:inherit}
 .checker input::placeholder{color:var(--muted)}
 .checker button{background:linear-gradient(135deg,var(--accent),#5b87e8);color:#06101f;border:none;font-weight:700;font-size:14.5px;padding:0 24px;border-radius:12px;cursor:pointer;font-family:inherit;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
 .checker button:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(122,162,247,.35)}
 .checker button:disabled{opacity:.6;cursor:default;transform:none}
+@media(max-width:430px){nav .logo{font-size:15px}nav{gap:8px}.checker{gap:6px;padding:8px}.checker button{padding:0 14px;font-size:13.5px}.checker input{padding:11px 10px;font-size:14px}.checker #qrBtn{padding:0 10px}}
+
 .result{max-width:560px;margin:16px auto 0;border-radius:14px;border:1px solid var(--border);padding:16px 18px;text-align:left;display:none;animation:rise .5s var(--ease)}
 .result.show{display:block}
 .result.DANGEROUS{border-color:rgba(247,118,142,.4);background:rgba(247,118,142,.06)}
@@ -158,7 +160,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .lang button{background:none;border:none;color:var(--muted);font-family:inherit;font-weight:600;font-size:12px;padding:8px 9px;cursor:pointer;transition:.2s var(--ease)}
 .lang button.on{background:var(--accent);color:#06101f}
 .lang button:hover:not(.on){color:var(--text)}
-@media(max-width:560px){.lang{display:none}}
+@media(max-width:560px){.lang button{padding:8px 7px;font-size:11px}}
 [data-theme="light"]{--bg:#f5f7fc;--surface:rgba(10,16,30,.035);--surface2:rgba(10,16,30,.06);--border:rgba(10,16,30,.1);--border2:rgba(10,16,30,.2);--text:#0f1828;--text2:#48566c;--muted:#8693a8;--accent:#4f72d6;--accent2:#1fa896;--accent3:#8b5cf6;--soft:rgba(79,114,214,.1)}
 [data-theme="light"] .aurora{background:radial-gradient(1200px 800px at 50% -10%, #e7edfb 0%, var(--bg) 60%)}
 [data-theme="light"] .blob{opacity:.3}
@@ -198,6 +200,11 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .checker #qrBtn{border:1px solid var(--bd,#1e293b);background:transparent;color:inherit;border-radius:12px;padding:0 14px;font-size:18px;cursor:pointer}
 .checker #qrBtn:hover{border-color:#7aa2f7}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -655,6 +662,11 @@ F.addEventListener('change',async()=>{
 .advIn button{border:none;border-radius:10px;background:#7aa2f7;color:#04121a;font-weight:700;padding:0 14px;cursor:pointer}
 .advHint{font-size:11px;color:var(--mut,#7d8aa0);padding:0 12px 10px}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 <button id="advBtn" aria-label="AI-советник"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg></button>
 <div id="advPanel">
@@ -707,6 +719,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Панель регулятора</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -720,6 +733,7 @@ h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
 .sub{color:var(--mut);font-size:13px;margin-bottom:20px}
 .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--bd)}
 .badge.live{color:var(--green);border-color:#14532d;background:#052e16}
+#src:empty{display:none}
 .badge.demo{color:var(--amber);border-color:#713f12;background:#1f1505}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
 .kpi{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px}
@@ -753,12 +767,17 @@ td.n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 @keyframes shmr{0%{background-position:100% 0}100%{background-position:-100% 0}}
 @media(prefers-reduced-motion:reduce){.skel{animation:none}}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
 <div class="top">
   <div>
-    <h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Панель регулятора <span id="src" class="badge demo">—</span></h1>
+    <h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Панель регулятора <span id="src" class="badge demo"></span></h1>
     <div class="sub">Qalqan AI · Мониторинг кибер-экономических угроз Республики Казахстан</div>
   </div>
   <div><a href="/">← На главную</a> &nbsp; <a href="/dashboard/data">JSON API</a></div>
@@ -913,7 +932,8 @@ fetch('/dashboard/data'+location.search).then(r=>r.json()).then(d=>{
 
 INSTALL_HTML = """<!DOCTYPE html>
 <html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Орнату / Установка</title>
 <meta property="og:title" content="Qalqan AI — Установить расширение">
 <meta property="og:description" content="Пошаговая инструкция установки Qalqan AI в Chrome и Firefox">
@@ -942,6 +962,11 @@ code{background:#131d35;border:1px solid #1e2d4a;border-radius:4px;padding:2px 7
 .warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#e0af68;margin:16px 0}
 .note{background:rgba(122,162,247,.06);border:1px solid rgba(122,162,247,.15);border-radius:8px;padding:12px 16px;font-size:13px;color:#94a3b8;margin:16px 0}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style></head>
 <body>
 <div class="navbar">
@@ -1043,6 +1068,7 @@ MINIAPP_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Qalqan AI</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -1079,6 +1105,11 @@ textarea{min-height:84px;resize:vertical}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{font-size:11px;color:var(--mut);text-transform:uppercase}
 .spin{text-align:center;color:var(--mut);padding:14px;font-size:13px}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -1091,7 +1122,7 @@ textarea{min-height:84px;resize:vertical}
 </div>
 
 <div class="panel on" id="p-check">
-  <input id="url" placeholder="kaspi-bonus.kz немесе https://..." autocapitalize="off" autocomplete="off">
+  <input id="url" aria-label="URL тексеру" placeholder="kaspi-bonus.kz немесе https://..." autocapitalize="off" autocomplete="off">
   <button class="btn" id="btn-check">Тексеру</button>
   <button class="btn btn-qr" id="btn-qr" style="display:none"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> QR-код сканерлеу</button>
   <div class="hint">Сілтемені қой немесе QR-кодты сканерле — фишинг, клон, гемблингті тексеремін. Жалған Kaspi QR — жиі алаяқтық!</div>
@@ -1237,7 +1268,8 @@ async function loadMap(){
 
 GRAPH_HTML = """<!DOCTYPE html>
 <html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Граф госзакупок</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1261,6 +1293,11 @@ svg{width:100%;height:auto;background:#0d1424;border-radius:10px}
 .foot{color:var(--mut);font-size:12px;margin-top:20px;text-align:center}
 @media(max-width:860px){.wrap{grid-template-columns:1fr}}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style></head><body>
 <div class="top">
   <div><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.5" r="2.5"/><path d="m10.2 6.3-3.9 3.9"/><circle cx="4.5" cy="12" r="2.5"/><path d="M7 12h10"/><circle cx="19.5" cy="12" r="2.5"/><path d="m13.8 17.7 3.9-3.9"/><circle cx="12" cy="19.5" r="2.5"/></svg> Граф госзакупок — аффилированность и сговор</h1>
@@ -1316,6 +1353,7 @@ MOBILE_HTML = """<!DOCTYPE html>
 <html lang="kk">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Qalqan AI</title>
 <meta name="theme-color" content="#0a0e16">
@@ -1363,6 +1401,11 @@ nav button.on{color:var(--cyan)} nav button svg{width:22px;height:22px;stroke:cu
 .spin{display:inline-block;width:16px;height:16px;border:2px solid #06121a;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-3px}
 @keyframes s{to{transform:rotate(360deg)}}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style></head>
 <body>
 <header>
@@ -1530,7 +1573,8 @@ self.addEventListener('fetch',e=>{
 # ── Partner (B2G) API docs page ──────────────────────────────────────────────
 PARTNERS_HTML = """<!DOCTYPE html>
 <html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Партнёрский API (B2G)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1552,6 +1596,11 @@ pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14p
 .tag{display:inline-block;font-size:11px;font-weight:700;color:#06121a;background:var(--cyan);padding:3px 9px;border-radius:999px}
 .foot{color:var(--mut);font-size:12px;margin-top:30px;text-align:center}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style></head><body>
 <h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI — Партнёрский API <span class="tag">B2G</span></h1>
 <div class="sub">Для банков, Антифрод-центра Нацбанка, KZ-CERT, АФМ. Проверка угроз в реальном времени.</div>
@@ -1627,6 +1676,11 @@ p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
 .links{margin-top:22px;font-size:14px;color:#6f7a8f}.links a{color:#7aa2f7;text-decoration:none;margin:0 9px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style></head>
 <body>
 <div class="bg"></div>
@@ -1644,6 +1698,7 @@ LEAK_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Проверка утечки пароля</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1682,6 +1737,11 @@ input:focus{border-color:var(--cyan)}
 .tabb{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:10px;color:var(--mut);font-family:inherit;font-size:13.5px;font-weight:700;padding:10px;cursor:pointer}
 .tabb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -1696,7 +1756,7 @@ input:focus{border-color:var(--cyan)}
 
   <div class="card" id="card-pw">
     <div class="inrow">
-      <input id="pw" type="password" placeholder="Введите пароль для проверки" autocomplete="off">
+      <input id="pw" type="password" aria-label="Пароль для проверки" placeholder="Введите пароль для проверки" autocomplete="off">
       <button class="eye" id="eye" aria-label="Показать пароль"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
     </div>
     <button class="btn" id="go">Проверить утечку</button>
@@ -1710,7 +1770,7 @@ input:focus{border-color:var(--cyan)}
 
     <div class="card" id="card-em" style="display:none">
     <div class="inrow">
-      <input id="em" type="email" placeholder="you@example.com" autocomplete="off">
+      <input id="em" type="email" aria-label="Email для проверки" placeholder="you@example.com" autocomplete="off">
     </div>
     <button class="btn" id="goem">Проверить email</button>
     <div class="priv">
@@ -1723,12 +1783,12 @@ input:focus{border-color:var(--cyan)}
   <div class="card" style="margin-top:14px">
     <div style="font-weight:700;font-size:14px;margin-bottom:10px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Генератор надёжных паролей</div>
     <div class="inrow">
-      <input id="genout" type="text" readonly placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
+      <input id="genout" type="text" readonly aria-label="Сгенерированный пароль" placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
       <button class="eye" id="gencopy" aria-label="Скопировать"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
     </div>
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--mut)">
       <label><input type="checkbox" id="gensym" checked> символы</label>
-      <label>длина <select id="genlen"><option>16</option><option>20</option><option selected>24</option><option>32</option></select></label>
+      <label>длина <select id="genlen" aria-label="Длина пароля"><option>16</option><option>20</option><option selected>24</option><option>32</option></select></label>
     </div>
     <button class="btn" id="gengo" style="margin-top:12px">Сгенерировать</button>
     <div class="priv" style="margin-top:10px"><span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Генерируется в браузере (crypto.getRandomValues), никуда не отправляется.</span></div>
@@ -1838,6 +1898,7 @@ HELP_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Обманули? Куда обращаться</title>
 <meta name="description" content="Официальные контакты Казахстана при мошенничестве: Нацбанк 1477, Антифрод-центр, KZ-CERT, АФМ, полиция 102. Пошаговый план действий.">
@@ -1870,6 +1931,11 @@ h1{font-size:24px;font-weight:800;line-height:1.2}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:26px;line-height:1.7}
 .foot a{color:var(--cyan);text-decoration:none}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -1944,6 +2010,7 @@ BRAND_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Защита бренда от фишинга</title>
 <meta name="description" content="Radar фишинговых доменов-двойников вашего бренда: гомоглифы, бесплатные TLD, приманки. Для банков, госорганов, бизнеса Казахстана.">
@@ -1959,6 +2026,8 @@ h1{font-size:23px;font-weight:800;line-height:1.2}
 .sub{color:var(--mut);font-size:13.5px;margin:8px 0 20px;line-height:1.6}
 .b2b{display:inline-block;font-size:11px;font-weight:700;color:var(--cyan);border:1px solid var(--cyan);border-radius:6px;padding:2px 8px;margin-bottom:12px}
 .inrow{display:flex;gap:8px}
+.inrow input{min-width:0}
+@media(max-width:430px){.inrow{flex-direction:column}.inrow .btn{width:100%}}
 input{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:14px;color:var(--tx);font-size:16px;outline:none;font-family:inherit}
 input:focus{border-color:var(--cyan)}
 .btn{background:linear-gradient(90deg,#0891b2,var(--cyan));color:#04121a;border:none;border-radius:12px;padding:0 22px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
@@ -1988,6 +2057,11 @@ input:focus{border-color:var(--cyan)}
 .liveok{background:rgba(158,206,106,.1);border:1px solid rgba(158,206,106,.3);border-radius:10px;padding:12px;font-size:13.5px;color:var(--green,#9ece6a)}
 .livebad{color:var(--red,#f7768e);font-weight:700;font-size:14px;margin-bottom:8px}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -1997,7 +2071,7 @@ input:focus{border-color:var(--cyan)}
   <div class="sub">Брендіңіздің фишингтік домен-егіздерін табыңыз. · Введите домен вашего бренда — покажем домены-двойники, которые регистрируют мошенники, чтобы красть у ваших клиентов.</div>
 
   <div class="inrow">
-    <input id="dom" placeholder="kaspi.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <input id="dom" aria-label="Домен бренда" placeholder="kaspi.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
     <button class="btn" id="go">Сканировать</button>
   </div>
   <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="halykbank.kz">halykbank.kz</b> · <b data-d="egov.kz">egov.kz</b></div>
@@ -2008,8 +2082,8 @@ input:focus{border-color:var(--cyan)}
   <div class="advice" id="advice"></div>
   <div id="liveblock" style="display:none;margin-top:14px">
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn" id="livego" style="flex:1;min-width:220px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
-      <button class="btn" id="watchgo" style="flex:1;min-width:200px;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
+      <button class="btn" id="livego" style="flex:1 1 100%;min-width:0"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
+      <button class="btn" id="watchgo" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
     </div>
     <div id="liveres" style="margin-top:12px"></div>
   </div>
@@ -2088,6 +2162,7 @@ SCAN_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Оценка безопасности сайта</title>
 <meta name="description" content="Оценка безопасности любого сайта от A+ до F: HTTPS/SSL, возраст домена, репутация, гомоглифы, инфраструктура. Бесплатно.">
@@ -2123,6 +2198,11 @@ input:focus{border-color:var(--cyan)}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
 .disc{color:var(--mut);font-size:11px;text-align:center;padding:0 18px 16px}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -2131,7 +2211,7 @@ input:focus{border-color:var(--cyan)}
   <div class="sub">Сайттың қауіпсіздік бағасы: A+ ден F дейін. · Комплексная оценка любого сайта: HTTPS/SSL, возраст домена, репутация, гомоглифы, хостинг.</div>
 
   <div class="inrow">
-    <input id="dom" placeholder="example.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <input id="dom" aria-label="Домен сайта" placeholder="example.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
     <button class="btn" id="go">Оценить</button>
   </div>
   <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="1xbet.com">1xbet.com</b> · <b data-d="github.com">github.com</b></div>
@@ -2188,6 +2268,7 @@ IMPACT_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Экономический эффект</title>
 <meta name="description" content="Сколько денег экономит Qalqan AI для Казахстана. Интерактивный расчёт предотвращённого ущерба от киберскама.">
@@ -2200,7 +2281,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,Blin
 .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
 .lang{display:inline-flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
-.lang button{background:none;border:none;color:var(--mut);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+.lang button{background:none;border:none;color:var(--mut);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:inherit}
 .lang button.on{background:var(--cyan);color:#04121a}
 h1{font-size:24px;font-weight:800;line-height:1.2}
 .sub{color:var(--mut);font-size:13.5px;margin:8px 0 20px;line-height:1.6}
@@ -2222,12 +2303,17 @@ input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
 .disc{color:var(--mut);font-size:11px;margin-top:14px;line-height:1.5}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <h1 id="h1"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg> Экономический эффект</h1>
+    <h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/></svg> <span id="h1"></span></h1>
     <div style="display:flex;gap:10px;align-items:center">
       <div class="lang"><button data-l="kk">ҚАЗ</button><button data-l="ru" class="on">РУС</button></div>
       <a href="/">← Qalqan AI</a>
@@ -2329,6 +2415,7 @@ BATCH_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Массовая проверка URL</title>
 <meta name="description" content="Проверка списка URL на фишинг и мошенничество. Для банков, регуляторов и СБ компаний.">
@@ -2366,6 +2453,11 @@ td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
 .hint{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.6}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
@@ -2458,6 +2550,7 @@ SCREEN_HTML = """<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalqan AI — Проверка скриншота</title>
 <meta name="description" content="Загрузи скриншот подозрительной переписки, SMS или сайта — AI прочитает и скажет, мошенничество ли это.">
@@ -2488,6 +2581,11 @@ h1{font-size:24px;font-weight:800}
 .priv{font-size:11.5px;color:var(--mut);margin-top:12px;line-height:1.5}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
 .qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
+::selection{background:rgba(122,162,247,.32)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>

@@ -37,7 +37,8 @@ def render_stats_page(trends: dict, whitelist_size: int) -> str:
 
     return f"""<!DOCTYPE html>
 <html lang="kk"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Статистика</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
@@ -69,6 +70,7 @@ h1{{font-size:28px;font-weight:700;margin-bottom:6px}}
 .report-btn{{display:inline-flex;align-items:center;gap:8px;background:#00d4ff;color:#0a0e1a;padding:12px 24px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;margin-top:24px}}
 .report-btn:hover{{opacity:.85}}
 footer{{text-align:center;padding:32px;color:#334155;font-size:12px;border-top:1px solid #1e2d4a;margin-top:40px}}
+:focus-visible{{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}}::selection{{background:rgba(122,162,247,.32)}}
 </style></head><body>
 <div class="navbar">
   <a class="logo" href="/"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1em;height:1em;vertical-align:-0.14em"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Qalqan AI</a>
@@ -183,6 +185,7 @@ def render_admin_page(data: dict) -> str:
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Qalqan AI — Admin</title>
 <style>
@@ -213,6 +216,7 @@ def render_admin_page(data: dict) -> str:
   .section-title{{font-size:15px;font-weight:700;margin-bottom:16px;color:#94a3b8;display:flex;align-items:center;gap:8px}}
   .count{{font-size:12px;background:#1e293b;padding:2px 8px;border-radius:20px;color:#64748b}}
   @media(max-width:768px){{.stats{{grid-template-columns:repeat(2,1fr)}}.topbar{{padding:12px 16px}}.panel,.tabs{{padding-left:16px;padding-right:16px}}}}
+:focus-visible{{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}}::selection{{background:rgba(122,162,247,.32)}}
 </style>
 </head>
 <body>
