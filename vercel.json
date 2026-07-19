@@ -19,6 +19,14 @@
     {
       "path": "/health/check",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/cron/brand-watch",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/cron/refresh-feeds",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

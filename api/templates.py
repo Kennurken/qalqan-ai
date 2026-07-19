@@ -195,6 +195,8 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
 .fq[open] .fa{animation:fadein .35s var(--ease)}
 @keyframes fadein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .fa code{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--accent)}
+.checker #qrBtn{border:1px solid var(--bd,#1e293b);background:transparent;color:inherit;border-radius:12px;padding:0 14px;font-size:18px;cursor:pointer}
+.checker #qrBtn:hover{border-color:#7aa2f7}
 </style>
 </head>
 <body>
@@ -232,7 +234,9 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
     <p class="lead reveal" data-i18n="lead">Фишинг, телефон алаяқтығы, қаржылық пирамида, гемблинг және госзакуп фроды — бәрін бет жүктелмей тұрып анықтаймыз. Тегін.</p>
     <div class="checker reveal">
       <input id="urlInput" type="text" inputmode="url" placeholder="kaspi-bonus.kz немесе https://..." data-i18n-ph="checkPh" autocomplete="off" aria-label="URL тексеру">
+      <button id="qrBtn" type="button" title="Проверить QR-код" aria-label="QR тексеру">📷</button>
       <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
+      <input id="qrFile" type="file" accept="image/*" capture="environment" style="display:none">
     </div>
     <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
     <div class="proof reveal" data-i18n="proof">🎯 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
@@ -581,6 +585,112 @@ let dp; const ib=document.getElementById('ibanner');
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;if(!localStorage.getItem('qib'))setTimeout(()=>ib.classList.add('show'),2800);});
 document.getElementById('ibYes').addEventListener('click',async()=>{ib.classList.remove('show');if(dp){dp.prompt();await dp.userChoice;dp=null;}});
 document.getElementById('ibNo').addEventListener('click',()=>{ib.classList.remove('show');localStorage.setItem('qib','1');});
+</script>
+
+<script>
+// ── QR check on web: decode an uploaded/captured QR image → run the URL checker.
+//    BarcodeDetector (Chrome/Android native) → jsQR CDN fallback (Safari/Firefox).
+(function(){
+const F=document.getElementById('qrFile');
+document.getElementById('qrBtn').onclick=()=>F.click();
+function note(t){const rb=document.getElementById('resultBox'),rv=document.getElementById('resultVerdict');rb.className='result show';rv.textContent=t;document.getElementById('resultDetail').textContent='';}
+async function toBitmap(file){return await createImageBitmap(file)}
+async function decodeNative(bmp){
+  if(!('BarcodeDetector' in window))return null;
+  try{const det=new BarcodeDetector({formats:['qr_code']});const codes=await det.detect(bmp);return codes.length?codes[0].rawValue:null}catch(e){return null}
+}
+function loadJsQR(){return new Promise((res,rej)=>{
+  if(window.jsQR)return res();
+  const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+  sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);})}
+async function decodeFallback(bmp){
+  await loadJsQR();
+  const c=document.createElement('canvas');const MAX=1200;
+  const sc=Math.min(1,MAX/Math.max(bmp.width,bmp.height));
+  c.width=bmp.width*sc;c.height=bmp.height*sc;
+  const ctx=c.getContext('2d');ctx.drawImage(bmp,0,0,c.width,c.height);
+  const img=ctx.getImageData(0,0,c.width,c.height);
+  const r=window.jsQR(img.data,c.width,c.height);
+  return r?r.data:null;
+}
+F.addEventListener('change',async()=>{
+  const file=F.files&&F.files[0];F.value='';if(!file)return;
+  note('📷 Читаем QR-код...');
+  try{
+    const bmp=await toBitmap(file);
+    let data=await decodeNative(bmp);
+    if(!data)data=await decodeFallback(bmp);
+    if(!data){note('⚠️ QR-код не найден на фото. Снимите ближе и ровнее.');return}
+    const inp=document.getElementById('urlInput');
+    inp.value=data.trim();
+    note('🔍 QR: '+data.trim().slice(0,80));
+    document.getElementById('checkBtn').click();
+  }catch(e){note('⚠️ Не удалось обработать фото.')}
+});
+})();
+</script>
+
+<!-- AI scam-advisor chat widget -->
+<style>
+#advBtn{position:fixed;right:18px;bottom:18px;z-index:60;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#7aa2f7,#5a7fd6);color:#04121a;font-size:24px;cursor:pointer;box-shadow:0 6px 24px rgba(122,162,247,.45);transition:transform .15s}
+#advBtn:hover{transform:scale(1.08)}
+#advPanel{position:fixed;right:18px;bottom:84px;z-index:60;width:min(360px,calc(100vw - 36px));max-height:min(480px,70vh);background:var(--card,#111827);border:1px solid var(--bd,#1e293b);border-radius:16px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+#advPanel.open{display:flex}
+.advHead{padding:12px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--bd,#1e293b);display:flex;justify-content:space-between;align-items:center}
+.advHead button{background:none;border:none;color:var(--mut,#7d8aa0);font-size:18px;cursor:pointer}
+#advMsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.advM{max-width:88%;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.advM.u{align-self:flex-end;background:rgba(122,162,247,.16);border:1px solid rgba(122,162,247,.3)}
+.advM.a{align-self:flex-start;background:rgba(125,138,160,.1);border:1px solid var(--bd,#1e293b)}
+.advM.a.danger{border-color:rgba(247,118,142,.5);background:rgba(247,118,142,.08)}
+.advM.a.warn{border-color:rgba(224,175,104,.5);background:rgba(224,175,104,.08)}
+.advIn{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd,#1e293b)}
+.advIn textarea{flex:1;background:var(--bg,#0a0e16);border:1px solid var(--bd,#1e293b);border-radius:10px;color:inherit;font-family:inherit;font-size:13px;padding:8px 10px;resize:none;height:40px}
+.advIn button{border:none;border-radius:10px;background:#7aa2f7;color:#04121a;font-weight:700;padding:0 14px;cursor:pointer}
+.advHint{font-size:11px;color:var(--mut,#7d8aa0);padding:0 12px 10px}
+</style>
+<button id="advBtn" aria-label="AI-советник">💬</button>
+<div id="advPanel">
+  <div class="advHead"><span id="advTitle">🛡️ AI-советник Qalqan</span><button id="advClose">✕</button></div>
+  <div id="advMsgs"></div>
+  <div class="advHint" id="advHint">Опиши ситуацию: звонок, SMS, «инвестиции» — скажу, скам ли это.</div>
+  <div class="advIn"><textarea id="advTxt" maxlength="1500" placeholder="Мне звонят из «банка»..."></textarea><button id="advSend">➤</button></div>
+</div>
+<script>
+(function(){
+const P=document.getElementById('advPanel'),B=document.getElementById('advBtn'),M=document.getElementById('advMsgs');
+const L={kk:{t:'🛡️ Qalqan AI-кеңесші',h:'Жағдайды сипатта: қоңырау, SMS, «инвестиция» — алаяқтық па, айтамын.',ph:'Маған «банктен» қоңырау шалып жатыр...',think:'Талдап жатырмын...',err:'Қате. Кейінірек көріңіз.',rl:'⏳ Тым жиі — минут күтіңіз.',flags:'Қауіп белгілері',adv:'Не істеу керек'},
+ru:{t:'🛡️ AI-советник Qalqan',h:'Опиши ситуацию: звонок, SMS, «инвестиции» — скажу, скам ли это.',ph:'Мне звонят из «банка»...',think:'Анализирую...',err:'Ошибка. Попробуйте позже.',rl:'⏳ Слишком часто — подождите минуту.',flags:'Признаки угрозы',adv:'Что делать'},
+en:{t:'🛡️ Qalqan AI advisor',h:'Describe the situation: a call, SMS, an "investment" — I will tell you if it is a scam.',ph:'The "bank" is calling me...',think:'Analyzing...',err:'Error. Try later.',rl:'⏳ Too often — wait a minute.',flags:'Red flags',adv:'What to do'}};
+function dict(){return L[typeof currentLang!=='undefined'?currentLang:'ru']||L.ru}
+function applyAdvLang(){const D=dict();document.getElementById('advTitle').textContent=D.t;document.getElementById('advHint').textContent=D.h;document.getElementById('advTxt').placeholder=D.ph}
+B.onclick=()=>{P.classList.toggle('open');applyAdvLang();if(P.classList.contains('open'))document.getElementById('advTxt').focus()};
+document.getElementById('advClose').onclick=()=>P.classList.remove('open');
+function add(cls,html){const d=document.createElement('div');d.className='advM '+cls;d.innerHTML=html;M.appendChild(d);M.scrollTop=M.scrollHeight;return d}
+const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
+let busy=false;
+async function send(){
+  if(busy)return;const T=document.getElementById('advTxt'),txt=T.value.trim();if(!txt)return;
+  const D=dict();T.value='';add('u',esc(txt));const w=add('a',D.think);busy=true;
+  try{
+    const lang=typeof currentLang!=='undefined'?currentLang:'ru';
+    const r=await fetch('/advisor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt,lang})});
+    if(r.status===429){w.textContent=D.rl;busy=false;return}
+    const d=await r.json();
+    const v=(d.verdict||'').toUpperCase();
+    const em=v==='DANGEROUS'?'🛑':v==='SUSPICIOUS'?'⚠️':'✅';
+    w.className='advM a '+(v==='DANGEROUS'?'danger':v==='SUSPICIOUS'?'warn':'');
+    let h=`<b>${em} ${esc(v)} · ${d.threat_score??''}/100</b>`;
+    if(d.reasoning)h+=`<br>${esc(d.reasoning)}`;
+    if(Array.isArray(d.red_flags)&&d.red_flags.length)h+=`<br><br><b>${D.flags}:</b><br>${d.red_flags.slice(0,5).map(f=>'• '+esc(f)).join('<br>')}`;
+    if(Array.isArray(d.advice)&&d.advice.length)h+=`<br><br><b>${D.adv}:</b><br>${d.advice.slice(0,4).map(f=>'• '+esc(f)).join('<br>')}`;
+    w.innerHTML=h;
+  }catch(e){w.textContent=dict().err}
+  busy=false;
+}
+document.getElementById('advSend').onclick=send;
+document.getElementById('advTxt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+})();
 </script>
 </body>
 </html>"""
@@ -1768,6 +1878,9 @@ input:focus{border-color:var(--cyan)}
 .foot a{color:var(--cyan);text-decoration:none}
 .how{font-size:12.5px;color:var(--mut);line-height:1.6;margin-top:14px}
 .how code{background:var(--card2);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-size:11.5px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabb{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:10px;color:var(--mut);font-family:inherit;font-size:13.5px;font-weight:700;padding:10px;cursor:pointer}
+.tabb.on{background:var(--cyan);color:#04121a;border-color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -1775,7 +1888,12 @@ input:focus{border-color:var(--cyan)}
   <div class="top"><h1>🔑 Пароль утёк?</h1><a href="/">← Qalqan AI</a></div>
   <div class="sub">Құпиясөзіңіз деректер утечкаларында бар ма? · Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.</div>
 
-  <div class="card">
+  <div class="tabs">
+    <button class="tabb on" data-t="pw">🔑 Пароль</button>
+    <button class="tabb" data-t="em">📧 Email</button>
+  </div>
+
+  <div class="card" id="card-pw">
     <div class="inrow">
       <input id="pw" type="password" placeholder="Введите пароль для проверки" autocomplete="off">
       <button class="eye" id="eye" aria-label="Показать пароль">👁</button>
@@ -1789,7 +1907,19 @@ input:focus{border-color:var(--cyan)}
     <div class="how">Как это работает: пароль → <code>SHA-1</code> в браузере → префикс <code>5 симв.</code> → HIBP возвращает ~800 хэшей с этим префиксом → сравнение происходит локально у вас.</div>
   </div>
 
-  <div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · <a href="/quiz">🎯 Скам-тренажёр</a></div>
+    <div class="card" id="card-em" style="display:none">
+    <div class="inrow">
+      <input id="em" type="email" placeholder="you@example.com" autocomplete="off">
+    </div>
+    <button class="btn" id="goem">Проверить email</button>
+    <div class="priv">
+      <span style="font-size:16px">🔒</span>
+      <span><b>Email не сохраняется.</b> Запрос уходит в открытую базу утечек XposedOrNot; Qalqan не логирует и не хранит адрес.</span>
+    </div>
+    <div class="res" id="resem"></div>
+  </div>
+
+<div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · <a href="/quiz">🎯 Скам-тренажёр</a></div>
 </div>
 
 <script>
@@ -1840,6 +1970,35 @@ async function checkLeak(){
 }
 $('#go').onclick=checkLeak;
 $('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')checkLeak();});
+
+// ── Tabs ──
+document.querySelectorAll('.tabb').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabb').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('card-pw').style.display=b.dataset.t==='pw'?'block':'none';
+  document.getElementById('card-em').style.display=b.dataset.t==='em'?'block':'none';
+});
+// ── Email breach check (XposedOrNot via backend proxy) ──
+async function checkEmail(){
+  const em=document.getElementById('em').value.trim();
+  const R=document.getElementById('resem');
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(em)){R.className='res show';R.innerHTML='⚠️ Введите корректный email.';return}
+  R.className='res show';R.innerHTML='Проверяем базы утечек...';
+  try{
+    const r=await fetch('/leak/email?email='+encodeURIComponent(em));
+    if(r.status===429){R.innerHTML='⏳ Слишком часто — подождите минуту.';return}
+    if(!r.ok){R.innerHTML='⚠️ Сервис утечек недоступен, попробуйте позже.';return}
+    const d=await r.json();
+    if(!d.breached){R.innerHTML='<b style="color:var(--green,#9ece6a)">✅ Не найден в известных утечках.</b><br>Это не гарантия — используйте уникальные пароли и 2FA.';}
+    else{
+      const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
+      R.innerHTML='<b style="color:var(--red,#f7768e)">🚨 Найден в '+d.count+' утечках:</b><br>'+
+        d.breaches.map(b=>'• '+esc(b)).join('<br>')+
+        '<br><br><b>Что делать:</b> смените пароли на этих сервисах, включите 2FA, не переиспользуйте пароли.';
+    }
+  }catch(e){R.innerHTML='⚠️ Ошибка сети.'}
+}
+document.getElementById('goem').onclick=checkEmail;
+document.getElementById('em').addEventListener('keydown',e=>{if(e.key==='Enter')checkEmail()});
 </script>
 </body>
 </html>"""
@@ -1994,6 +2153,8 @@ input:focus{border-color:var(--cyan)}
 .disc{color:var(--mut);font-size:11.5px;margin-top:10px;line-height:1.5}
 .spin{color:var(--mut);font-size:13px;margin-top:14px}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}.foot a{color:var(--cyan);text-decoration:none}
+.liveok{background:rgba(158,206,106,.1);border:1px solid rgba(158,206,106,.3);border-radius:10px;padding:12px;font-size:13.5px;color:var(--green,#9ece6a)}
+.livebad{color:var(--red,#f7768e);font-weight:700;font-size:14px;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -2012,6 +2173,13 @@ input:focus{border-color:var(--cyan)}
   <div class="grid" id="grid"></div>
   <div id="status"></div>
   <div class="advice" id="advice"></div>
+  <div id="liveblock" style="display:none;margin-top:14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" id="livego" style="flex:1;min-width:220px">🔎 Live-проверка регистраций</button>
+      <button class="btn" id="watchgo" style="flex:1;min-width:200px;background:transparent;border:1px solid var(--bd);color:var(--tx)">🔔 На ежедневный мониторинг</button>
+    </div>
+    <div id="liveres" style="margin-top:12px"></div>
+  </div>
 </div>
 
 <script>
@@ -2038,12 +2206,46 @@ async function scan(dom){
     $('#advice').innerHTML=`<b>Что делать:</b> ${d.advice_ru||''}<div class="disc">${d.disclaimer_ru||''}</div>`;
     $('#advice').className='advice show';
     $('#status').innerHTML='';
+    $('#liveblock').style.display='block'; $('#liveres').innerHTML='';
   }catch(e){ $('#status').innerHTML='<div class="spin">Ошибка. Попробуйте позже.</div>'; }
   btn.disabled=false; btn.textContent='Сканировать';
 }
 $('#go').onclick=()=>scan();
 $('#dom').addEventListener('keydown',e=>{if(e.key==='Enter')scan();});
 document.querySelectorAll('.ex b').forEach(b=>b.onclick=()=>scan(b.dataset.d));
+
+// ── Live RDAP scan: which look-alikes are ACTUALLY registered right now ──
+$('#livego').onclick=async()=>{
+  const dom=$('#dom').value.trim(); if(!dom) return;
+  const b=$('#livego'); b.disabled=true; b.textContent='Проверяем реестры...';
+  $('#liveres').innerHTML='<div class="spin">RDAP-запросы к доменным реестрам (до 15 сек)...</div>';
+  try{
+    const r=await fetch('/brand/live-scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
+    if(r.status===429){ $('#liveres').innerHTML='<div class="spin">⏳ Слишком часто — подождите минуту.</div>'; b.disabled=false; b.textContent='🔎 Live-проверка регистраций'; return; }
+    const d=await r.json();
+    if(d.error){ $('#liveres').innerHTML='<div class="spin">⚠️ Некорректный домен.</div>'; }
+    else if(!d.registered_count){
+      $('#liveres').innerHTML=`<div class="liveok">✅ Из ${d.answered} проверенных вариантов — ни один не зарегистрирован. Атакующей инфраструктуры не обнаружено.</div>`;
+    } else {
+      $('#liveres').innerHTML=
+        `<div class="livebad">🚨 Зарегистрировано ${d.registered_count} из ${d.answered} проверенных:</div>`+
+        d.registered.map(v=>`<div class="row"><span class="dot critical"></span><div><div class="dm">${v.domain}</div><div class="nt">${v.note}${v.age_days!=null?` · возраст ${v.age_days} дн.`:''} · <b style="color:var(--red)">СУЩЕСТВУЕТ</b></div></div></div>`).join('')+
+        `<div class="disc" style="margin-top:8px">${d.note_ru||''}</div>`;
+    }
+  }catch(e){ $('#liveres').innerHTML='<div class="spin">Ошибка сети.</div>'; }
+  b.disabled=false; b.textContent='🔎 Live-проверка регистраций';
+};
+
+// ── Subscribe to daily monitoring ──
+$('#watchgo').onclick=async()=>{
+  const dom=$('#dom').value.trim(); if(!dom) return;
+  const b=$('#watchgo'); b.disabled=true;
+  try{
+    const r=await fetch('/brand/watch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
+    const d=await r.json();
+    b.textContent=d.ok?'✅ На мониторинге':'⚠️ Недоступно';
+  }catch(e){ b.textContent='⚠️ Ошибка'; b.disabled=false; }
+};
 </script>
 <div class="foot">Qalqan AI · Domain typosquatting radar · <a href="/partners">B2G API</a> · <a href="/">Проверить сайт</a></div>
 </body>
@@ -2284,6 +2486,134 @@ $('#users').addEventListener('input',calc);
 $('#eff').addEventListener('input',calc);
 document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.l)));
 applyLang(L);
+</script>
+</body>
+</html>"""
+
+BATCH_HTML = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qalqan AI — Массовая проверка URL</title>
+<meta name="description" content="Проверка списка URL на фишинг и мошенничество. Для банков, регуляторов и СБ компаний.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e16;--card:#111827;--card2:#0d1424;--cyan:#7aa2f7;--red:#f7768e;--amber:#e0af68;--green:#9ece6a;--tx:#e7ebf3;--mut:#7d8aa0;--bd:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:860px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.top a{color:var(--mut);text-decoration:none;font-size:14px}.top a:hover{color:var(--cyan)}
+h1{font-size:24px;font-weight:800}
+.sub{color:var(--mut);font-size:13.5px;margin:8px 0 18px;line-height:1.6}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px;margin-bottom:16px}
+textarea{width:100%;height:140px;background:var(--card2);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-family:ui-monospace,monospace;font-size:12.5px;padding:12px;resize:vertical}
+.row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn{flex:1;min-width:180px;background:var(--cyan);border:none;border-radius:10px;color:#04121a;font-weight:800;font-size:14px;padding:12px;cursor:pointer;font-family:inherit}
+.btn.sec{background:transparent;border:1px solid var(--bd);color:var(--tx)}
+.btn:disabled{opacity:.5;cursor:default}
+#file{display:none}
+.prog{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:14px;display:none}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0%;transition:width .3s}
+.sum{display:none;gap:10px;margin-top:14px;flex-wrap:wrap}
+.pill{padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:700;border:1px solid var(--bd)}
+.pill.d{color:var(--red);border-color:rgba(247,118,142,.4)}
+.pill.s{color:var(--amber);border-color:rgba(224,175,104,.4)}
+.pill.ok{color:var(--green);border-color:rgba(158,206,106,.4)}
+.tblwrap{overflow-x:auto;margin-top:14px;display:none}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{color:var(--mut);text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--bd)}
+td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
+.v-DANGEROUS{color:var(--red);font-weight:700}
+.v-SUSPICIOUS{color:var(--amber);font-weight:700}
+.v-SAFE{color:var(--green);font-weight:700}
+.hint{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.6}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:22px}.foot a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>📄 Массовая проверка URL</h1><a href="/">← Qalqan AI</a></div>
+  <div class="sub">Для банков, регуляторов и служб безопасности: вставьте список ссылок (по одной на строку) или загрузите CSV — каждый URL пройдёт полный 7-уровневый pipeline. До 15 URL параллельно, крупные списки идут батчами.</div>
+
+  <div class="card">
+    <textarea id="urls" placeholder="kaspi-bonus.tk&#10;1xbet.com&#10;https://example.com/login&#10;..."></textarea>
+    <div class="row">
+      <button class="btn sec" id="upload">📎 Загрузить CSV/TXT</button>
+      <button class="btn" id="go">Проверить список</button>
+      <input id="file" type="file" accept=".csv,.txt">
+    </div>
+    <div class="prog" id="prog"><i id="progbar"></i></div>
+    <div class="sum" id="sum"></div>
+    <div class="tblwrap" id="tblwrap">
+      <table><thead><tr><th>URL</th><th>Вердикт</th><th>Балл</th><th>Источник</th></tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <div class="row" id="dlrow" style="display:none"><button class="btn sec" id="dl">⬇️ Скачать отчёт CSV</button></div>
+    <div class="hint">Лимит: 15 URL за запрос, крупные списки проверяются частями с паузой (rate-limit). Для интеграции без лимитов — <a href="/partners" style="color:var(--cyan)">B2G API с X-API-Key</a>.</div>
+  </div>
+
+  <div class="foot">Qalqan AI · Bulk URL screening · <a href="/partners">Партнёрам</a> · <a href="/">Главная</a></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let results=[];
+$('#upload').onclick=()=>$('#file').click();
+$('#file').addEventListener('change',()=>{
+  const f=$('#file').files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    // CSV: take the first column of each line; TXT: line as-is
+    const lines=String(rd.result).split(/\\r?\\n/).map(l=>l.split(/[,;\\t]/)[0].trim()).filter(Boolean);
+    $('#urls').value=lines.join('\\n');
+  };
+  rd.readAsText(f);
+});
+function parseUrls(){
+  return [...new Set($('#urls').value.split(/\\r?\\n/).map(s=>s.trim()).filter(s=>s&&!s.startsWith('#')&&s.includes('.')))].slice(0,150);
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function run(){
+  const urls=parseUrls();
+  if(!urls.length){alert('Вставьте хотя бы один URL');return}
+  const btn=$('#go');btn.disabled=true;btn.textContent='Проверяем...';
+  results=[];$('#tbody').innerHTML='';$('#tblwrap').style.display='block';
+  $('#prog').style.display='block';$('#sum').style.display='none';$('#dlrow').style.display='none';
+  const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
+  for(let i=0;i<urls.length;i+=15){
+    const chunk=urls.slice(i,i+15);
+    try{
+      const r=await fetch('/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls:chunk,lang:'ru'})});
+      if(r.status===429){ // rate-limited: wait and retry this chunk once
+        await sleep(35000);i-=15;continue;
+      }
+      const d=await r.json();
+      for(const res of (d.results||[])){
+        results.push(res);
+        const v=(res.verdict||'?').toUpperCase();
+        $('#tbody').insertAdjacentHTML('beforeend',
+          `<tr><td>${esc(res.url||'')}</td><td class="v-${v}">${v}</td><td>${res.threat_score??''}</td><td>${esc(res.source||res.top_source||'')}</td></tr>`);
+      }
+    }catch(e){ chunk.forEach(u=>{results.push({url:u,verdict:'ERROR',threat_score:'',source:'network'});}); }
+    $('#progbar').style.width=Math.min(100,Math.round(100*(i+15)/urls.length))+'%';
+    if(i+15<urls.length) await sleep(4000);  // stay under the per-minute rate limit
+  }
+  $('#progbar').style.width='100%';
+  const d=results.filter(r=>r.verdict==='DANGEROUS').length,
+        s2=results.filter(r=>r.verdict==='SUSPICIOUS').length,
+        ok=results.filter(r=>r.verdict==='SAFE').length;
+  $('#sum').innerHTML=`<div class="pill d">🛑 Опасных: ${d}</div><div class="pill s">⚠️ Подозрительных: ${s2}</div><div class="pill ok">✅ Чистых: ${ok}</div><div class="pill">Всего: ${results.length}</div>`;
+  $('#sum').style.display='flex';$('#dlrow').style.display='flex';
+  btn.disabled=false;btn.textContent='Проверить список';
+}
+$('#go').onclick=run;
+$('#dl').onclick=()=>{
+  const head='url,verdict,score,source\\n';
+  const body=results.map(r=>`"${String(r.url||'').replace(/"/g,'""')}",${r.verdict||''},${r.threat_score??''},${r.source||r.top_source||''}`).join('\\n');
+  const blob=new Blob([head+body],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='qalqan-batch-report.csv';a.click();
+};
 </script>
 </body>
 </html>"""

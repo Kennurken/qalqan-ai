@@ -33,13 +33,19 @@ async def _send(chat_id: str, text: str, parse_mode: str = "Markdown") -> bool:
 
 
 async def notify_channel(url: str, verdict: str, score: int):
-    """Broadcast a newly-detected dangerous site to the public channel (if set)."""
+    """Broadcast a newly-detected dangerous site to the public channel (if set).
+    Deduped per domain per 24h so repeat checks don't spam the channel."""
     ch = _channel_id()
     if not ch:
         return
+    from .cache import once_per
+    from ..services.threat_db import extract_domain
+    dom = extract_domain(url) or url
+    if not await once_per(f"chan:{dom}", ttl=86400):
+        return
     text = (
         f"🛑 *Жаңа қауіпті сайт анықталды*\n\n"
-        f"🌐 `{_escape_md(url)}`\n"
+        f"🌐 `{_escape_md(dom)}`\n"
         f"⚠️ {verdict} ({score}/100)\n\n"
         f"_Qalqan AI сізді қорғайды_ · @QalqanAI\\_bot"
     )
@@ -134,3 +140,20 @@ async def send_report(url: str, threat_type: str, reporter_note: str = "") -> di
         return {"status": "error", "message": f"Telegram қатесі: {res.status_code}"}
     except Exception as e:
         return {"status": "error", "message": str(e)[:100]}
+
+
+async def brand_alert(brand: str, new_domains: list[dict]) -> bool:
+    """Alert the admin chat when NEW look-alike registrations appear for a
+    watched brand (daily brand-watch cron)."""
+    if not new_domains:
+        return False
+    lines = "\n".join(
+        f"• `{_escape_md(d['domain'])}`"
+        + (f" — {d['age_days']} дн." if d.get("age_days") is not None else "")
+        for d in new_domains[:10])
+    text = (
+        f"⚠️ *Brand-watch: новые клоны для* `{_escape_md(brand)}`\n\n"
+        f"{lines}\n\n"
+        f"_Проверить: qalqan-ai-nu.vercel.app/brand_"
+    )
+    return await _send(_chat_id() or "", text)

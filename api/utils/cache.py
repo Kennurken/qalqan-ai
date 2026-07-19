@@ -197,3 +197,34 @@ async def check_health() -> dict:
         return {"status": "error", "response": str(data)[:80]}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:80]}
+
+
+# ── One-shot guard (dedupe): True only the first time `key` is seen within ttl.
+#    Redis SET NX EX when available (shared across serverless instances),
+#    in-memory fallback otherwise. Used to avoid re-posting the same domain to
+#    the public threat channel on every repeat check. ─────────────────────────
+_once: OrderedDict[str, float] = OrderedDict()
+_MAX_ONCE = 2000
+
+
+async def once_per(key: str, ttl: int = 86400) -> bool:
+    now = time.time()
+    if _redis_ok():
+        try:
+            r = await get_client().post(
+                f"{_redis_url()}/set/once:{key}/1",
+                params={"nx": "true", "ex": str(ttl)},
+                headers=_redis_headers(), timeout=2)
+            if r.status_code == 200:
+                _cb_ok()
+                return r.json().get("result") == "OK"   # None → already existed
+        except Exception:
+            _cb_fail()
+    # Memory fallback (per-instance)
+    exp = _once.get(key)
+    if exp and exp > now:
+        return False
+    _once[key] = now + ttl
+    while len(_once) > _MAX_ONCE:
+        _once.popitem(last=False)
+    return True

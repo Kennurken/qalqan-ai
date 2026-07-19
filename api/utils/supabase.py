@@ -528,3 +528,70 @@ async def check_health() -> dict:
         return {"status": "error", "code": r.status_code}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:80]}
+
+
+# --- Brand-watch subscriptions (stored in reports table, category='brand_watch';
+#     the latest row per domain carries the last-seen registered-set snapshot in
+#     `comment` — no schema migration needed) ---
+
+async def add_brand_watch(domain: str, reporter_ip: str) -> bool:
+    """Subscribe a brand domain to daily look-alike monitoring (idempotent)."""
+    if not _available():
+        return False
+    try:
+        client = get_client()
+        chk = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{domain}", "category": "eq.brand_watch",
+                    "select": "id", "limit": "1"})
+        if chk.status_code == 200 and chk.json():
+            return True  # already watched
+        r = await client.post(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            json={"domain": domain, "url_hash": _hash(domain), "category": "brand_watch",
+                  "comment": "", "lang": "ru", "reporter_ip_hash": _hash(reporter_ip)})
+        return r.status_code in (200, 201)
+    except Exception as e:
+        logger.warning(f"add_brand_watch failed: {e}")
+        return False
+
+
+async def list_brand_watches(limit: int = 20) -> list[dict]:
+    """Watched brands with their last-seen snapshot (latest row per domain)."""
+    if not _available():
+        return []
+    try:
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"category": "eq.brand_watch", "select": "id,domain,comment",
+                    "order": "created_at.desc", "limit": str(limit * 3)})
+        if r.status_code != 200:
+            return []
+        seen: dict[str, dict] = {}
+        for row in r.json():
+            d = row.get("domain")
+            if d and d not in seen:
+                seen[d] = {"id": row["id"], "domain": d, "snapshot": row.get("comment") or ""}
+            if len(seen) >= limit:
+                break
+        return list(seen.values())
+    except Exception as e:
+        logger.warning(f"list_brand_watches failed: {e}")
+        return []
+
+
+async def update_brand_watch_snapshot(row_id: int, snapshot: str) -> bool:
+    """Persist the latest registered-set snapshot on the watch row."""
+    if not _available():
+        return False
+    try:
+        client = get_client()
+        r = await client.patch(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"id": f"eq.{row_id}"},
+            json={"comment": snapshot[:1900]})
+        return r.status_code in (200, 204)
+    except Exception as e:
+        logger.warning(f"update_brand_watch_snapshot failed: {e}")
+        return False

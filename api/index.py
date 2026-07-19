@@ -14,7 +14,7 @@ import httpx
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
-from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML
+from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, MINIAPP_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML, QUIZ_HTML, LEAK_HTML, HELP_HTML, BRAND_HTML, SCAN_HTML, IMPACT_HTML, BATCH_HTML
 from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for, partner_count, DEMO_KEY
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
@@ -33,7 +33,7 @@ from .utils.cache import url_hash, get_cached, set_cached, clear_cache, check_ra
 from .evaluation.benchmark import run_benchmark
 from .utils.telegram import send_appeal, send_report, notify_block, health_alert
 from .utils.i18n import t
-from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed
+from .utils.supabase import log_report, log_appeal, log_check, get_trends as supabase_trends, check_health as supabase_health, get_admin_data, get_dashboard_data, get_community_stats, record_vote, get_federated_feed, add_brand_watch as supabase_add_brand_watch, list_brand_watches as supabase_list_brand_watches, update_brand_watch_snapshot as supabase_update_brand_watch
 
 _PRIVATE_IP_RE = re.compile(
     r"^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|"
@@ -843,6 +843,8 @@ async def report_site(request: ReportRequest, req: Request, background_tasks: Ba
     result["auto_blocked"] = bool(stats.get("auto_blocked"))
     if result["auto_blocked"]:
         logger.warning(f"AUTO-BLOCKED (crowd): {domain}")
+        # Broadcast crowd-blocks to the public threat channel (deduped inside)
+        _defer(notify_channel, domain, "CROWD-BLOCKED", 100)
     return result
 
 
@@ -1143,6 +1145,64 @@ async def brand_scan(request: BrandRequest, req: Request):
     return generate_typosquats(request.domain)
 
 
+@app.post("/brand/live-scan")
+async def brand_live_scan(request: BrandRequest, req: Request):
+    """Live RDAP scan: which of the highest-risk look-alikes are ACTUALLY registered
+    right now. Heavier than /brand/scan (network) → tighter rate limit."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="brandlive"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.brand_watch import scan_brand
+    return await scan_brand(request.domain)
+
+
+@app.post("/brand/watch")
+async def brand_watch_subscribe(request: BrandRequest, req: Request):
+    """Subscribe a brand domain to daily look-alike monitoring. New registrations
+    are detected by the daily cron and alerted to the Qalqan admin channel (pilot);
+    partner-facing alert routing comes with the B2G API keys."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_REPORT, endpoint="brandwatch"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.brand_protect import _split_domain
+    name, tld = _split_domain(request.domain)
+    if not name or not re.match(r"^[a-z0-9-]+$", name):
+        return JSONResponse(status_code=422, content={"error": "invalid domain"})
+    domain = f"{name}.{tld}"
+    ok = await supabase_add_brand_watch(domain, client_ip)
+    return {"ok": ok, "domain": domain,
+            "note": "Мониторинг активен — ежедневная проверка RDAP" if ok
+            else "Хранилище недоступно — попробуйте позже"}
+
+
+@app.get("/cron/brand-watch")
+async def cron_brand_watch(req: Request):
+    """Daily brand-watch scan (Vercel cron, CRON_SECRET-gated): re-scan every watched
+    brand, diff against the stored snapshot, alert admin on NEW registrations."""
+    if not _authorize_cron(req):
+        return JSONResponse(status_code=403, content={"error": "forbidden"})
+    from .services.brand_watch import scan_brand, registered_set
+    from .utils.telegram import brand_alert
+    watches = await supabase_list_brand_watches()
+    alerted = []
+    for w in watches:
+        try:
+            scan = await scan_brand(w["domain"])
+            if scan.get("error"):
+                continue
+            current = registered_set(scan)
+            previous = set(filter(None, (w.get("snapshot") or "").split(",")))
+            new = current - previous
+            if new and previous:   # skip alert on the very first scan (baseline)
+                new_details = [r for r in scan["registered"] if r["domain"] in new]
+                await brand_alert(w["domain"], new_details)
+                alerted.append({"brand": w["domain"], "new": sorted(new)})
+            await supabase_update_brand_watch(w["id"], ",".join(sorted(current)))
+        except Exception as e:
+            logger.warning(f"brand-watch scan failed for {w.get('domain')}: {e}")
+    return {"watched": len(watches), "alerts": alerted}
+
+
 @app.get("/brand")
 async def brand_page():
     """Brand-protection radar page."""
@@ -1186,8 +1246,58 @@ async def impact_page():
     return HTMLResponse(IMPACT_HTML, headers=_HTML_CACHE)
 
 
+@app.get("/batch-check")
+async def batch_check_page():
+    """Bulk URL screening page (banks / regulators / corporate security)."""
+    return HTMLResponse(BATCH_HTML, headers=_HTML_CACHE)
+
+
+_EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,24}$")
+
+
+@app.get("/leak/email")
+async def leak_email(email: str, req: Request):
+    """Email breach lookup via XposedOrNot (free, no key). Privacy: the email is
+    forwarded to the breach API only, never logged or stored by Qalqan."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="leakemail"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    email = (email or "").strip()
+    if not _EMAIL_RE.match(email):
+        return JSONResponse(status_code=422, content={"error": "invalid_email"})
+    try:
+        from .utils.http import get_client
+        r = await get_client().get(
+            f"https://api.xposedornot.com/v1/check-email/{email}", timeout=8)
+        if r.status_code == 404:
+            return {"breached": False, "count": 0, "breaches": []}
+        if r.status_code != 200:
+            return JSONResponse(status_code=502, content={"error": "breach_api_unavailable"})
+        data = r.json()
+        raw = data.get("breaches") or []
+        names = raw[0] if raw and isinstance(raw[0], list) else raw
+        names = [str(b) for b in names][:20]
+        return {"breached": bool(names), "count": len(names), "breaches": names}
+    except Exception as e:
+        logger.warning(f"leak_email lookup failed: {e}")
+        return JSONResponse(status_code=502, content={"error": "breach_api_unavailable"})
+
+
+@app.get("/cron/refresh-feeds")
+async def cron_refresh_feeds(req: Request):
+    """Force-reload OpenPhish/URLhaus feeds (Vercel cron every 6h, CRON_SECRET-gated).
+    The lazy TTL reload still applies per instance; this keeps the warm instance's
+    feeds no older than the cron interval."""
+    if not _authorize_cron(req):
+        return JSONResponse(status_code=403, content={"error": "forbidden"})
+    from .services.threat_db import load_threat_feeds, feed_stats
+    await load_threat_feeds()
+    return {"ok": True, "feeds": feed_stats()}
+
+
 _PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/quiz", "/leak", "/help",
-                 "/brand", "/scan", "/impact", "/m", "/partners", "/goszakup/graph"]
+                 "/brand", "/scan", "/impact", "/batch-check", "/m", "/partners",
+                 "/goszakup/graph"]
 
 
 @app.get("/robots.txt")
