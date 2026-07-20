@@ -1324,7 +1324,10 @@ async def qalqan_badge(domain: str, req: Request):
         return _R(_badge_svg("Qalqan", "?", "#7d8aa0"), media_type="image/svg+xml")
 
 
-_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+# Underscore dir: Vercel treats any api/**/*.js as a serverless function
+# (11 page scripts + 1 python = the exact Hobby 12-function limit; adding two
+# more error'd the whole deploy). _static is ignored by the functions builder.
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), "_static")
 _STATIC_RE = re.compile(r"^[a-z_]+\.js$")
 
 
