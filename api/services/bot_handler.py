@@ -120,6 +120,7 @@ async def register_bot_ui() -> None:
         {"command": "app", "description": "Қосымшаны ашу"},
         {"command": "leak", "description": "Құпиясөз утечкасын тексеру"},
         {"command": "subscribe", "description": "Апталық дайджестке жазылу"},
+        {"command": "watch", "description": "Брендті бақылау (клон-домендер)"},
         {"command": "sos", "description": "🆘 Алдап кетті ме? Не істеу керек"},
         {"command": "stats", "description": "Статистика"},
         {"command": "help", "description": "Көмек"},
@@ -928,6 +929,43 @@ async def dispatch(update: dict) -> None:
 
     elif text.startswith("/app"):
         await handle_app(chat_id, message_id)
+
+    elif text.startswith("/watchlist"):
+        from ..utils.supabase import list_chat_watches
+        brands = await list_chat_watches(chat_id)
+        await send_message(chat_id,
+            ("<b>Бақылаудағы брендтер:</b>\n" + "\n".join(f"• {b}" for b in brands)
+             + "\n\nАлып тастау: /unwatch домен")
+            if brands else "Бақылауда ештеңе жоқ. Қосу: /watch kaspi.kz",
+            reply_to=message_id)
+
+    elif text.startswith("/watch"):
+        arg = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else ""
+        from ..services.brand_protect import _split_domain
+        import re as _re
+        name, tld = _split_domain(arg)
+        if not name or not _re.match(r"^[a-z0-9-]+$", name):
+            await send_message(chat_id,
+                "Домен көрсетіңіз: <code>/watch kaspi.kz</code>\n"
+                "Күн сайын клон-домендер мен жаңа SSL-серттерді тексереміз, "
+                "жаңасы шықса — осында хабарлаймыз.", reply_to=message_id)
+            return
+        brand = f"{name}.{tld}"
+        from ..utils.supabase import add_brand_watch, add_brand_watch_chat
+        ok1 = await add_brand_watch(brand, f"tg:{chat_id}")
+        ok2 = await add_brand_watch_chat(brand, chat_id)
+        await send_message(chat_id,
+            f"🔔 <b>{brand}</b> бақылауға қосылды.\n"
+            f"Жаңа клон-домен немесе брендпен SSL-серт шықса — жеке хабарлама аласыз.\n"
+            f"Тізім: /watchlist · Тоқтату: /unwatch {brand}"
+            if ok1 and ok2 else "⚠️ Қазір қосылмады, кейінірек қайталаңыз.",
+            reply_to=message_id)
+
+    elif text.startswith("/unwatch"):
+        arg = text.split(maxsplit=1)[1].strip().lower() if len(text.split(maxsplit=1)) > 1 else ""
+        from ..utils.supabase import remove_brand_watch_chat
+        await remove_brand_watch_chat(arg, chat_id)
+        await send_message(chat_id, f"🔕 {arg} бақылаудан алынды.", reply_to=message_id)
 
     elif text.startswith("/subscribe"):
         from ..utils.supabase import add_digest_sub

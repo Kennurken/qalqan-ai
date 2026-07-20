@@ -655,3 +655,78 @@ async def list_digest_subs(limit: int = 200) -> list[str]:
     except Exception as e:
         logger.warning(f"list_digest_subs failed: {e}")
         return []
+
+
+# --- Brand-watch bot subscriptions (category='brand_watch_chat',
+#     domain=<brand>, comment=<chat_id>) ---
+
+async def add_brand_watch_chat(brand: str, chat_id: int | str) -> bool:
+    if not _available():
+        return False
+    try:
+        client = get_client()
+        chk = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{brand}", "category": "eq.brand_watch_chat",
+                    "comment": f"eq.{chat_id}", "select": "id", "limit": "1"})
+        if chk.status_code == 200 and chk.json():
+            return True
+        r = await client.post(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            json={"domain": brand, "url_hash": _hash(brand), "category": "brand_watch_chat",
+                  "comment": str(chat_id), "lang": "kk", "reporter_ip_hash": _hash(str(chat_id))})
+        return r.status_code in (200, 201)
+    except Exception as e:
+        logger.warning(f"add_brand_watch_chat failed: {e}")
+        return False
+
+
+async def remove_brand_watch_chat(brand: str, chat_id: int | str) -> bool:
+    if not _available():
+        return False
+    try:
+        client = get_client()
+        r = await client.delete(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{brand}", "category": "eq.brand_watch_chat",
+                    "comment": f"eq.{chat_id}"})
+        return r.status_code in (200, 204)
+    except Exception as e:
+        logger.warning(f"remove_brand_watch_chat failed: {e}")
+        return False
+
+
+async def list_brand_watch_chats(brand: str, limit: int = 50) -> list[str]:
+    if not _available():
+        return []
+    try:
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"domain": f"eq.{brand}", "category": "eq.brand_watch_chat",
+                    "select": "comment", "limit": str(limit)})
+        if r.status_code != 200:
+            return []
+        out = [str(row.get("comment") or "") for row in r.json()]
+        return [c for c in dict.fromkeys(out) if c.lstrip("-").isdigit()]
+    except Exception as e:
+        logger.warning(f"list_brand_watch_chats failed: {e}")
+        return []
+
+
+async def list_chat_watches(chat_id: int | str, limit: int = 20) -> list[str]:
+    """Brands a given chat is watching."""
+    if not _available():
+        return []
+    try:
+        client = get_client()
+        r = await client.get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"category": "eq.brand_watch_chat", "comment": f"eq.{chat_id}",
+                    "select": "domain", "limit": str(limit)})
+        if r.status_code != 200:
+            return []
+        return list(dict.fromkeys(row.get("domain", "") for row in r.json() if row.get("domain")))
+    except Exception as e:
+        logger.warning(f"list_chat_watches failed: {e}")
+        return []

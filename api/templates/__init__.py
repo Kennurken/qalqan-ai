@@ -19,9 +19,14 @@ from .batch import BATCH_HTML
 from .screen import SCREEN_HTML
 
 # Cache-busting token for /static assets: substituted into every page at import.
-_V = (os.getenv("VERCEL_GIT_COMMIT_SHA") or "dev")[:8]
+# Prod: commit sha (stable per deploy). Dev: startup time, so local edits are
+# never pinned by the immutable cache.
+_V = (os.getenv("VERCEL_GIT_COMMIT_SHA") or "").strip()[:8] or f"dev{int(__import__('time').time())}"
 _g = globals()
+_BEACON = '<script src="/static/beacon.js?v=__V__" defer></script>\n</body>'
 for _n in ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GRAPH_HTML', 'MOBILE_HTML', 'SW_JS', 'PARTNERS_HTML', 'NOTFOUND_HTML', 'LEAK_HTML', 'HELP_HTML', 'BRAND_HTML', 'SCAN_HTML', 'IMPACT_HTML', 'BATCH_HTML', 'SCREEN_HTML']:
+    if _n != "SW_JS" and "beacon.js" not in _g[_n]:
+        _g[_n] = _g[_n].replace("</body>", _BEACON, 1)
     _g[_n] = _g[_n].replace("__V__", _V)
 
 __all__ = ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GRAPH_HTML', 'MOBILE_HTML', 'SW_JS', 'PARTNERS_HTML', 'NOTFOUND_HTML', 'LEAK_HTML', 'HELP_HTML', 'BRAND_HTML', 'SCAN_HTML', 'IMPACT_HTML', 'BATCH_HTML', 'SCREEN_HTML']

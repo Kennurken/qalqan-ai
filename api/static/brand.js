@@ -61,3 +61,28 @@ $('#watchgo').onclick=async()=>{
     b.textContent=d.ok?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> На мониторинге':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Недоступно';
   }catch(e){ b.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Ошибка'; b.disabled=false; }
 };
+
+// ── Certificate-transparency sweep: fresh certs with the brand keyword ──
+$('#certgo').onclick=async()=>{
+  const dom=$('#dom').value.trim(); if(!dom) return;
+  const b=$('#certgo'); b.disabled=true; b.textContent='Читаем CT-логи (до 20 сек)...';
+  $('#liveres').innerHTML='<div class="spin">Запрос к crt.sh — публичным логам сертификатов...</div><div class="skl" style="height:44px;margin-top:10px"></div>';
+  try{
+    const r=await fetch('/brand/certs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:dom})});
+    if(r.status===429){ $('#liveres').innerHTML='<div class="spin">Слишком часто — подождите минуту.</div>'; }
+    else{
+      const d=await r.json();
+      if(d.status==='unavailable'){ $('#liveres').innerHTML='<div class="spin">CT-источник (crt.sh) сейчас перегружен — повторите через минуту.</div>'; }
+      else if(d.error){ $('#liveres').innerHTML='<div class="spin">Некорректный домен.</div>'; }
+      else if(!d.count){ $('#liveres').innerHTML='<div class="liveok">За '+d.window_days+' дней новых SSL-сертификатов с именем бренда на чужих доменах не замечено.</div>'; }
+      else{
+        const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
+        $('#liveres').innerHTML=
+          '<div class="livebad">Свежих сертификатов с «'+esc(d.brand.split('.')[0])+'» вне бренда: '+d.count+'</div>'+
+          d.certs.map(c=>'<div class="row"><span class="dot high"></span><div><div class="dm">'+esc(c.domain)+'</div><div class="nt">выдан '+esc(c.issued)+' · '+esc(c.issuer)+'</div></div></div>').join('')+
+          '<div class="disc" style="margin-top:8px">'+esc(d.note_ru||'')+'</div>';
+      }
+    }
+  }catch(e){ $('#liveres').innerHTML='<div class="spin">Ошибка сети.</div>'; }
+  b.disabled=false; b.textContent='SSL-серты за 7 дней (CT-логи)';
+};

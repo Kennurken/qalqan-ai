@@ -148,3 +148,67 @@ def test_static_route_hardened():
 def test_partners_badge_docs():
     t = client.get("/partners").text
     assert "/badge/" in t
+
+
+# --- H2: cert watch, trial keys, ops beacons ---
+
+def test_brand_certs_invalid():
+    r = client.post("/brand/certs", json={"domain": "!!"})
+    assert r.status_code == 200
+    assert r.json().get("error") == "invalid_domain"
+
+
+def test_request_key_validates_email():
+    r = client.post("/v1/request-key", json={"org": "TestBank", "email": "nope"})
+    assert r.status_code == 422
+
+
+def test_client_error_beacon_accepts():
+    r = client.post("/client-error", json={"k": "err", "m": "x is not defined",
+                                           "s": "/static/x.js", "l": 10, "p": "/scan"})
+    assert r.status_code == 200
+
+
+def test_pv_counts_memory_fallback():
+    import asyncio
+    from api.utils.cache import pv_incr, pv_counts
+
+    async def _run():
+        await pv_incr("/scan")
+        await pv_incr("/scan")
+        return await pv_counts(["/scan"])
+
+    res = asyncio.run(_run())
+    assert res.get("/scan") and sum(res["/scan"].values()) >= 2
+
+
+def test_admin_pv_gated():
+    assert client.get("/admin/pv").status_code == 401
+
+
+def test_beacon_on_pages():
+    for p in ["/scan", "/leak", "/partners"]:
+        assert "beacon.js" in client.get(p).text
+    assert client.get("/static/beacon.js").status_code == 200
+
+
+def test_partners_selfservice_form():
+    t = client.get("/partners").text
+    assert "korg" in t and "/static/partners.js" in t
+
+
+def test_cert_filter_logic():
+    from datetime import datetime, timedelta
+    from api.services.cert_watch import _filter_entries
+    fresh = (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%S")
+    stale = (datetime.utcnow() - timedelta(days=40)).strftime("%Y-%m-%dT%H:%M:%S")
+    entries = [
+        {"name_value": "kaspi-bonus.top\n*.kaspi-bonus.top", "not_before": fresh,
+         "issuer_name": "C=US, O=Let's Encrypt, CN=R11"},
+        {"name_value": "login.kaspi.kz", "not_before": fresh},      # own domain — excluded
+        {"name_value": "kaspi-old.ru", "not_before": stale},        # stale — excluded
+        {"name_value": "unrelated.kz", "not_before": fresh},        # no keyword — excluded
+    ]
+    hits = _filter_entries(entries, "kaspi", "kaspi.kz")
+    assert [h["domain"] for h in hits] == ["kaspi-bonus.top"]
+    assert hits[0]["issuer"] == "R11"

@@ -61,3 +61,35 @@ def usage_for(key: str) -> int:
 
 def partner_count() -> int:
     return len(_registered_keys())
+
+
+async def verify_api_key_full(key: str) -> str | None:
+    """Env-registered keys first (constant-time), then self-service trial keys
+    stored hashed in Supabase (category='api_key', domain=sha256(key)[:16]).
+    Returns partner name / 'Trial: <org>' / None."""
+    name = verify_api_key(key)
+    if name:
+        return name
+    if not key or not key.startswith("qk_") or len(key) > 80:
+        return None
+    try:
+        from .http import get_client
+        from .supabase import _available, _headers, _url
+        if not _available():
+            return None
+        khash = hashlib.sha256(key.encode()).hexdigest()[:16]
+        r = await get_client().get(
+            f"{_url()}/rest/v1/reports", headers=_headers(),
+            params={"category": "eq.api_key", "domain": f"eq.{khash}",
+                    "select": "comment", "limit": "1"})
+        if r.status_code == 200 and r.json():
+            org = (r.json()[0].get("comment") or "").strip() or "unknown"
+            _usage[key] = _usage.get(key, 0) + 1
+            return f"Trial: {org[:60]}"
+    except Exception:
+        return None
+    return None
+
+
+def is_trial(partner_name: str | None) -> bool:
+    return bool(partner_name and partner_name.startswith("Trial:"))

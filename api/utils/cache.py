@@ -228,3 +228,59 @@ async def once_per(key: str, ttl: int = 86400) -> bool:
     while len(_once) > _MAX_ONCE:
         _once.popitem(last=False)
     return True
+
+
+# ── Privacy-safe pageview counters: pv:<path>:<yyyymmdd> → int.
+#    Redis INCR+EXPIRE (8d) when available; per-instance memory fallback. ────
+_pv_mem: dict[str, int] = {}
+
+
+def _pv_key(path: str, day: str) -> str:
+    return f"pv:{path}:{day}"
+
+
+async def pv_incr(path: str) -> None:
+    import datetime
+    day = datetime.datetime.utcnow().strftime("%Y%m%d")
+    key = _pv_key(path, day)
+    if _redis_ok():
+        try:
+            client = get_client()
+            r = await client.post(f"{_redis_url()}/incr/{key}", headers=_redis_headers(), timeout=2)
+            if r.status_code == 200:
+                _cb_ok()
+                await client.post(f"{_redis_url()}/expire/{key}/691200",
+                                  headers=_redis_headers(), timeout=2)   # 8 days
+                return
+        except Exception:
+            _cb_fail()
+    _pv_mem[key] = _pv_mem.get(key, 0) + 1
+
+
+async def pv_counts(paths: list[str], days: int = 7) -> dict:
+    """{path: {day: count}} for known paths over the last N days."""
+    import datetime
+    today = datetime.datetime.utcnow()
+    day_keys = [(today - datetime.timedelta(days=i)).strftime("%Y%m%d") for i in range(days)]
+    out: dict[str, dict[str, int]] = {p: {} for p in paths}
+    keys = [_pv_key(p, d) for p in paths for d in day_keys]
+    values: list = [None] * len(keys)
+    if _redis_ok():
+        try:
+            client = get_client()
+            r = await client.post(f"{_redis_url()}/mget/" + "/".join(keys),
+                                  headers=_redis_headers(), timeout=3)
+            if r.status_code == 200:
+                _cb_ok()
+                values = r.json().get("result", values)
+        except Exception:
+            _cb_fail()
+    i = 0
+    for p in paths:
+        for d in day_keys:
+            v = values[i] if i < len(values) else None
+            n = int(v) if v else _pv_mem.get(_pv_key(p, d), 0)
+            if n:
+                out[p][d] = n
+            i += 1
+    return {p: c for p, c in out.items() if c}

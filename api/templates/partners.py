@@ -75,10 +75,22 @@ pre{background:#0d1424;border:1px solid var(--bd);border-radius:10px;padding:14p
 &lt;/a&gt;</pre>
 Зелёный A/A+ — сайт прошёл проверку; жёлтый/красный — есть проблемы (смотрите /scan).</div>
 
+<h2>Trial-ключ за 30 секунд (self-service)</h2>
+<div class="card">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <input id="korg" placeholder="Организация" aria-label="Организация" style="flex:1;min-width:180px;background:var(--card2,#0d1424);border:1px solid var(--bd);border-radius:9px;color:var(--tx);padding:10px 12px;font-family:inherit">
+    <input id="kemail" type="email" placeholder="email@company.kz" aria-label="Email" style="flex:1;min-width:180px;background:var(--card2,#0d1424);border:1px solid var(--bd);border-radius:9px;color:var(--tx);padding:10px 12px;font-family:inherit">
+  </div>
+  <button id="kgo" style="background:var(--cyan);border:none;border-radius:9px;color:#04121a;font-weight:700;padding:11px 18px;cursor:pointer;font-family:inherit">Получить trial-ключ</button>
+  <div id="kout" style="margin-top:12px;font-size:13px;line-height:1.6"></div>
+  <div style="font-size:11.5px;color:var(--mut);margin-top:8px">Trial: 30 запросов/мин, показывается один раз, храним только хеш. 2 ключа в день с одного IP.</div>
+</div>
+
 <h2>Получить боевой ключ</h2>
 <div class="card">Напишите на <a href="mailto:kmarukob76@gmail.com">kmarukob76@gmail.com</a> с указанием организации.
 Ключ выдаётся под конкретного партнёра, лимиты и логирование — индивидуально.</div>
 
 <div class="foot">Qalqan AI · Республиканский конкурс ДЭР 2026 · <button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">главная</a> · <a href="/dashboard">панель</a></div>
 <script>document.getElementById("qtgl").onclick=function(){var d=document.documentElement,t=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=t;localStorage.setItem("qtheme",t)};</script>
+<script src="/static/partners.js?v=__V__" defer></script>
 </body></html>"""

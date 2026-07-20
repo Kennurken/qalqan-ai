@@ -85,6 +85,7 @@ input:focus{border-color:var(--cyan)}
   <div id="liveblock" style="display:none;margin-top:14px">
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn" id="livego" style="flex:1 1 100%;min-width:0"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
+      <button class="btn" id="certgo" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)">SSL-серты за 7 дней (CT-логи)</button>
       <button class="btn" id="watchgo" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
     </div>
     <div id="liveres" style="margin-top:12px"></div>

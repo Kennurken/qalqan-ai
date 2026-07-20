@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse, HTMLResponse
 from .templates import LANDING_HTML, DASHBOARD_HTML, INSTALL_HTML, GRAPH_HTML, MOBILE_HTML, SW_JS, PARTNERS_HTML, NOTFOUND_HTML
-from .utils.api_auth import verify_api_key, key_id, is_demo, usage_for
+from .utils.api_auth import key_id, is_demo, usage_for
 from .demo import _DEMO_RESULTS
 from pydantic import BaseModel, field_validator, Field
 
@@ -1155,6 +1155,18 @@ async def brand_live_scan(request: BrandRequest, req: Request):
     return await scan_brand(request.domain)
 
 
+@app.post("/brand/certs")
+async def brand_certs(request: BrandRequest, req: Request):
+    """Certificate-transparency check: fresh (7d) SSL certs from public CT logs
+    whose names contain the brand keyword but aren't the brand's own domain.
+    Early-warning signal — phishing infra gets a cert before it gets victims."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, RATE_LIMIT_SCREEN, endpoint="brandcerts"):
+        return JSONResponse(status_code=429, content={"error": "Rate limit exceeded"})
+    from .services.cert_watch import recent_brand_certs
+    return await recent_brand_certs(request.domain)
+
+
 @app.post("/brand/watch")
 async def brand_watch_subscribe(request: BrandRequest, req: Request):
     """Subscribe a brand domain to daily look-alike monitoring. New registrations
@@ -1181,7 +1193,10 @@ async def cron_brand_watch(req: Request):
     if not _authorize_cron(req):
         return JSONResponse(status_code=403, content={"error": "forbidden"})
     from .services.brand_watch import scan_brand, registered_set
+    from .services.cert_watch import recent_brand_certs, cert_domains
+    from .utils.supabase import list_brand_watch_chats
     from .utils.telegram import brand_alert
+    from .services.bot_handler import send_message as _bot_send
     watches = await supabase_list_brand_watches()
     alerted = []
     for w in watches:
@@ -1190,11 +1205,30 @@ async def cron_brand_watch(req: Request):
             if scan.get("error"):
                 continue
             current = registered_set(scan)
+            # Best-effort CT-log sweep — crt.sh flakiness must never kill the scan
+            try:
+                certs = await recent_brand_certs(w["domain"])
+                current |= {f"cert:{d}" for d in cert_domains(certs)}
+            except Exception:
+                pass
             previous = set(filter(None, (w.get("snapshot") or "").split(",")))
             new = current - previous
             if new and previous:   # skip alert on the very first scan (baseline)
-                new_details = [r for r in scan["registered"] if r["domain"] in new]
-                await brand_alert(w["domain"], new_details)
+                new_regs = [r for r in scan["registered"] if r["domain"] in new]
+                new_certs = sorted(d[5:] for d in new if d.startswith("cert:"))
+                await brand_alert(w["domain"], new_regs
+                                  + [{"domain": d + " (новый SSL-серт)"} for d in new_certs])
+                # Personal alerts to bot subscribers of this brand (/watch in the bot)
+                for chat_id in await list_brand_watch_chats(w["domain"]):
+                    try:
+                        lines = "\n".join("• " + (r["domain"] if isinstance(r, dict) else str(r))
+                                           for r in new_regs) or ""
+                        cert_lines = "\n".join(f"• {d} (жаңа SSL-серт)" for d in new_certs)
+                        await _bot_send(int(chat_id),
+                            f"⚠️ <b>Brand-watch: {w['domain']}</b>\n\n"
+                            f"Жаңа клондар табылды:\n{lines}\n{cert_lines}".strip())
+                    except Exception:
+                        continue
                 alerted.append({"brand": w["domain"], "new": sorted(new)})
             await supabase_update_brand_watch(w["id"], ",".join(sorted(current)))
         except Exception as e:
@@ -1452,6 +1486,14 @@ async def health_check_alert(req: Request):
     return {"status": "degraded" if problems else "ok", "problems": problems}
 
 
+def _admin_authorized(req: Request, key: str | None = None) -> bool:
+    """Constant-time admin check shared by /admin and admin-gated JSON endpoints."""
+    admin_secret = os.getenv("ADMIN_SECRET", "")
+    provided = (req.headers.get("x-admin-key", "")
+                or req.cookies.get("qadmin", "") or (key or ""))
+    return bool(admin_secret) and hmac.compare_digest(provided, admin_secret)
+
+
 # ============================================================
 # ADMIN DASHBOARD
 # ============================================================
@@ -1466,9 +1508,7 @@ async def admin_dashboard(req: Request, key: str | None = None):
     admin_secret = os.getenv("ADMIN_SECRET", "")
     header_key = req.headers.get("x-admin-key", "")
     cookie_key = req.cookies.get("qadmin", "")
-    provided = header_key or cookie_key or (key or "")
-    # Constant-time comparison (avoids timing side-channel on the secret).
-    authed = bool(admin_secret) and hmac.compare_digest(provided, admin_secret)
+    authed = _admin_authorized(req, key)
     if not authed:
         return HTMLResponse(
             '<html><body style="background:#0f172a;color:#ef4444;font-family:monospace;'
@@ -1902,25 +1942,115 @@ async def federated_feed():
     }
 
 
+_PATH_RE = re.compile(r"^/[a-z0-9\-/]{0,60}$")
+
+
+class ClientErrorReport(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    k: str = Field(default="err", max_length=8)
+    m: str = Field(default="", max_length=220)
+    s: str = Field(default="", max_length=140)
+    ln: int = Field(default=0, ge=0, le=10_000_000, alias="l")
+    p: str = Field(default="", max_length=80)
+
+
+@app.post("/client-error")
+async def client_error(report: ClientErrorReport, req: Request):
+    """Front-end error beacon (ops). Stored with hashed IP only; heavy rate limit."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, 5, endpoint="cerr"):
+        return {"ok": False}
+    await log_report(domain=f"page:{report.p[:60] or '/'}", url=report.p or "/",
+                     category="client_error",
+                     comment=f"[{report.k}] {report.m} @ {report.s}:{report.ln}"[:490],
+                     lang="ru", reporter_ip=client_ip)
+    return {"ok": True}
+
+
+class PvPing(BaseModel):
+    p: str = Field(default="/", max_length=80)
+
+
+@app.post("/pv")
+async def pageview(ping: PvPing, req: Request):
+    """Privacy-safe pageview counter: path+day only, no cookies, no PII."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, 30, endpoint="pv"):
+        return {"ok": False}
+    path = ping.p if _PATH_RE.match(ping.p or "") else "/other"
+    from .utils.cache import pv_incr
+    await pv_incr(path)
+    return {"ok": True}
+
+
+@app.get("/admin/pv")
+async def admin_pv(req: Request):
+    """7-day pageview counters (admin-gated, same key as /admin)."""
+    if not _admin_authorized(req):
+        return JSONResponse(status_code=401, content={"error": "unauthorized"})
+    from .utils.cache import pv_counts
+    paths = list(_PUBLIC_PAGES) + ["/goszakup/graph", "/other"]
+    return {"days": 7, "views": await pv_counts(paths)}
+
+
+class KeyRequest(BaseModel):
+    org: str = Field(..., min_length=2, max_length=80)
+    email: str = Field(..., max_length=120)
+
+
+@app.post("/v1/request-key")
+async def request_api_key(request: KeyRequest, req: Request):
+    """Self-service TRIAL key (30 req/min, same tier as demo). Key is returned
+    exactly once; we store only its hash. Issuance: 2 per IP per day."""
+    client_ip = _get_client_ip(req)
+    if not await check_rate_limit(client_ip, 2, endpoint="keyissue", window=86400):
+        return JSONResponse(status_code=429,
+                            content={"error": "Лимит: 2 ключа в день. Для боевого ключа — kmarukob76@gmail.com"})
+    if not _EMAIL_RE.match(request.email.strip()):
+        return JSONResponse(status_code=422, content={"error": "invalid_email"})
+    import secrets as _secrets
+    key = "qk_" + _secrets.token_hex(16)
+    import hashlib as _hl
+    khash = _hl.sha256(key.encode()).hexdigest()[:16]
+    from .utils.supabase import _available as _sb_ok, _headers as _sb_h, _url as _sb_u, _hash as _sb_hash
+    from .utils.http import get_client as _gc
+    if not _sb_ok():
+        return JSONResponse(status_code=503, content={"error": "storage_unavailable"})
+    org = request.org.strip()[:60]
+    r = await _gc().post(
+        f"{_sb_u()}/rest/v1/reports", headers=_sb_h(),
+        json={"domain": khash, "url_hash": _sb_hash(key), "category": "api_key",
+              "comment": org, "lang": "ru", "reporter_ip_hash": _sb_hash(client_ip)})
+    if r.status_code not in (200, 201):
+        return JSONResponse(status_code=503, content={"error": "storage_unavailable"})
+    logger.info(f"Trial API key issued for org={org}")
+    return {"api_key": key, "tier": "trial", "limit_per_min": 30,
+            "note": "Сохраните ключ — он показывается один раз. Заголовок: X-API-Key."}
+
+
 # ── Partner (B2G) API — banks / regulators via X-API-Key ─────────────────────
 
 
-def _partner_auth(req: Request) -> tuple[str, str | None]:
+async def _partner_auth(req: Request) -> tuple[str, str | None]:
     key = req.headers.get("x-api-key", "") or req.query_params.get("api_key", "")
-    return key, verify_api_key(key)
+    from .utils.api_auth import verify_api_key_full
+    return key, await verify_api_key_full(key)
 
 
-def _partner_limit(key: str) -> int:
-    return 30 if is_demo(key) else 600   # demo tier vs partner tier (per min)
+def _partner_limit(key: str, partner: str | None = None) -> int:
+    from .utils.api_auth import is_trial
+    # demo + self-service trial keys share the low tier; contracted partners get 600
+    return 30 if (is_demo(key) or is_trial(partner)) else 600
 
 
 @app.post("/v1/check")
 async def api_v1_check(request: CheckRequest, req: Request, background_tasks: BackgroundTasks):
     """Partner URL check. Auth: X-API-Key header. Higher rate tier than public /check."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
-    limit = _partner_limit(key)
+    limit = _partner_limit(key, partner)
     if not await check_rate_limit(key_id(key), limit, endpoint="apiv1"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded", "limit_per_min": limit})
     import uuid
@@ -1931,10 +2061,10 @@ async def api_v1_check(request: CheckRequest, req: Request, background_tasks: Ba
 @app.post("/v1/batch")
 async def api_v1_batch(request: BatchRequest, req: Request, background_tasks: BackgroundTasks):
     """Partner bulk URL check (up to model limit)."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
-    limit = _partner_limit(key)
+    limit = _partner_limit(key, partner)
     if not await check_rate_limit(key_id(key), limit, endpoint="apiv1b"):
         return JSONResponse(status_code=429, content={"error": "Rate limit exceeded", "limit_per_min": limit})
     results = await asyncio.gather(
@@ -1949,7 +2079,7 @@ async def api_v1_batch(request: BatchRequest, req: Request, background_tasks: Ba
 @app.get("/v1/feed")
 async def api_v1_feed(req: Request):
     """Partner access to the full Kazakhstan threat feed."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
     return _build_kz_feed()
@@ -1958,7 +2088,7 @@ async def api_v1_feed(req: Request):
 @app.get("/v1/usage")
 async def api_v1_usage(req: Request):
     """Partner's own usage counter (this process)."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
     return {"partner": partner, "requests": usage_for(key), "rate_limit_per_min": _partner_limit(key)}
@@ -1974,7 +2104,7 @@ class ContributeRequest(BaseModel):
 async def api_v1_contribute(request: ContributeRequest, req: Request, background_tasks: BackgroundTasks):
     """Federated threat-sharing: a partner/CERT contributes a threat indicator.
     Feeds the crowd-intelligence store and the federated feed."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
     if not await check_rate_limit(key_id(key), _partner_limit(key), endpoint="apicontrib"):
@@ -1993,7 +2123,7 @@ async def api_v1_contribute(request: ContributeRequest, req: Request, background
 @app.post("/v1/phone")
 async def api_v1_phone(request: PhoneRequest, req: Request):
     """Partner KZ phone-scam check (partner rate tier)."""
-    key, partner = _partner_auth(req)
+    key, partner = await _partner_auth(req)
     if not partner:
         return JSONResponse(status_code=401, content={"error": "Invalid or missing X-API-Key"})
     if not await check_rate_limit(key_id(key), _partner_limit(key), endpoint="apiphone"):
