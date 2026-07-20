@@ -116,3 +116,25 @@ def test_flow_theme_toggle(page):
     page.reload(wait_until="networkidle")
     assert page.get_attribute("html", "data-theme") == after
     assert not page.errors, page.errors
+
+
+def test_flow_tool_page_kk_toggle(page):
+    """Tool pages: ҚАЗ/РУС toggle swaps static labels and persists via qlang."""
+    page.goto(BASE + "/scan", wait_until="networkidle")
+    page.click(".qlangsw button[data-l='kk']")
+    assert "бағалау" in page.locator("[data-qtl='h1']").inner_text().lower()
+    page.click(".qlangsw button[data-l='ru']")
+    assert "Оценка" in page.locator("[data-qtl='h1']").inner_text()
+    assert not page.errors, page.errors
+
+
+def test_flow_partners_key_form_validation(page):
+    """Partners self-service form: client-side validation message on bad input."""
+    page.goto(BASE + "/partners", wait_until="networkidle")
+    page.fill("#korg", "X")
+    page.fill("#kemail", "not-email")
+    page.click("#kgo")
+    page.wait_for_function(
+        "document.getElementById('kout').textContent.length > 5", timeout=5000)
+    assert "коррект" in page.locator("#kout").inner_text()
+    assert not page.errors, page.errors

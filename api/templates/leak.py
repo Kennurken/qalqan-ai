@@ -57,20 +57,20 @@ input:focus{border-color:var(--cyan)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?</h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
-  <div class="sub">Құпиясөзіңіз деректер утечкаларында бар ма? · Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.</div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> <span data-qtl="h1">Пароль утёк?</span></h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
+  <div class="sub" data-qtl="sub">Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.</div>
 
   <div class="tabs">
-    <button class="tabb on" data-t="pw"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</button>
-    <button class="tabb" data-t="em"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Email</button>
+    <button class="tabb on" data-t="pw" data-qtl="tab_pw"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</button>
+    <button class="tabb" data-t="em" data-qtl="tab_em"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Email</button>
   </div>
 
   <div class="card" id="card-pw">
     <div class="inrow">
-      <input id="pw" type="password" aria-label="Пароль для проверки" placeholder="Введите пароль для проверки" autocomplete="off">
+      <input id="pw" type="password" data-qtl-ph="ph_pw" aria-label="Пароль для проверки" placeholder="Введите пароль для проверки" autocomplete="off">
       <button class="eye" id="eye" aria-label="Показать пароль"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg></button>
     </div>
-    <button class="btn" id="go">Проверить утечку</button>
+    <button class="btn" id="go" data-qtl="go">Проверить утечку</button>
     <div class="priv">
       <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Пароль не покидает ваше устройство.</b> Считается SHA-1 хэш прямо в браузере, наружу уходят только первые 5 символов хэша (k-анонимность). Ни мы, ни HIBP не видим пароль и даже его полный хэш.</span>
@@ -83,7 +83,7 @@ input:focus{border-color:var(--cyan)}
     <div class="inrow">
       <input id="em" type="email" aria-label="Email для проверки" placeholder="you@example.com" autocomplete="off">
     </div>
-    <button class="btn" id="goem">Проверить email</button>
+    <button class="btn" id="goem" data-qtl="goem">Проверить email</button>
     <div class="priv">
       <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Email не сохраняется.</b> Запрос уходит в открытую базу утечек XposedOrNot; Qalqan не логирует и не хранит адрес.</span>
@@ -94,20 +94,21 @@ input:focus{border-color:var(--cyan)}
   <div class="card" style="margin-top:14px">
     <div style="font-weight:700;font-size:14px;margin-bottom:10px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Генератор надёжных паролей</div>
     <div class="inrow">
-      <input id="genout" type="text" readonly aria-label="Сгенерированный пароль" placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
+      <input id="genout" type="text" readonly data-qtl-ph="gen_ph" aria-label="Сгенерированный пароль" placeholder="Нажми «Сгенерировать»" style="font-family:ui-monospace,monospace">
       <button class="eye" id="gencopy" aria-label="Скопировать"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
     </div>
     <div style="display:flex;gap:10px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--mut)">
       <label><input type="checkbox" id="gensym" checked> символы</label>
       <label>длина <select id="genlen" aria-label="Длина пароля"><option>16</option><option>20</option><option selected>24</option><option>32</option></select></label>
     </div>
-    <button class="btn" id="gengo" style="margin-top:12px">Сгенерировать</button>
+    <button class="btn" id="gengo" data-qtl="gen_go" style="margin-top:12px">Сгенерировать</button>
     <div class="priv" style="margin-top:10px"><span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span>Генерируется в браузере (crypto.getRandomValues), никуда не отправляется.</span></div>
   </div>
 
 <div class="foot">Qalqan AI · Данные: <a href="https://haveibeenpwned.com/Passwords" rel="noopener" target="_blank">HaveIBeenPwned</a> (k-anonymity API) · </div>
 </div>
 
+<script src="/static/qtl.js?v=__V__" defer></script>
 <script src="/static/leak.js?v=__V__" defer></script>
 <script>document.getElementById("qtgl").onclick=function(){var d=document.documentElement,t=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=t;localStorage.setItem("qtheme",t)};</script>
 </body>

@@ -18,7 +18,9 @@ Three languages (Қазақша / Русский / English).
 | Landing + URL check | [`/`](https://qalqan-ai-nu.vercel.app/) |
 | Website security grade (A–F) | [`/scan`](https://qalqan-ai-nu.vercel.app/scan) |
 | Brand-protection radar (typosquats) | [`/brand`](https://qalqan-ai-nu.vercel.app/brand) |
-| Password-leak check (HIBP, k-anonymity) | [`/leak`](https://qalqan-ai-nu.vercel.app/leak) |
+| Password & email leak check (HIBP / XposedOrNot) | [`/leak`](https://qalqan-ai-nu.vercel.app/leak) |
+| Screenshot analysis (Vision AI) | [`/screen`](https://qalqan-ai-nu.vercel.app/screen) |
+| Bulk URL screening (CSV) | [`/batch-check`](https://qalqan-ai-nu.vercel.app/batch-check) |
 | Economic-impact calculator | [`/impact`](https://qalqan-ai-nu.vercel.app/impact) |
 | Regulator dashboard + threat map | [`/dashboard`](https://qalqan-ai-nu.vercel.app/dashboard) |
 | Procurement-fraud graph | [`/goszakup/graph`](https://qalqan-ai-nu.vercel.app/goszakup/graph) |
@@ -45,6 +47,7 @@ curl -X POST https://qalqan-ai-nu.vercel.app/check \
 | Illegal gambling | Offline DB + brand regex (1xBet, Mostbet…) |
 | General phishing | PhishTank + OpenPhish + URLhaus + Google Safe Browsing |
 | Newly registered domains | RDAP domain intelligence |
+| Brand clones as they appear | Daily RDAP re-scan + certificate-transparency logs (crt.sh) |
 | Procurement fraud | Affiliation / collusion / cartel graph analysis |
 | Scam SMS & messages (kk/ru) | Text analysis + link extraction |
 
@@ -54,8 +57,8 @@ curl -X POST https://qalqan-ai-nu.vercel.app/check \
 
 - **Web** — landing with live checking, regulator dashboard with a KZ threat map, procurement-fraud graph
 - **Mobile** — installable PWA (`/m`), works offline
-- **Extension** — Chrome/Firefox MV3: blocks pages before they load, annotates search results, 390+ offline domains
-- **Telegram bot** — URL / phone / SMS / voice / QR checks, inline mode, community voting
+- **Extension** — Chrome/Firefox MV3: blocks pages before they load, badges in search results and Telegram/WhatsApp Web chats, password form-guard, right-click check, 390+ offline domains
+- **Telegram bot** — URL / phone / SMS / voice / QR checks, inline mode, community voting, brand watch (`/watch`), weekly digest (`/subscribe`)
 - **Partner API** — `X-API-Key`, `/v1/*` endpoints for banks and regulators, federated threat sharing
 
 ---
@@ -83,7 +86,7 @@ domains past a threshold. Only hashes are stored (`url_hash` / `ip_hash`), never
 - **Backend** — FastAPI (Python 3.11) on Vercel serverless · Groq (llama-3.3-70b + Whisper) · Gemini 2.5-flash · Supabase Postgres · Upstash Redis
 - **Frontend** — React 19 + Vite (extension) · vanilla SVG dashboards/graph · PWA + service worker
 - **Data** — PhishTank / OpenPhish / URLhaus / Safe Browsing · RDAP · goszakup.gov.kz API · custom KZ datasets
-- **CI** — GitHub Actions (extension builds) · 150 automated tests (pytest)
+- **CI** — GitHub Actions: ruff lint, 175 unit tests (pytest), 6 Playwright E2E flows, extension builds
 
 ---
 
@@ -92,12 +95,12 @@ domains past a threshold. Only hashes are stored (`url_hash` / `ip_hash`), never
 | Group | Endpoints |
 |---|---|
 | Checks | `POST /check` `/check-text` `/sms` `/phone` `/voice` `/advisor` `/batch` `/analyze-screen` |
-| Tools | `POST /brand/scan` · `GET /scan/{domain}` |
+| Tools | `POST /brand/scan` `/brand/live-scan` `/brand/certs` `/brand/watch` · `GET /scan/{domain}` `/leak/email` `/badge/{domain}` |
 | Pyramids / procurement | `POST /pyramid/check` `/goszakup/analyse` `/goszakup/graph` · `GET /goszakup/check/{n}` |
 | Crowd | `POST /report` `/vote` · `GET /community/{domain}` |
 | Analytics | `GET /dashboard/data` `/trends` `/stats` `/report/generate` (PDF) |
 | Feeds | `GET /feed/kz` `/feed/federated` (CC-BY) |
-| Partner (X-API-Key) | `POST /v1/check` `/v1/batch` `/v1/phone` `/v1/contribute` · `GET /v1/feed` `/v1/usage` |
+| Partner (X-API-Key) | `POST /v1/check` `/v1/batch` `/v1/phone` `/v1/contribute` `/v1/request-key` (self-service trial) · `GET /v1/feed` `/v1/usage` |
 | Ops | `GET /health` `/health/check` |
 
 ---

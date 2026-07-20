@@ -1,4 +1,4 @@
-// Qalqan AI v5.1
+// Qalqan AI v5.2
 // Background Service Worker: auto-check + badge + notifications + offline + history
 // Memory-safe: cleanup on tab close + periodic purge
 
@@ -76,7 +76,7 @@ async function loadCachedOfflineDb() {
 
 // --- Lifecycle ---
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log(`Qalqan AI v5.1 installed (${details.reason})`);
+  console.log(`Qalqan AI v5.2 installed (${details.reason})`);
   // Right-click any link → check it through Qalqan (opens the landing pre-filled)
   try {
     chrome.contextMenus.create({
@@ -100,7 +100,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     fetchAndUpdateOfflineDb();
   }
   if (details.reason === "update") {
-    console.log(`Qalqan AI updated to v5.1 from ${details.previousVersion}`);
+    console.log(`Qalqan AI updated to v5.2 from ${details.previousVersion}`);
     fetchAndUpdateOfflineDb();
   }
   chrome.alarms.create("qalqan_db_update", { periodInMinutes: 720 }); // 12h per passport spec
@@ -588,7 +588,7 @@ async function getLanguage() {
   return result.qalqan_lang || "kk";
 }
 
-console.log("Qalqan AI v5.1 — Background Service Worker started");
+console.log("Qalqan AI v5.2 — Background Service Worker started");
 
 
 chrome.contextMenus.onClicked.addListener((info) => {

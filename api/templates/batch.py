@@ -56,28 +56,29 @@ td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg> Массовая проверка URL</h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
-  <div class="sub">Для банков, регуляторов и служб безопасности: вставьте список ссылок (по одной на строку) или загрузите CSV — каждый URL пройдёт полный 7-уровневый pipeline. До 15 URL параллельно, крупные списки идут батчами.</div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg> <span data-qtl="h1">Массовая проверка URL</span></h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
+  <div class="sub" data-qtl="sub">Для банков, регуляторов и служб безопасности: вставьте список ссылок (по одной на строку) или загрузите CSV — каждый URL пройдёт полный 7-уровневый pipeline.</div>
 
   <div class="card">
     <textarea id="urls" placeholder="kaspi-bonus.tk&#10;1xbet.com&#10;https://example.com/login&#10;..."></textarea>
     <div class="row">
-      <button class="btn sec" id="upload"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Загрузить CSV/TXT</button>
-      <button class="btn" id="go">Проверить список</button>
+      <button class="btn sec" id="upload" data-qtl="upload"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> Загрузить CSV/TXT</button>
+      <button class="btn" id="go" data-qtl="go">Проверить список</button>
       <input id="file" type="file" accept=".csv,.txt">
     </div>
     <div class="prog" id="prog"><i id="progbar"></i></div>
     <div class="sum" id="sum"></div>
     <div class="tblwrap" id="tblwrap">
-      <table><thead><tr><th>URL</th><th>Вердикт</th><th>Балл</th><th>Источник</th></tr></thead><tbody id="tbody"></tbody></table>
+      <table><thead><tr><th>URL</th><th data-qtl="th_v">Вердикт</th><th data-qtl="th_s">Балл</th><th data-qtl="th_src">Источник</th></tr></thead><tbody id="tbody"></tbody></table>
     </div>
-    <div class="row" id="dlrow" style="display:none"><button class="btn sec" id="dl"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> Скачать отчёт CSV</button></div>
+    <div class="row" id="dlrow" style="display:none"><button class="btn sec" id="dl" data-qtl="dl"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> Скачать отчёт CSV</button></div>
     <div class="hint">Лимит: 15 URL за запрос, крупные списки проверяются частями с паузой (rate-limit). Для интеграции без лимитов — <a href="/partners" style="color:var(--cyan)">B2G API с X-API-Key</a>.</div>
   </div>
 
   <div class="foot">Qalqan AI · Bulk URL screening · <a href="/partners">Партнёрам</a> · <a href="/">Главная</a></div>
 </div>
 
+<script src="/static/qtl.js?v=__V__" defer></script>
 <script src="/static/batch.js?v=__V__" defer></script>
 <script>document.getElementById("qtgl").onclick=function(){var d=document.documentElement,t=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=t;localStorage.setItem("qtheme",t)};</script>
 </body>

@@ -1,43 +1,38 @@
 NOTFOUND_HTML = """<!DOCTYPE html>
-<html lang="kk"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>404 — Qalqan AI</title>
-<meta name="theme-color" content="#0a0e16">
-<link rel="icon" type="image/svg+xml" href="/favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<meta name="description" content="Страница не найдена. Qalqan AI — AI-защита Казахстана от киберугроз.">
 <style>
-*{margin:0;box-sizing:border-box}
-body{min-height:100vh;display:grid;place-items:center;background:#0a0e16;color:#e7ebf3;font-family:'Inter',-apple-system,sans-serif;text-align:center;padding:24px;overflow:hidden}
-.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 600px at 50% 20%,#101725,#0a0e16 65%)}
-.bg::before,.bg::after{content:"";position:absolute;border-radius:50%;filter:blur(90px)}
-.bg::before{width:420px;height:420px;background:radial-gradient(circle,rgba(122,162,247,.4),transparent 70%);top:-80px;left:20%;animation:f 22s ease-in-out infinite alternate}
-.bg::after{width:380px;height:380px;background:radial-gradient(circle,rgba(110,231,211,.28),transparent 70%);bottom:-60px;right:18%;animation:f 26s ease-in-out infinite alternate-reverse}
-@keyframes f{to{transform:translate(60px,40px)}}
-.shield{width:60px;height:60px;margin:0 auto 8px}
-.code{font-size:clamp(80px,18vw,150px);font-weight:800;line-height:1;letter-spacing:-.04em;background:linear-gradient(120deg,#7aa2f7,#6ee7d3,#bb9af7,#6ee7d3);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:sh 7s linear infinite}
-@keyframes sh{to{background-position:220% center}}
-h1{font-size:22px;font-weight:600;margin:6px 0 10px}
-p{color:#aab3c6;max-width:380px;margin:0 auto 28px;line-height:1.6}
-.btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7aa2f7,#5b87e8);color:#06101f;font-weight:700;padding:13px 26px;border-radius:13px;text-decoration:none;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(122,162,247,.35)}
-.links{margin-top:22px;font-size:14px;color:#6f7a8f}.links a{color:#7aa2f7;text-decoration:none;margin:0 9px}
-@media(prefers-reduced-motion:reduce){*{animation:none!important}}
-.qi{width:1em;height:1em;vertical-align:-0.14em;display:inline-block}
+:root{--bg:oklch(16% .02 255);--card:oklch(21.5% .025 260);--cyan:oklch(72% .12 265);--tx:oklch(93% .01 250);--mut:oklch(63% .02 250);--bd:oklch(30% .03 258)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{text-align:center;max-width:440px}
+.shield{opacity:.9;margin-bottom:18px}
+h1{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1}
+.t{font-size:17px;font-weight:600;margin-top:10px}
+.s{color:var(--mut);font-size:13.5px;margin-top:8px;line-height:1.6}
+.links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.links a{color:var(--cyan);text-decoration:none;font-size:13.5px;border:1px solid var(--bd);border-radius:999px;padding:8px 16px;transition:border-color .2s}
+.links a:hover{border-color:var(--cyan)}
 :focus-visible{outline:2px solid #7aa2f7;outline-offset:2px;border-radius:4px}
-::selection{background:rgba(122,162,247,.32)}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-*{scrollbar-width:thin;scrollbar-color:#2a3550 transparent}
-::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3550;border-radius:5px}::-webkit-scrollbar-track{background:transparent}
-</style></head>
+</style>
+</head>
 <body>
-<div class="bg"></div>
-<div>
-<svg class="shield" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z" stroke="url(#g)" stroke-width="1.4" fill="rgba(122,162,247,.1)"/><defs><linearGradient id="g" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#7aa2f7"/><stop offset="1" stop-color="#6ee7d3"/></linearGradient></defs></svg>
-<div class="code">404</div>
-<h1>Бет табылмады</h1>
-<p>Бұл сілтеме жоқ немесе жылжытылған. Бастапқы бетке оралыңыз.</p>
-<a class="btn" href="/">← Басты бетке</a>
-<div class="links"><a href="/dashboard?demo=1">Панель</a>·<a href="/m">Мобилка</a>·<a href="/leak"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль</a>·<a href="https://t.me/QalqanAI_bot">Бот</a></div>
+<div class="card">
+  <svg class="shield" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="oklch(72% .12 265)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.5 9.5 12 12m0 0 2.5 2.5M12 12l2.5-2.5M12 12l-2.5 2.5"/></svg>
+  <h1>404</h1>
+  <div class="t">Мұндай бет жоқ · Такой страницы нет</div>
+  <div class="s">Ссылка устарела или в адресе опечатка. Зато всё остальное на месте:</div>
+  <div class="links">
+    <a href="/">Проверить сайт</a>
+    <a href="/scan">Оценка сайта</a>
+    <a href="/leak">Пароль утёк?</a>
+    <a href="/help">Обманули?</a>
+  </div>
 </div>
-</body></html>"""
+</body>
+</html>"""

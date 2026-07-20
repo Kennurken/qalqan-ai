@@ -1,4 +1,4 @@
-# Qalqan AI v5.1
+# Qalqan AI v5.2
 # Бас API: 6-деңгейлі қауіп детекция pipeline + ML features + XAI
 # Academic research-grade: features extraction, explainability, evaluation
 
@@ -94,7 +94,7 @@ async def lifespan(app: FastAPI):
     await aclose()
 
 
-app = FastAPI(title="Qalqan AI", version="5.1.0",
+app = FastAPI(title="Qalqan AI", version="5.2.0",
               description="AI-powered cybersecurity research platform — PhD-grade threat detection",
               lifespan=lifespan)
 
@@ -384,7 +384,7 @@ async def root(request: Request):
     # API clients get JSON
     if "text/html" not in accept:
         return {
-            "status": "online", "name": "Qalqan AI", "version": "5.1.0",
+            "status": "online", "name": "Qalqan AI", "version": "5.2.0",
             "pipeline": "7-tier threat detection",
             "ai_providers": {
                 "groq": "configured" if os.getenv("GROQ_API_KEY") else "missing",
@@ -895,8 +895,8 @@ async def get_stats(request: Request):
         "whitelist_size": len(_whitelist),
         "cache_entries": len(_mem),
         "demo_mode": DEMO_MODE,
-        "version": "5.1.0",
-        "features": ["goszakup_fraud_detection", "telegram_bot", "kz_threat_report", "7tier_pipeline", "xai_explainer"],
+        "version": "5.2.0",
+        "features": ["7tier_pipeline", "brand_watch_ct_logs", "trial_api_keys", "screen_vision_check", "community_crowd_block", "goszakup_fraud_detection", "telegram_bot", "xai_explainer"],
         "report_url": "/report/generate",
     }
     if "text/html" not in request.headers.get("accept", ""):
@@ -1439,7 +1439,7 @@ async def service_worker():
 # --- Keep-warm (Vercel cron hits every 10 min) ---
 @app.get("/ping")
 async def ping():
-    return {"status": "ok", "version": "5.1.0", "demo_mode": DEMO_MODE}
+    return {"status": "ok", "version": "5.2.0", "demo_mode": DEMO_MODE}
 
 
 # --- Detailed health check (Fix #5: no longer reveals which keys are configured) ---
@@ -1459,7 +1459,7 @@ async def health():
         supabase_health(), redis_health(), ml_health())
     return {
         "status": "ok",
-        "version": "5.1.0",
+        "version": "5.2.0",
         "demo_mode": DEMO_MODE,
         "api_keys_configured": f"{configured_count}/{len(key_names)}",
         "data_files_ok": f"{data_files_ok}/5",
@@ -1643,7 +1643,7 @@ async def check_research(request: CheckRequest, req: Request):
             "domain": domain,
             "ai_provider": ai_result.get("source", "none") if ai_result else "none",
             "timestamp": time.time(),
-            "version": "5.1.0"
+            "version": "5.2.0"
         }
     }
 

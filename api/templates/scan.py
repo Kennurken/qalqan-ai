@@ -57,14 +57,14 @@ input:focus{border-color:var(--cyan)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg> Оценка безопасности сайта</h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
-  <div class="sub">Сайттың қауіпсіздік бағасы: A+ ден F дейін. · Комплексная оценка любого сайта: HTTPS/SSL, возраст домена, репутация, гомоглифы, хостинг.</div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg> <span data-qtl="h1">Оценка безопасности сайта</span></h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
+  <div class="sub" data-qtl="sub">Комплексная оценка любого сайта: HTTPS/SSL, возраст домена, репутация, гомоглифы, хостинг. Оценка: A+ … F.</div>
 
   <div class="inrow">
-    <input id="dom" aria-label="Домен сайта" placeholder="example.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
-    <button class="btn" id="go">Оценить</button>
+    <input id="dom" data-qtl-ph="ph" aria-label="Домен сайта" placeholder="example.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <button class="btn" id="go" data-qtl="go">Оценить</button>
   </div>
-  <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="1xbet.com">1xbet.com</b> · <b data-d="github.com">github.com</b></div>
+  <div class="ex"><span data-qtl="ex">Примеры:</span> <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="1xbet.com">1xbet.com</b> · <b data-d="github.com">github.com</b></div>
 
   <div id="status"></div>
   <div class="card" id="card">
@@ -81,6 +81,7 @@ input:focus{border-color:var(--cyan)}
   </div>
 </div>
 
+<script src="/static/qtl.js?v=__V__" defer></script>
 <script src="/static/scan.js?v=__V__" defer></script>
 <div class="foot">Qalqan AI · Website security grade · <a href="/brand">Защита бренда</a> · <a href="/">Главная</a></div>
 <script>document.getElementById("qtgl").onclick=function(){var d=document.documentElement,t=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=t;localStorage.setItem("qtheme",t)};</script>

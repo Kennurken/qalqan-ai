@@ -1,3 +1,7 @@
+const QT={
+ kk:{h1:'Құпиясөз жария болды ма?',sub:'Құпиясөзді <b>HaveIBeenPwned</b> базасы бойынша тексер — нақты утечкалардан 900+ млн құпиясөз.',tab_pw:'Құпиясөз',tab_em:'Email',ph_pw:'Тексеру үшін құпиясөз енгізіңіз',go:'Утечканы тексеру',goem:'Email тексеру',gen_t:'Сенімді құпиясөз генераторы',gen_go:'Генерациялау',gen_ph:'«Генерациялау» батырмасын бас',checking:'Утечка базаларын тексерудеміз...',found:'утечкада табылды:',notfound:'Белгілі утечкаларда табылмады.',notguar:'Бұл кепілдік емес — бірегей құпиясөздер мен 2FA қолданыңыз.',what:'Не істеу керек:',advice:'осы сервистердегі құпиясөздерді ауыстырыңыз, 2FA қосыңыз, құпиясөздерді қайта қолданбаңыз.',bademail:'Дұрыс email енгізіңіз.',svcdown:'Утечка сервисі қолжетімсіз, кейінірек көріңіз.',toofast:'Тым жиі — минут күтіңіз.',neterr:'Желі қатесі.'},
+ ru:{h1:'Пароль утёк?',sub:'Проверь пароль по базе <b>HaveIBeenPwned</b> — 900+ млн паролей из реальных утечек.',tab_pw:'Пароль',tab_em:'Email',ph_pw:'Введите пароль для проверки',go:'Проверить утечку',goem:'Проверить email',gen_t:'Генератор надёжных паролей',gen_go:'Сгенерировать',gen_ph:'Нажми «Сгенерировать»',checking:'Проверяем базы утечек...',found:'найден в утечках:',notfound:'Не найден в известных утечках.',notguar:'Это не гарантия — используйте уникальные пароли и 2FA.',what:'Что делать:',advice:'смените пароли на этих сервисах, включите 2FA, не переиспользуйте пароли.',bademail:'Введите корректный email.',svcdown:'Сервис утечек недоступен, попробуйте позже.',toofast:'Слишком часто — подождите минуту.',neterr:'Ошибка сети.'}};
+const T=k=>QTL.t(QT,k);
 const QI={octagon:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',alert:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',checkc:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',check:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',copy:'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'};
 const $=s=>document.querySelector(s);
 $('#eye').onclick=()=>{const p=$('#pw');p.type=p.type==='password'?'text':'password';};
@@ -58,18 +62,18 @@ async function checkEmail(){
   const em=document.getElementById('em').value.trim();
   const R=document.getElementById('resem');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){R.className='res show';R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Введите корректный email.';return}
-  R.className='res show';R.innerHTML='Проверяем базы утечек...';
+  R.className='res show';R.innerHTML=T('checking');
   try{
     const r=await fetch('/leak/email?email='+encodeURIComponent(em));
     if(r.status===429){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Слишком часто — подождите минуту.';return}
     if(!r.ok){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Сервис утечек недоступен, попробуйте позже.';return}
     const d=await r.json();
-    if(!d.breached){R.innerHTML='<b style="color:var(--green,#9ece6a)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Не найден в известных утечках.</b><br>Это не гарантия — используйте уникальные пароли и 2FA.';}
+    if(!d.breached){R.innerHTML='<b style="color:var(--green,#9ece6a)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> '+T('notfound')+'</b><br>'+T('notguar')+'';}
     else{
       const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
-      R.innerHTML='<b style="color:var(--red,#f7768e)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg> Найден в '+d.count+' утечках:</b><br>'+
+      R.innerHTML='<b style="color:var(--red,#f7768e)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M12 2v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></svg> '+T('found')+' '+d.count+':</b><br>'+
         d.breaches.map(b=>'• '+esc(b)).join('<br>')+
-        '<br><br><b>Что делать:</b> смените пароли на этих сервисах, включите 2FA, не переиспользуйте пароли.';
+        '<br><br><b>'+T('what')+'</b> '+T('advice');
     }
   }catch(e){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Ошибка сети.'}
 }
@@ -90,3 +94,5 @@ document.getElementById('gencopy').onclick=async()=>{
   try{await navigator.clipboard.writeText(v);document.getElementById('gencopy').innerHTML=QI.check;
       setTimeout(()=>document.getElementById('gencopy').innerHTML=QI.copy,1200);}catch(e){}
 };
+
+QTL.mount(QT);

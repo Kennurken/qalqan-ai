@@ -68,15 +68,15 @@ input:focus{border-color:var(--cyan)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Защита бренда от фишинга</h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
-  <div class="b2b">ДЛЯ БАНКОВ · ГОСОРГАНОВ · БИЗНЕСА</div>
-  <div class="sub">Брендіңіздің фишингтік домен-егіздерін табыңыз. · Введите домен вашего бренда — покажем домены-двойники, которые регистрируют мошенники, чтобы красть у ваших клиентов.</div>
+  <div class="top"><h1><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> <span data-qtl="h1">Защита бренда от фишинга</span></h1><button class="qtgl" id="qtgl" aria-label="Тема / Theme"><svg class="moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></button> <a href="/">← Qalqan AI</a></div>
+  <div class="b2b" data-qtl="b2b">ДЛЯ БАНКОВ · ГОСОРГАНОВ · БИЗНЕСА</div>
+  <div class="sub" data-qtl="sub">Введите домен вашего бренда — покажем домены-двойники, которые регистрируют мошенники, чтобы красть у ваших клиентов.</div>
 
   <div class="inrow">
-    <input id="dom" aria-label="Домен бренда" placeholder="kaspi.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
-    <button class="btn" id="go">Сканировать</button>
+    <input id="dom" data-qtl-ph="ph" aria-label="Домен бренда" placeholder="kaspi.kz" autocapitalize="off" autocomplete="off" spellcheck="false">
+    <button class="btn" id="go" data-qtl="go">Сканировать</button>
   </div>
-  <div class="ex">Примеры: <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="halykbank.kz">halykbank.kz</b> · <b data-d="egov.kz">egov.kz</b></div>
+  <div class="ex"><span data-qtl="ex">Примеры:</span> <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="halykbank.kz">halykbank.kz</b> · <b data-d="egov.kz">egov.kz</b></div>
 
   <div class="summary" id="summary"></div>
   <div class="grid" id="grid"></div>
@@ -84,14 +84,15 @@ input:focus{border-color:var(--cyan)}
   <div class="advice" id="advice"></div>
   <div id="liveblock" style="display:none;margin-top:14px">
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn" id="livego" style="flex:1 1 100%;min-width:0"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
-      <button class="btn" id="certgo" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)">SSL-серты за 7 дней (CT-логи)</button>
-      <button class="btn" id="watchgo" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
+      <button class="btn" id="livego" data-qtl="live" style="flex:1 1 100%;min-width:0"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Live-проверка регистраций</button>
+      <button class="btn" id="certgo" data-qtl="cert" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)">SSL-серты за 7 дней (CT-логи)</button>
+      <button class="btn" id="watchgo" data-qtl="watch" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
     </div>
     <div id="liveres" style="margin-top:12px"></div>
   </div>
 </div>
 
+<script src="/static/qtl.js?v=__V__" defer></script>
 <script src="/static/brand.js?v=__V__" defer></script>
 <div class="foot">Qalqan AI · Domain typosquatting radar · <a href="/partners">B2G API</a> · <a href="/">Проверить сайт</a></div>
 <script>document.getElementById("qtgl").onclick=function(){var d=document.documentElement,t=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=t;localStorage.setItem("qtheme",t)};</script>

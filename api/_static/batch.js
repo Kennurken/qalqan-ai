@@ -1,3 +1,7 @@
+const QT={
+ kk:{h1:'URL-дерді жаппай тексеру',sub:'Банктер, реттеушілер және қауіпсіздік қызметтері үшін: сілтемелер тізімін қойыңыз (әр жолға біреу) немесе CSV жүктеңіз — әр URL толық 7-деңгейлі pipeline-нан өтеді.',upload:'CSV/TXT жүктеу',go:'Тізімді тексеру',dl:'CSV-есепті жүктеп алу',th_v:'Вердикт',th_s:'Балл',th_src:'Дереккөз',empty:'Кемінде бір URL қойыңыз',checking:'Тексерудеміз...',danger:'Қауіпті',susp:'Күдікті',clean:'Таза',total:'Барлығы'},
+ ru:{h1:'Массовая проверка URL',sub:'Для банков, регуляторов и служб безопасности: вставьте список ссылок (по одной на строку) или загрузите CSV — каждый URL пройдёт полный 7-уровневый pipeline.',upload:'Загрузить CSV/TXT',go:'Проверить список',dl:'Скачать отчёт CSV',th_v:'Вердикт',th_s:'Балл',th_src:'Источник',empty:'Вставьте хотя бы один URL',checking:'Проверяем...',danger:'Опасных',susp:'Подозрительных',clean:'Чистых',total:'Всего'}};
+const T=k=>QTL.t(QT,k);
 const $=s=>document.querySelector(s);
 let results=[];
 $('#upload').onclick=()=>$('#file').click();
@@ -17,8 +21,8 @@ function parseUrls(){
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function run(){
   const urls=parseUrls();
-  if(!urls.length){alert('Вставьте хотя бы один URL');return}
-  const btn=$('#go');btn.disabled=true;btn.textContent='Проверяем...';
+  if(!urls.length){alert(T('empty'));return}
+  const btn=$('#go');btn.disabled=true;btn.textContent=T('checking');
   results=[];$('#tbody').innerHTML='';$('#tblwrap').style.display='block';
   $('#prog').style.display='block';$('#sum').style.display='none';$('#dlrow').style.display='none';
   const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
@@ -44,9 +48,9 @@ async function run(){
   const d=results.filter(r=>r.verdict==='DANGEROUS').length,
         s2=results.filter(r=>r.verdict==='SUSPICIOUS').length,
         ok=results.filter(r=>r.verdict==='SAFE').length;
-  $('#sum').innerHTML=`<div class="pill d"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg> Опасных: ${d}</div><div class="pill s"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Подозрительных: ${s2}</div><div class="pill ok"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Чистых: ${ok}</div><div class="pill">Всего: ${results.length}</div>`;
+  $('#sum').innerHTML=`<div class="pill d"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg> ${T("danger")}: ${d}</div><div class="pill s"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> ${T("susp")}: ${s2}</div><div class="pill ok"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> ${T("clean")}: ${ok}</div><div class="pill">${T("total")}: ${results.length}</div>`;
   $('#sum').style.display='flex';$('#dlrow').style.display='flex';
-  btn.disabled=false;btn.textContent='Проверить список';
+  btn.disabled=false;btn.textContent=T('go');
 }
 $('#go').onclick=run;
 $('#dl').onclick=()=>{
@@ -55,3 +59,5 @@ $('#dl').onclick=()=>{
   const blob=new Blob([head+body],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='qalqan-batch-report.csv';a.click();
 };
+
+QTL.mount(QT,()=>{const b=$('#go');if(b&&!b.disabled)b.textContent=T('go');});

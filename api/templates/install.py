@@ -128,4 +128,15 @@ function showTab(name, el) {
   document.getElementById('tab-' + name).classList.add('active');
 }
 </script>
+<div style="max-width:760px;margin:26px auto 0;padding:0 4px">
+  <h2 style="font-size:19px;font-weight:800;margin-bottom:12px">Что умеет расширение v5.2</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;font-size:13.5px;line-height:1.55">
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Блок до загрузки</b><br>Опасный сайт перехватывается прежде, чем страница откроется. Офлайн-база 390+ доменов работает без интернета.</div>
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Бейджи в поиске</b><br>Google, Яндекс, Bing, DuckDuckGo: метка безопасности у каждого результата до клика.</div>
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Защита в мессенджерах</b><br>Telegram Web и WhatsApp Web: опасные ссылки в чатах помечаются прямо в переписке.</div>
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Страж паролей</b><br>Поле пароля на подозрительном сайте — красное предупреждение до того, как вы начали печатать.</div>
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Проверка по клику</b><br>Правый клик на любой ссылке → «Qalqan AI: проверить» — вердикт за секунды.</div>
+    <div style="border:1px solid var(--bd,#1e293b);border-radius:12px;padding:13px"><b>Анализ страницы</b><br>Формы кражи данных, фейк-розыгрыши, фингерпринтинг — детект прямо в DOM.</div>
+  </div>
+</div>
 </body></html>"""
