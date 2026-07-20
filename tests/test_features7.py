@@ -212,3 +212,32 @@ def test_cert_filter_logic():
     hits = _filter_entries(entries, "kaspi", "kaspi.kz")
     assert [h["domain"] for h in hits] == ["kaspi-bonus.top"]
     assert hits[0]["issuer"] == "R11"
+
+
+# --- S1/S2: admin ops rendering + XSS ---
+
+def test_admin_client_error_escaped_and_sectioned():
+    from api.pages import render_admin_page
+    data = {"check_logs": [], "appeals": [],
+            "reports": [
+                {"category": "client_error", "domain": "page:/scan",
+                 "comment": "[err] <img src=x onerror=alert(1)>", "created_at": "2026-07-20T09:00:00", "lang": "ru"},
+                {"category": "api_key", "domain": "h", "comment": "SecretBank",
+                 "created_at": "2026-07-20T09:00:00", "lang": "ru"},
+            ],
+            "pageviews": {"/scan": {"20260720": 5}}}
+    h = render_admin_page(data)
+    assert "<img src=x onerror" not in h        # escaped
+    assert "&lt;img src=x" in h
+    assert "SecretBank" not in h                # internal api_key not in reports view
+    assert "Frontend Errors" in h and "Pageviews" in h
+
+
+# --- S5: public status page ---
+
+def test_status_page():
+    r = client.get("/status")
+    assert r.status_code == 200
+    assert "Статус систем" in r.text
+    assert "pipeline" in r.text.lower()
+    assert "/status" in client.get("/sitemap.xml").text

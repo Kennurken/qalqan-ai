@@ -170,14 +170,40 @@ def _rows_appeals(appeals: list[dict]) -> str:
     return rows
 
 
+_INTERNAL_CATS = {"api_key", "brand_watch", "brand_watch_chat", "digest_sub"}
+
+
+def _rows_pageviews(pv: dict) -> str:
+    """7-day pageview table: one row per page, newest day first."""
+    if not pv:
+        return "<tr><td colspan='2' style='color:#64748b'>Нет данных (Redis отключён или трафика ещё нет)</td></tr>"
+    totals = sorted(((p, sum(days.values())) for p, days in pv.items()),
+                    key=lambda x: -x[1])
+    rows = ""
+    for path, total in totals:
+        rows += (f"<tr><td>{_e(path)}</td>"
+                 f"<td style='font-weight:700'>{total}</td></tr>")
+    return rows
+
+
 def render_admin_page(data: dict) -> str:
-    reports = data["reports"]
+    all_reports = data["reports"]
     appeals = data["appeals"]
     logs = data["check_logs"]
+    pageviews = data.get("pageviews", {})
+
+    # Split the reports feed: real user reports vs. front-end error beacons vs.
+    # internal bookkeeping rows (keys/watches/subs) that shouldn't show as "reports".
+    reports = [r for r in all_reports
+               if r.get("category") not in _INTERNAL_CATS
+               and r.get("category") != "client_error"]
+    client_errors = [r for r in all_reports if r.get("category") == "client_error"]
 
     total_checks = len(logs)
     total_reports = len(reports)
     total_appeals = len(appeals)
+    total_errors = len(client_errors)
+    total_pv = sum(sum(d.values()) for d in pageviews.values())
     dangerous = sum(1 for r in logs if r.get("verdict") == "DANGEROUS")
     pct_dangerous = round(dangerous / total_checks * 100) if total_checks else 0
 
@@ -246,9 +272,11 @@ def render_admin_page(data: dict) -> str:
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('logs')">Check Logs ({total_checks})</button>
-  <button class="tab" onclick="showTab('reports')">Reports ({total_reports})</button>
-  <button class="tab" onclick="showTab('appeals')">Appeals ({total_appeals})</button>
+  <button class="tab active" data-tab="logs" onclick="showTab('logs')">Check Logs ({total_checks})</button>
+  <button class="tab" data-tab="reports" onclick="showTab('reports')">Reports ({total_reports})</button>
+  <button class="tab" data-tab="appeals" onclick="showTab('appeals')">Appeals ({total_appeals})</button>
+  <button class="tab" data-tab="errors" onclick="showTab('errors')">Errors ({total_errors})</button>
+  <button class="tab" data-tab="pv" onclick="showTab('pv')">Pageviews ({total_pv})</button>
   <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
 </div>
 
@@ -282,9 +310,29 @@ def render_admin_page(data: dict) -> str:
   </div>
 </div>
 
+<div id="errors" class="panel">
+  <div class="section-title">Frontend Errors <span class="count">from client beacon</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Time</th><th>Page</th><th>Error</th></tr></thead>
+      <tbody>{_rows_reports(client_errors)}</tbody>
+    </table>
+  </div>
+</div>
+
+<div id="pv" class="panel">
+  <div class="section-title">Pageviews <span class="count">last 7 days</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Page</th><th>Views</th></tr></thead>
+      <tbody>{_rows_pageviews(pageviews)}</tbody>
+    </table>
+  </div>
+</div>
+
 <script>
 function showTab(id) {{
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['logs','reports','appeals'][i]===id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===id));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id===id));
 }}
 function tick() {{

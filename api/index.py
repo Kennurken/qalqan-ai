@@ -106,6 +106,37 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 # Static HTML shells — let the CDN serve them (data loads via AJAX, not cached)
 _HTML_CACHE = {"Cache-Control": "public, max-age=300, s-maxage=600"}
 
+_STATUS_HTML = """<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qalqan AI — Статус систем</title>
+<meta name="description" content="Статус подсистем Qalqan AI в реальном времени.">
+<style>
+:root{background:oklch(16% .02 255);color:oklch(93% .01 250)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:520px}
+.top{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:20px}
+.top a{color:oklch(63% .02 250);text-decoration:none;font-size:13.5px}
+h1{font-size:20px;font-weight:800}
+.overall{display:flex;align-items:center;gap:10px;background:oklch(21.5% .025 260);border:1px solid oklch(30% .03 258);border-radius:14px;padding:16px 18px;margin-bottom:14px;font-weight:700}
+.bigdot{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 4px color-mix(in oklch, __DOT__ 25%, transparent)}
+.rows{background:oklch(21.5% .025 260);border:1px solid oklch(30% .03 258);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid oklch(30% .03 258 / .5);font-size:14px}
+.row:last-child{border-bottom:none}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.lbl{flex:1}.st{font-weight:600;font-size:13px}
+.meta{color:oklch(63% .02 250);font-size:12.5px;margin-top:14px;line-height:1.6;text-align:center}
+</style></head>
+<body><div class="card">
+  <div class="top"><h1>Статус систем Qalqan AI</h1><a href="/">← на главную</a></div>
+  <div class="overall"><span class="bigdot" style="background:__DOT__"></span>__OVERALL__</div>
+  <div class="rows">__ROWS__</div>
+  __EXTRA__
+  <div class="meta">Обновляется автоматически · <a href="/health" style="color:oklch(72% .12 265)">JSON</a></div>
+</div></body></html>"""
+
 # Inline SVG favicon — kills the /favicon.ico 404 (browser auto-requests it)
 _FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00d4ff">'
             '<path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z"/></svg>')
@@ -1394,7 +1425,7 @@ async def cron_refresh_feeds(req: Request):
 from .routers_pages import router as _pages_router  # noqa: E402
 app.include_router(_pages_router)
 
-_PUBLIC_PAGES = ["/", "/install", "/stats", "/dashboard", "/leak", "/help",
+_PUBLIC_PAGES = ["/", "/install", "/stats", "/status", "/dashboard", "/leak", "/help",
                  "/brand", "/scan", "/impact", "/screen", "/batch-check", "/m", "/partners",
                  "/goszakup/graph"]
 
@@ -1470,6 +1501,54 @@ async def health():
     }
 
 
+@app.get("/status")
+async def status_page():
+    """Human status page over /health — subsystem health + feed freshness.
+    A trust signal for banks/regulators evaluating the service."""
+    from .services.threat_db import feed_stats
+    from .services.ml_model import ml_health
+    sb, rd, ml = await asyncio.gather(supabase_health(), redis_health(), ml_health())
+    feeds = feed_stats()
+
+    def _pill(state: str) -> tuple[str, str]:
+        s = (state or "").lower()
+        if s in ("ok",):
+            return ("#9ece6a", "работает")
+        if s in ("disabled", "not_configured", "unknown"):
+            return ("#7d8aa0", "не настроено")
+        return ("#f7768e", "проблема")
+
+    ai_ok = bool(os.getenv("GROQ_API_KEY") or os.getenv("GEMINI_API_KEY"))
+    feed_age = feeds.get("age_sec")
+    feed_state = "ok" if (feed_age is not None and feed_age < 26 * 3600) else "unknown"
+    rows = [
+        ("Движок проверки (pipeline)", "ok"),
+        ("База данных (Supabase)", sb.get("status")),
+        ("Кэш (Redis)", rd.get("status")),
+        ("AI-провайдеры (Groq/Gemini)", "ok" if ai_ok else "not_configured"),
+        ("ML-модель (XLM-RoBERTa)", ml.get("status")),
+        ("Threat-feeds (OpenPhish/URLhaus)", feed_state),
+    ]
+    any_bad = any(_pill(st)[1] == "проблема" for _, st in rows)
+    overall = ("#f7768e", "Есть проблемы") if any_bad else ("#9ece6a", "Все системы работают")
+    tr = ""
+    for label, st in rows:
+        color, word = _pill(st)
+        tr += (f'<div class="row"><span class="dot" style="background:{color}"></span>'
+               f'<span class="lbl">{label}</span>'
+               f'<span class="st" style="color:{color}">{word}</span></div>')
+    extra = ""
+    if feeds.get("domains"):
+        extra = (f'<div class="meta">Threat-feed: {feeds["domains"]:,} доменов'
+                 + (f', обновлено {feed_age // 3600} ч назад' if feed_age is not None else "")
+                 + f'. Whitelist: {len(_whitelist):,}. Версия 5.2.0.</div>').replace(",", " ")
+    else:
+        extra = f'<div class="meta">Whitelist: {len(_whitelist):,} доменов. Версия 5.2.0.</div>'.replace(",", " ")
+    html = _STATUS_HTML.replace("__DOT__", overall[0]).replace("__OVERALL__", overall[1]) \
+        .replace("__ROWS__", tr).replace("__EXTRA__", extra)
+    return HTMLResponse(html, headers={"Cache-Control": "public, max-age=30"})
+
+
 @app.get("/health/check")
 async def health_check_alert(req: Request):
     """Monitoring probe (cron/secret-gated): checks deps, alerts admin Telegram
@@ -1534,6 +1613,8 @@ async def admin_dashboard(req: Request, key: str | None = None):
     data = await get_admin_data(limit=100)
     if not data:
         data = {"reports": [], "appeals": [], "check_logs": []}
+    from .utils.cache import pv_counts
+    data["pageviews"] = await pv_counts(list(_PUBLIC_PAGES) + ["/goszakup/graph", "/other"])
 
     from .pages import render_admin_page
     return HTMLResponse(render_admin_page(data))
