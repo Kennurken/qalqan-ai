@@ -293,3 +293,39 @@ def test_canonical_and_ogurl_on_pages():
         assert len(can) == 1, (path, can)
         assert can[0].endswith(route)
         assert 'og:url" content="' in t
+
+
+# --- AI quality: garbage input must not become a fake threat ---
+
+def test_garbage_input_neutral_verdict():
+    for junk in ["asdkjhaskjdh", "пшарпварпулкопкрар", "randomword", "test test"]:
+        r = client.post("/check", json={"url": junk, "lang": "ru"}).json()
+        assert r["verdict"] == "UNKNOWN", (junk, r["verdict"])
+        assert r["threat_score"] == 0
+        assert r["source"] == "input_validation"
+        assert "ссылк" in r["detail"].lower() or "домен" in r["detail"].lower()
+
+
+def test_real_domains_still_checked():
+    r = client.post("/check", json={"url": "1xbet.com", "lang": "ru"}).json()
+    assert r["verdict"] == "DANGEROUS"
+
+
+def test_is_checkable_domain_unit():
+    from api.index import _is_checkable_domain as f
+    assert f("kaspi.kz") and f("sub.kaspi.kz") and f("kaspi-login.tk")
+    assert f("192.168.1.1") and f("example.рф")
+    assert not f("asdkjhaskjdh") and not f("пшарпварпулкопкрар")
+    assert not f("") and not f("nodot")
+
+
+def test_scan_garbage_returns_hint():
+    r = client.get("/scan/asdkjhaskjdh")
+    assert r.status_code == 200
+    assert "error" in r.json()
+
+
+def test_verdict_word_localized_in_landing_js():
+    js = client.get("/static/landing.js").text
+    assert "Опасно" in js and "Қауіпті" in js       # localized verdict labels
+    assert "verdict.innerHTML" in js                 # not textContent (SVG-as-text bug)

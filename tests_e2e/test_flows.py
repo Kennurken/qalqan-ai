@@ -58,9 +58,23 @@ def test_flow_check_url(page):
     page.goto(BASE + "/", wait_until="networkidle")
     page.fill("#urlInput", "1xbet.com")
     page.click("#checkBtn")
+    # Verdict word is localized now; assert on the language-independent CSS class.
     page.wait_for_function(
-        "document.getElementById('resultVerdict').textContent.includes('DANGEROUS')",
+        "document.getElementById('resultBox').className.includes('DANGEROUS')",
         timeout=20000)
+    assert not page.errors, page.errors
+
+
+def test_flow_garbage_is_neutral(page):
+    """Nonsense input must show a neutral 'not a link' card, not a fake threat."""
+    page.goto(BASE + "/", wait_until="networkidle")
+    page.fill("#urlInput", "asdkjhaskjdh")
+    page.click("#checkBtn")
+    page.wait_for_function(
+        "document.getElementById('resultDetail').textContent.length > 5", timeout=20000)
+    box = page.get_attribute("#resultBox", "class")
+    assert "DANGEROUS" not in box and "SUSPICIOUS" not in box
+    assert "<svg" not in page.inner_html("#resultVerdict") or "&lt;svg" not in page.inner_html("#resultVerdict")
     assert not page.errors, page.errors
 
 

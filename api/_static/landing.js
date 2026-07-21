@@ -124,9 +124,13 @@ async function runCheck(){
     if(!res.ok) throw new Error('http '+res.status);
     const d=await res.json();
     if(!d.verdict) throw new Error('bad payload');
-    box.className='result show '+d.verdict;
-    const ic=d.verdict==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>':d.verdict==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-    verdict.textContent=ic+'  '+d.verdict+' · '+(d.threat_score||0)+'/100';
+    const V=(d.verdict||'').toUpperCase();
+    // Localized verdict word (was always English) + neutral state for non-URLs.
+    const VL={DANGEROUS:{kk:'Қауіпті',ru:'Опасно',en:'Dangerous'},SUSPICIOUS:{kk:'Күдікті',ru:'Подозрительно',en:'Suspicious'},SAFE:{kk:'Қауіпсіз',ru:'Безопасно',en:'Safe'},UNKNOWN:{kk:'Сілтеме емес',ru:'Не ссылка',en:'Not a link'}};
+    const label=(VL[V]||{})[currentLang]||V;
+    box.className='result show '+(V==='UNKNOWN'?'':V);
+    const ic=V==='DANGEROUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>':V==='SUSPICIOUS'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>':V==='UNKNOWN'?'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>':'<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+    verdict.innerHTML=ic+'  '+label+(V==='UNKNOWN'?'':' · '+(d.threat_score||0)+'/100');
     detail.textContent=d.detail||d['detail_'+currentLang]||d.detail_kk||'';
   }catch(e){box.className='result show SUSPICIOUS';verdict.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>  '+I18N[currentLang].err;detail.textContent=I18N[currentLang].errd;}
   btn.disabled=false; btn.textContent=old;

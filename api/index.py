@@ -9,6 +9,7 @@ import time
 import hmac
 import logging
 import asyncio
+import ipaddress
 import traceback
 import httpx
 from contextlib import asynccontextmanager
@@ -474,6 +475,28 @@ async def check_site(request: CheckRequest, req: Request, background_tasks: Back
     return await _run_url_check(request, req, background_tasks)
 
 
+_DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9](-?[a-z0-9])*\.)+(xn--[a-z0-9]+|[a-z]{2,24})$")
+
+
+def _is_checkable_domain(domain: str) -> bool:
+    """True only for something worth running the threat pipeline on: a real host
+    with a TLD, or a public IP literal. Rejects single-label garbage and
+    keyboard-mashes so the AI never invents a verdict for non-URLs. Cyrillic/IDN
+    hosts are punycode-normalized first so genuine international domains pass."""
+    if not domain or "." not in domain:
+        return False
+    try:
+        ipaddress.ip_address(domain)   # bare IP literal → checkable
+        return True
+    except ValueError:
+        pass
+    try:
+        ascii_domain = domain.encode("idna").decode("ascii")
+    except (UnicodeError, ValueError):
+        return False
+    return bool(_DOMAIN_RE.match(ascii_domain))
+
+
 async def run_pipeline_internal(url: str, lang: str = "kk") -> dict:
     """In-process pipeline entry for same-process callers (Telegram bot handler).
     Skips the HTTP self-loop the bot used to make (extra serverless invocation +
@@ -489,6 +512,25 @@ async def _run_url_check(request: CheckRequest, req: Request | None,
     url = request.url
     lang = request.lang
     domain = extract_domain(url)
+
+    # --- Tier -1: input sanity. Garbage that isn't a checkable host (no dot / no
+    # TLD, like "asdkjhaskjdh" or a Cyrillic keyboard-mash) must NOT be run through
+    # the threat pipeline — the AI would hallucinate a verdict on it. Return a
+    # neutral, localized "not a link" response instead of a fake threat.
+    if not _is_checkable_domain(domain):
+        _msg = {
+            "kk": "Бұл сілтемеге ұқсамайды. Домен енгізіңіз, мысалы: kaspi.kz",
+            "ru": "Это не похоже на ссылку. Введите домен, например: kaspi.kz",
+            "en": "This doesn't look like a link. Enter a domain, e.g. kaspi.kz",
+        }
+        return {
+            "verdict": "UNKNOWN", "threat_score": 0, "threat_type": "invalid_input",
+            "source": "input_validation",
+            "detail": _msg.get(lang, _msg["ru"]),
+            "detail_kk": _msg["kk"], "detail_ru": _msg["ru"], "detail_en": _msg["en"],
+            "indicators": [], "cached": False,
+        }
+
     # lang in the cache key — AI explanations are generated per-language, so a
     # ru-cached verdict must not be served to an en request (and vice versa).
     key = url_hash(url + "|" + lang)
@@ -1282,6 +1324,9 @@ async def security_scan(domain: str, req: Request):
         return JSONResponse(status_code=422, content={"error": "invalid domain"})
     url = creq.url
     dom = extract_domain(url)
+    if not _is_checkable_domain(dom):
+        # 200 + error so the page shows the hint (scan.js renders d.error inline)
+        return {"error": "Это не похоже на домен. Введите, например: kaspi.kz"}
     url_feats = extract_features(url)
     verdict_result, domain_info = await asyncio.gather(
         run_pipeline_internal(url, "ru"),
