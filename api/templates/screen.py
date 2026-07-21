@@ -64,7 +64,7 @@ h1{font-size:24px;font-weight:800}
     <input id="file" type="file" accept="image/*">
     <img id="preview" alt="preview">
     <button class="btn" id="go" data-qtl="go">Проверить</button>
-    <div class="res" id="res"></div>
+    <div class="res" id="res" role="status" aria-live="polite"></div>
     <div class="priv"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Скриншот анализируется на лету и не сохраняется. Не загружай фото с личными данными без необходимости — закрась лишнее.</div>
   </div>
 

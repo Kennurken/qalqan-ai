@@ -67,7 +67,7 @@ input:focus{border-color:var(--cyan)}
   <div class="ex"><span data-qtl="ex">Примеры:</span> <b data-d="kaspi.kz">kaspi.kz</b> · <b data-d="1xbet.com">1xbet.com</b> · <b data-d="github.com">github.com</b></div>
 
   <div id="status"></div>
-  <div class="card" id="card">
+  <div class="card" id="card" role="status" aria-live="polite">
     <div class="hd">
       <div class="badge" id="badge">—</div>
       <div>

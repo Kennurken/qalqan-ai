@@ -242,7 +242,7 @@ footer{border-top:1px solid var(--border);padding:48px 0 40px;margin-top:60px;te
       <button id="checkBtn" data-i18n="checkBtn">Тексеру</button>
       <input id="qrFile" type="file" accept="image/*" capture="environment" style="display:none">
     </div>
-    <div class="result" id="resultBox"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
+    <div class="result" id="resultBox" role="status" aria-live="polite"><div class="rv" id="resultVerdict"></div><div class="rd" id="resultDetail"></div></div>
     <div class="proof reveal" data-i18n="proof"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 97% дәлдік · 0 жалған дабыл · ашық бенчмаркте (F1 0.98)</div>
     <div class="chips reveal">
       <a class="chip" href="/leak" data-i18n="chip_leak"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r="0.5"/></svg> Пароль утёк?</a>

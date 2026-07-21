@@ -75,7 +75,7 @@ input:focus{border-color:var(--cyan)}
       <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Пароль не покидает ваше устройство.</b> Считается SHA-1 хэш прямо в браузере, наружу уходят только первые 5 символов хэша (k-анонимность). Ни мы, ни HIBP не видим пароль и даже его полный хэш.</span>
     </div>
-    <div class="res" id="res"></div>
+    <div class="res" id="res" role="status" aria-live="polite"></div>
     <div class="how">Как это работает: пароль → <code>SHA-1</code> в браузере → префикс <code>5 симв.</code> → HIBP возвращает ~800 хэшей с этим префиксом → сравнение происходит локально у вас.</div>
   </div>
 
@@ -88,7 +88,7 @@ input:focus{border-color:var(--cyan)}
       <span style="font-size:16px"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <span><b>Email не сохраняется.</b> Запрос уходит в открытую базу утечек XposedOrNot; Qalqan не логирует и не хранит адрес.</span>
     </div>
-    <div class="res" id="resem"></div>
+    <div class="res" id="resem" role="status" aria-live="polite"></div>
   </div>
 
   <div class="card" style="margin-top:14px">

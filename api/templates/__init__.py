@@ -58,6 +58,9 @@ for _n in ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GR
         _g[_n] = _g[_n].replace("</body>", _BEACON, 1)
     if _n != "SW_JS":
         _g[_n] = _og_block(_g[_n])
+    if _n != "SW_JS" and "apple-touch-icon" not in _g[_n]:
+        _g[_n] = _g[_n].replace(
+            "</head>", '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n</head>', 1)
     _g[_n] = _g[_n].replace("__V__", _V)
 
 __all__ = ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GRAPH_HTML', 'MOBILE_HTML', 'SW_JS', 'PARTNERS_HTML', 'NOTFOUND_HTML', 'LEAK_HTML', 'HELP_HTML', 'BRAND_HTML', 'SCAN_HTML', 'IMPACT_HTML', 'BATCH_HTML', 'SCREEN_HTML']

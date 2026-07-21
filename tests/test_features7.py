@@ -256,3 +256,28 @@ def test_og_image_on_all_pages():
         t = client.get(p, headers={"accept": "text/html"}).text
         assert '/og.png' in t, p
         assert 'summary_large_image' in t, p
+
+
+def test_security_txt():
+    for path in ["/.well-known/security.txt", "/security.txt"]:
+        r = client.get(path)
+        assert r.status_code == 200
+        assert "Contact:" in r.text and "Expires:" in r.text
+        assert r.headers["content-type"].startswith("text/plain")
+
+
+def test_apple_touch_icon():
+    r = client.get("/apple-touch-icon.png")
+    assert r.status_code == 200
+    assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_aria_live_on_results():
+    assert 'aria-live="polite"' in client.get("/", headers={"accept": "text/html"}).text
+    assert 'aria-live="polite"' in client.get("/scan").text
+    assert client.get("/leak").text.count('aria-live="polite"') >= 2
+
+
+def test_apple_touch_link_on_pages():
+    for p in ["/", "/scan", "/leak", "/impact"]:
+        assert "apple-touch-icon" in client.get(p, headers={"accept": "text/html"}).text

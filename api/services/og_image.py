@@ -81,3 +81,29 @@ def render_og_card() -> bytes:
     img.save(buf, format="PNG", optimize=True)
     _CACHE = buf.getvalue()
     return _CACHE
+
+
+_ICON_CACHE: bytes | None = None
+
+
+def render_touch_icon() -> bytes:
+    """180x180 apple-touch-icon (iOS home screen): shield on the brand panel."""
+    global _ICON_CACHE
+    if _ICON_CACHE is not None:
+        return _ICON_CACHE
+    from PIL import Image, ImageDraw
+
+    S = 180
+    img = Image.new("RGB", (S, S), _PANEL)
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, S - 1, S - 1], radius=40, fill=_BG)
+    ss, ox, oy = 120, 30, 26
+    poly = [(ox + px * ss, oy + py * ss) for px, py in _SHIELD]
+    d.polygon(poly, outline=_CYAN, width=7)
+    cx, cy = ox + 0.5 * ss, oy + 0.5 * ss
+    d.line([(cx - 0.18 * ss, cy), (cx - 0.03 * ss, cy + 0.15 * ss),
+            (cx + 0.22 * ss, cy - 0.18 * ss)], fill=_GREEN, width=10, joint="curve")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    _ICON_CACHE = buf.getvalue()
+    return _ICON_CACHE

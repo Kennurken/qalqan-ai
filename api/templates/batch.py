@@ -67,7 +67,7 @@ td{padding:8px;border-bottom:1px solid rgba(30,41,59,.5);word-break:break-all}
       <input id="file" type="file" accept=".csv,.txt">
     </div>
     <div class="prog" id="prog"><i id="progbar"></i></div>
-    <div class="sum" id="sum"></div>
+    <div class="sum" id="sum" role="status" aria-live="polite"></div>
     <div class="tblwrap" id="tblwrap">
       <table><thead><tr><th>URL</th><th data-qtl="th_v">Вердикт</th><th data-qtl="th_s">Балл</th><th data-qtl="th_src">Источник</th></tr></thead><tbody id="tbody"></tbody></table>
     </div>

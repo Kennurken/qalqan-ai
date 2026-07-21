@@ -1391,6 +1391,37 @@ async def og_image():
         return JSONResponse(status_code=500, content={"error": "render_failed"})
 
 
+@app.get("/apple-touch-icon.png")
+@app.get("/apple-touch-icon-precomposed.png")
+async def apple_touch_icon():
+    """iOS home-screen icon (auto-discovered by Safari at this path)."""
+    from fastapi.responses import Response as _R
+    try:
+        from .services.og_image import render_touch_icon
+        return _R(render_touch_icon(), media_type="image/png",
+                  headers={"Cache-Control": "public, max-age=604800, immutable"})
+    except Exception:
+        return JSONResponse(status_code=404, content={"error": "not found"})
+
+
+@app.get("/.well-known/security.txt")
+@app.get("/security.txt")
+async def security_txt():
+    """RFC 9116 security contact — expected of any security product so
+    researchers know where to report vulnerabilities."""
+    from fastapi.responses import PlainTextResponse
+    base = os.getenv("QALQAN_API_URL", "https://qalqan-ai-nu.vercel.app")
+    body = (
+        "Contact: mailto:kmarukob76@gmail.com\n"
+        "Contact: https://t.me/QalqanAI_bot\n"
+        "Expires: 2027-01-01T00:00:00.000Z\n"
+        "Preferred-Languages: kk, ru, en\n"
+        f"Canonical: {base}/.well-known/security.txt\n"
+        f"Policy: {base}/help\n"
+    )
+    return PlainTextResponse(body, headers={"Cache-Control": "public, max-age=86400"})
+
+
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,24}$")
 
 

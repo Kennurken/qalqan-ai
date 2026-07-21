@@ -88,7 +88,7 @@ input:focus{border-color:var(--cyan)}
       <button class="btn" id="certgo" data-qtl="cert" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)">SSL-серты за 7 дней (CT-логи)</button>
       <button class="btn" id="watchgo" data-qtl="watch" style="flex:1 1 100%;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--tx)"><svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg> На ежедневный мониторинг</button>
     </div>
-    <div id="liveres" style="margin-top:12px"></div>
+    <div id="liveres" role="status" aria-live="polite" style="margin-top:12px"></div>
   </div>
 </div>
 
