@@ -253,7 +253,9 @@ async function send(){
     const v=(d.verdict||'').toUpperCase();
     const em=v==='DANGEROUS'?QI.octagon:v==='SUSPICIOUS'?QI.alert:QI.checkc;
     w.className='advM a '+(v==='DANGEROUS'?'danger':v==='SUSPICIOUS'?'warn':'');
-    let h=`<b>${em} ${esc(v)} · ${d.threat_score??''}/100</b>`;
+    const _vl={DANGEROUS:{kk:'Қауіпті',ru:'Опасно',en:'Dangerous'},SUSPICIOUS:{kk:'Күдікті',ru:'Подозрительно',en:'Suspicious'},SAFE:{kk:'Қауіпсіз',ru:'Безопасно',en:'Safe'}};
+    const vlabel=(_vl[v]||{})[lang]||v;
+    let h=`<b>${em} ${esc(vlabel)} · ${d.threat_score??''}/100</b>`;
     if(d.reasoning)h+=`<br>${esc(d.reasoning)}`;
     if(Array.isArray(d.red_flags)&&d.red_flags.length)h+=`<br><br><b>${D.flags}:</b><br>${d.red_flags.slice(0,5).map(f=>'• '+esc(f)).join('<br>')}`;
     if(Array.isArray(d.advice)&&d.advice.length)h+=`<br><br><b>${D.adv}:</b><br>${d.advice.slice(0,4).map(f=>'• '+esc(f)).join('<br>')}`;

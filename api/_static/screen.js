@@ -36,7 +36,9 @@ $('#go').onclick=async()=>{
     const em=v==='DANGEROUS'?QI.octagon:v==='SUSPICIOUS'?QI.alert:QI.checkc;
     R.className='res '+(v==='DANGEROUS'?'d':v==='SUSPICIOUS'?'s':'ok');
     const esc=t=>{const x=document.createElement('div');x.textContent=t;return x.innerHTML};
-    R.innerHTML=`${em} <b>${esc(v)} · ${esc(String(d.threat_score??'?'))}/100</b><br><br>${esc(d.detail||d.detail_ru||'')}`;
+    const _vl={DANGEROUS:{kk:'Қауіпті',ru:'Опасно',en:'Dangerous'},SUSPICIOUS:{kk:'Күдікті',ru:'Подозрительно',en:'Suspicious'},SAFE:{kk:'Қауіпсіз',ru:'Безопасно',en:'Safe'}};
+    const vlabel=(_vl[v]||{})[QTL.L]||v;
+    R.innerHTML=`${em} <b>${esc(vlabel)} · ${esc(String(d.threat_score??'?'))}/100</b><br><br>${esc(d.detail||d['detail_'+QTL.L]||d.detail_ru||'')}`;
   }catch(e){R.innerHTML='<svg class="qi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> '+T('err')+''}
   btn.disabled=false;btn.textContent=T('go');
 };

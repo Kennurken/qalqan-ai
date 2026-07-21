@@ -329,3 +329,31 @@ def test_verdict_word_localized_in_landing_js():
     js = client.get("/static/landing.js").text
     assert "Опасно" in js and "Қауіпті" in js       # localized verdict labels
     assert "verdict.innerHTML" in js                 # not textContent (SVG-as-text bug)
+
+
+def test_static_js_no_svg_in_textContent():
+    """Verdict/label must never be set via textContent with an SVG string
+    (renders as raw markup). Regression for the emoji→SVG migration bug."""
+    import os
+    import re as _re
+    d = os.path.join(os.path.dirname(os.path.dirname(__file__)), "api", "_static")
+    bad = []
+    for fn in os.listdir(d):
+        if not fn.endswith(".js"):
+            continue
+        txt = open(os.path.join(d, fn), encoding="utf-8").read()
+        # a .textContent = ... assignment whose RHS (up to ;) contains "<svg"
+        for m in _re.finditer(r"\.textContent\s*=\s*([^;]{0,400})", txt):
+            if "<svg" in m.group(1):
+                bad.append(f"{fn}: {m.group(1)[:60]}")
+    assert not bad, bad
+
+
+def test_verdict_labels_localized_in_scan_js():
+    js = __import__("api.index", fromlist=["app"])
+    from fastapi.testclient import TestClient
+    c = TestClient(js.app)
+    s = c.get("/static/scan.js").text
+    assert "T('danger')" in s and "innerHTML" in s and "textContent=vlabel" not in s
+    m = c.get("/static/mobile.js").text
+    assert "Қауіпті" in m and "${v}</div>" not in m
