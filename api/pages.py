@@ -218,7 +218,7 @@ def render_admin_page(data: dict) -> str:
   *{{box-sizing:border-box;margin:0;padding:0}}
   body{{background:#0a0f1e;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}}
   .topbar{{background:linear-gradient(135deg,#1e3a5f,#1e1b4b);padding:16px 32px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}}
-  .topbar h1{{font-size:20px;font-weight:700;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+  .topbar h1{{font-size:20px;font-weight:700;color:#93c5fd}}
   .topbar span{{font-size:12px;color:#64748b;margin-left:auto}}
   .stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px 32px}}
   .stat-card{{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:20px;text-align:center}}

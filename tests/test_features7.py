@@ -241,3 +241,18 @@ def test_status_page():
     assert "Статус систем" in r.text
     assert "pipeline" in r.text.lower()
     assert "/status" in client.get("/sitemap.xml").text
+
+
+def test_og_image_endpoint():
+    r = client.get("/og.png")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert r.content[:8] == b"\x89PNG\r\n\x1a\n"   # PNG magic
+    assert len(r.content) > 5000
+
+
+def test_og_image_on_all_pages():
+    for p in ["/", "/scan", "/leak", "/brand", "/impact", "/screen", "/batch-check"]:
+        t = client.get(p, headers={"accept": "text/html"}).text
+        assert '/og.png' in t, p
+        assert 'summary_large_image' in t, p

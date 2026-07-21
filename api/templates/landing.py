@@ -13,9 +13,9 @@ LANDING_HTML = """<!DOCTYPE html>
 <meta property="og:description" content="Бесплатно: блокирует фишинг, пирамиды, гемблинг, телефонный скам и госзакуп-фрод. Расширение + мобилка + Telegram-бот + дашборд регулятора. 7-уровневый AI.">
 <meta property="og:url" content="https://qalqan-ai-nu.vercel.app">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">
+<meta property="og:image" content="https://qalqan-ai-nu.vercel.app/og.png">
 <meta property="og:locale" content="kk_KZ">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Qalqan AI — AI Cybersecurity for Kazakhstan">
 <meta name="twitter:description" content="Blocks phishing, scams, gambling, phone fraud & procurement fraud. Extension + mobile + bot + regulator dashboard. 7-tier AI. kk/ru/en.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/Kennurken/qalqan-ai/master/extension/public/icons/icon128.png">

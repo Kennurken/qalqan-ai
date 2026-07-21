@@ -1377,6 +1377,18 @@ async def static_js(fname: str):
                   headers={"Cache-Control": "public, max-age=86400, immutable"})
 
 
+@app.get("/og.png")
+async def og_image():
+    """Branded 1200x630 social-share card (OpenGraph image) used across all
+    pages. Rendered once with Pillow, cached in-process, long browser cache."""
+    from fastapi.responses import Response as _R
+    try:
+        from .services.og_image import render_og_card
+        return _R(render_og_card(), media_type="image/png",
+                  headers={"Cache-Control": "public, max-age=604800, immutable"})
+    except Exception as e:
+        logger.warning(f"og_image render failed: {e}")
+        return JSONResponse(status_code=500, content={"error": "render_failed"})
 
 
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,24}$")

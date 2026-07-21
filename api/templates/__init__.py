@@ -38,14 +38,17 @@ def _og_block(html: str) -> str:
         return html
     title = t.group(1).strip()
     desc = d.group(1).strip() if d else "AI-қорғаныс: фишинг, алаяқтық, пирамидалар — Qalqan AI"
+    img = "https://qalqan-ai-nu.vercel.app/og.png"
     tags = (
         f'<meta property="og:title" content="{title}">\n'
         f'<meta property="og:description" content="{desc}">\n'
         f'<meta property="og:type" content="website">\n'
         f'<meta property="og:site_name" content="Qalqan AI">\n'
-        f'<meta name="twitter:card" content="summary">\n'
+        f'<meta property="og:image" content="{img}">\n'
+        f'<meta name="twitter:card" content="summary_large_image">\n'
         f'<meta name="twitter:title" content="{title}">\n'
         f'<meta name="twitter:description" content="{desc}">\n'
+        f'<meta name="twitter:image" content="{img}">\n'
     )
     return html.replace("</head>", tags + "</head>", 1)
 
