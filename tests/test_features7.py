@@ -281,3 +281,15 @@ def test_aria_live_on_results():
 def test_apple_touch_link_on_pages():
     for p in ["/", "/scan", "/leak", "/impact"]:
         assert "apple-touch-icon" in client.get(p, headers={"accept": "text/html"}).text
+
+
+def test_canonical_and_ogurl_on_pages():
+    import re as _re
+    cases = {"/scan": "/scan", "/leak": "/leak", "/impact": "/impact",
+             "/brand": "/brand", "/batch-check": "/batch-check"}
+    for path, route in cases.items():
+        t = client.get(path).text
+        can = _re.findall(r'rel="canonical" href="([^"]+)"', t)
+        assert len(can) == 1, (path, can)
+        assert can[0].endswith(route)
+        assert 'og:url" content="' in t

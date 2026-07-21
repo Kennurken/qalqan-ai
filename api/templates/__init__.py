@@ -53,6 +53,17 @@ def _og_block(html: str) -> str:
     return html.replace("</head>", tags + "</head>", 1)
 
 
+# Template → canonical route, for <link rel=canonical> + og:url (dedupe ?param
+# variants in search, give social cards a real URL). NOTFOUND has no canonical.
+_ROUTES = {
+    'LANDING_HTML': '/', 'DASHBOARD_HTML': '/dashboard', 'INSTALL_HTML': '/install',
+    'MINIAPP_HTML': '/app', 'GRAPH_HTML': '/goszakup/graph', 'MOBILE_HTML': '/m',
+    'PARTNERS_HTML': '/partners', 'LEAK_HTML': '/leak', 'HELP_HTML': '/help',
+    'BRAND_HTML': '/brand', 'SCAN_HTML': '/scan', 'IMPACT_HTML': '/impact',
+    'BATCH_HTML': '/batch-check', 'SCREEN_HTML': '/screen',
+}
+_ORIGIN = "https://qalqan-ai-nu.vercel.app"
+
 for _n in ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GRAPH_HTML', 'MOBILE_HTML', 'SW_JS', 'PARTNERS_HTML', 'NOTFOUND_HTML', 'LEAK_HTML', 'HELP_HTML', 'BRAND_HTML', 'SCAN_HTML', 'IMPACT_HTML', 'BATCH_HTML', 'SCREEN_HTML']:
     if _n != "SW_JS" and "beacon.js" not in _g[_n]:
         _g[_n] = _g[_n].replace("</body>", _BEACON, 1)
@@ -61,6 +72,15 @@ for _n in ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GR
     if _n != "SW_JS" and "apple-touch-icon" not in _g[_n]:
         _g[_n] = _g[_n].replace(
             "</head>", '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n</head>', 1)
+    if _n in _ROUTES:
+        _url = _ORIGIN + _ROUTES[_n]
+        _head = ""
+        if 'rel="canonical"' not in _g[_n]:
+            _head += f'<link rel="canonical" href="{_url}">\n'
+        if 'og:url' not in _g[_n]:
+            _head += f'<meta property="og:url" content="{_url}">\n'
+        if _head:
+            _g[_n] = _g[_n].replace("</head>", _head + "</head>", 1)
     _g[_n] = _g[_n].replace("__V__", _V)
 
 __all__ = ['LANDING_HTML', 'DASHBOARD_HTML', 'INSTALL_HTML', 'MINIAPP_HTML', 'GRAPH_HTML', 'MOBILE_HTML', 'SW_JS', 'PARTNERS_HTML', 'NOTFOUND_HTML', 'LEAK_HTML', 'HELP_HTML', 'BRAND_HTML', 'SCAN_HTML', 'IMPACT_HTML', 'BATCH_HTML', 'SCREEN_HTML']
