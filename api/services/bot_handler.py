@@ -292,6 +292,13 @@ def format_result(url: str, result: dict, lang: str = "kk") -> str:
 
     score_bar = _score_bar(score)
 
+    if verdict == "UNKNOWN":
+        # Non-URL input (garbage / not a link) — neutral, never a fake warning.
+        return "\n".join([
+            "ℹ️ <b>Сілтеме емес</b>",
+            "",
+            f"<i>{_esc(reason or result.get('detail') or 'Домен енгізіңіз, мысалы: kaspi.kz')}</i>",
+        ])
     if verdict == "SAFE":
         lines = [
             f"{emoji} <b>ҚАУІПСІЗ</b>",

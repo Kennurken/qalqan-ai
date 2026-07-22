@@ -58,3 +58,23 @@ def test_analyze_voice_transcription_fail(monkeypatch):
     r = _run(vs.analyze_voice(b"data", "a.ogg"))
     assert r["verdict"] == "UNKNOWN"
     assert "error" in r
+
+
+def test_format_result_unknown_is_neutral():
+    """Garbage (UNKNOWN) must not become a fake 'suspicious, don't visit' warning."""
+    from api.services.bot_handler import format_result
+    r = {"verdict": "UNKNOWN", "threat_score": 0,
+         "detail_kk": "Бұл сілтемеге ұқсамайды. Домен енгізіңіз, мысалы: kaspi.kz",
+         "detail": "Это не похоже на ссылку", "source": "input_validation"}
+    out = format_result("пшарпварпулкопкрар", r, "kk")
+    assert "Сілтеме емес" in out
+    assert "ҚАУІПТІ" not in out and "КҮДІКТІ" not in out
+    assert "ұсынбаймыз" not in out          # no 'don't visit' warning
+
+
+def test_format_result_dangerous_still_warns():
+    from api.services.bot_handler import format_result
+    r = {"verdict": "DANGEROUS", "threat_score": 90, "detail_kk": "Құмар ойын сайты",
+         "source": "gambling_list", "threat_type": "gambling"}
+    out = format_result("1xbet.com", r, "kk")
+    assert "ҚАУІПТІ" in out and "90/100" in out
