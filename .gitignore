@@ -15,12 +15,9 @@ __pycache__/
 # Office lock/temp files
 ~$*
 
-# Accidentally-cloned tool repos (were committed as broken submodule gitlinks)
-awesome-claude-code/
-claude-code-sub-agents/
-everything-claude-code/
-wshobson-agents/
-translate-book/
+# Local editor config
+.idea/
+.vscode/
 
 # Generated Firefox build output (produced by build-firefox.sh)
 extension-firefox/build/
