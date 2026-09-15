@@ -7,7 +7,17 @@ extension, a mobile PWA, and a Telegram bot.
 **97% accuracy · F1 0.98 · zero false positives** on the built-in benchmark.
 Three languages (Қазақша / Русский / English).
 
-**Live:** [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **Bot:** [@QalqanAI_bot](https://t.me/QalqanAI_bot)
+**Live:** [qalqan-ai-nu.vercel.app](https://qalqan-ai-nu.vercel.app) · **Bot:** [@QalqanAI_bot](https://t.me/QalqanAI_bot) · **Extension:** [Releases](https://github.com/Kennurken/qalqan-ai/releases/latest)
+
+[![Backend Tests](https://img.shields.io/github/actions/workflow/status/Kennurken/qalqan-ai/test.yml?branch=master&style=flat-square&label=tests)](https://github.com/Kennurken/qalqan-ai/actions/workflows/test.yml)
+[![Extension build](https://img.shields.io/github/actions/workflow/status/Kennurken/qalqan-ai/build-extension.yml?branch=master&style=flat-square&label=extension)](https://github.com/Kennurken/qalqan-ai/actions/workflows/build-extension.yml)
+[![Release](https://img.shields.io/github/v/release/Kennurken/qalqan-ai?style=flat-square)](https://github.com/Kennurken/qalqan-ai/releases)
+[![License](https://img.shields.io/github/license/Kennurken/qalqan-ai?style=flat-square)](LICENSE)
+
+<p align="center">
+  <img src="docs/screenshots/landing.png" width="49%" alt="Qalqan AI landing page with live URL check">
+  <img src="docs/screenshots/dashboard.png" width="49%" alt="Regulator dashboard with Kazakhstan regional threat map">
+</p>
 
 ---
 
